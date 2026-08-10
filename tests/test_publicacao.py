@@ -6,7 +6,7 @@ WORKFLOW = RAIZ / ".github" / "workflows" / "static.yml"
 
 EXCLUSOES_OBRIGATORIAS = [
     ".git", ".github", ".claude", "tools", "tests", "docs", "pdf",
-    "node_modules", "CLAUDE.md",
+    "node_modules", "CLAUDE.md", "_site",
 ]
 
 
