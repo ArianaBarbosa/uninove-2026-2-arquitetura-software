@@ -212,12 +212,6 @@ institucional da Uninove.
 de commits do próprio aluno, publicado via Docker Compose em GitHub
 Codespaces com a porta encaminhada em modo público.
 
-### 7.2 Frequência
-
-Segue o regulamento institucional da Uninove. Como os entregáveis nascem
-dentro da aula, a ausência custa não apenas presença, mas também o checkpoint
-daquele encontro.
-
 ## 8. Bibliografia
 
 ### 8.1 Capítulos do AVA
@@ -227,7 +221,7 @@ de autoria do **Prof. Paulo Ricardo Batista Mesquita**, publicados no Ambiente
 Virtual de Aprendizagem da Uninove.
 
 1. MESQUITA, Paulo Ricardo Batista. Capítulo 01: Padrões de projeto e
-   frameworks, origem e distinção. Arquitetura de Software. AVA, Uninove.
+   frameworks: origem e distinção. Arquitetura de Software. AVA, Uninove.
 2. MESQUITA, Paulo Ricardo Batista. Capítulo 02: Sistemas colaborativos.
    Arquitetura de Software. AVA, Uninove.
 3. MESQUITA, Paulo Ricardo Batista. Capítulo 03: Arquitetura de sistemas
@@ -241,12 +235,12 @@ Virtual de Aprendizagem da Uninove.
 7. MESQUITA, Paulo Ricardo Batista. Capítulo 07: Servidores de aplicação e a
    plataforma Java EE. Arquitetura de Software. AVA, Uninove.
 8. MESQUITA, Paulo Ricardo Batista. Capítulo 08: Metadados para troca de
-   dados, XML e JSON. Arquitetura de Software. AVA, Uninove.
-9. MESQUITA, Paulo Ricardo Batista. Capítulo 09: Objetos remotos, RMI, SOAP e
+   dados: XML e JSON. Arquitetura de Software. AVA, Uninove.
+9. MESQUITA, Paulo Ricardo Batista. Capítulo 09: Objetos remotos: RMI, SOAP e
    REST. Arquitetura de Software. AVA, Uninove.
 10. MESQUITA, Paulo Ricardo Batista. Capítulo 10: Design Patterns. Arquitetura
     de Software. AVA, Uninove.
-11. MESQUITA, Paulo Ricardo Batista. Capítulo 11: Frameworks, anatomia e
+11. MESQUITA, Paulo Ricardo Batista. Capítulo 11: Frameworks: anatomia e
     inversão de controle. Arquitetura de Software. AVA, Uninove.
 12. MESQUITA, Paulo Ricardo Batista. Capítulo 12: Frameworks para aplicativos
     web. Arquitetura de Software. AVA, Uninove.
@@ -260,7 +254,7 @@ Virtual de Aprendizagem da Uninove.
     3 camadas. Arquitetura de Software. AVA, Uninove.
 17. MESQUITA, Paulo Ricardo Batista. Capítulo 17: Hibernate e JavaServer
     Faces. Arquitetura de Software. AVA, Uninove.
-18. MESQUITA, Paulo Ricardo Batista. Capítulo 18: Montagem de uma aplicação
+18. MESQUITA, Paulo Ricardo Batista. Capítulo 18: Montagem da aplicação
     distribuída. Arquitetura de Software. AVA, Uninove.
 
 ### 8.2 Complementar
