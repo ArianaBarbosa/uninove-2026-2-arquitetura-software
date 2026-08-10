@@ -106,6 +106,16 @@ Duas regras de código valem em todas as aulas: **nunca fixar porta de
 terminal imprimiu"; e senha e segredo vão para variável de ambiente, com `.env`
 no `.gitignore` desde a Aula 01.
 
+**A ferramenta de diagrama é o Mermaid**, e a regra vale da Aula 04 em diante:
+todo diagrama entregue pelo aluno é um bloco Mermaid dentro de um arquivo `.md`
+em `docs/diagramas/` do fork. O motivo é operacional, e não estético: o GitHub
+renderiza bloco Mermaid direto na página do arquivo, então o aluno confere o
+próprio trabalho e o professor corrige sem instalar nada e sem imagem
+exportada para manter em dia. Também é a convenção de pacotes fixada na Aula
+05 que vale o semestre inteiro: `br.uni9.rotasul.<contexto>.<camada>`, com os
+contextos `pedido`, `expedicao` e `rastreamento`, e as camadas `web`,
+`service`, `repository` e `domain`.
+
 ## O Módulo 1 é conceitual
 
 Nenhuma das Aulas 01 a 05 tem laboratório de código de aplicação. Os ciclos 3 e
@@ -717,6 +727,16 @@ presença delas muda nos requisitos do software.
   FUCKS [2], a obra que o próprio capítulo indica como referência. O modelo
   separa a colaboração em três dimensões:
 
+  > **Nota para o professor.** O modelo 3C **não aparece no capítulo 02 do
+  > AVA**: o capítulo trata de groupware, dos exemplos de sistema colaborativo
+  > e dos requisitos funcionais e não funcionais, e não usa os termos
+  > comunicação, coordenação e cooperação como modelo. O 3C entra aqui vindo de
+  > PIMENTEL e FUCKS, *Sistemas Colaborativos*, que é a única referência
+  > bibliográfica listada pelo próprio capítulo. Dizer isso à turma ao
+  > apresentar o modelo evita a pergunta "em que página do AVA está isso?" sem
+  > resposta. Pela mesma razão, o quiz de hoje cobra conteúdo do capítulo, e
+  > não o 3C.
+
   - **Comunicação.** Troca de mensagens e de informação entre as pessoas.
     Exemplo na Rota Sul: o atendente liga para o motorista perguntando onde
     está o volume.
@@ -854,12 +874,12 @@ descartes justificados. Critério de aceitação: nenhuma linha sem a coluna
 **Capítulo do AVA:** `pdf/003.pdf`, Arquitetura de Sistemas Colaborativos
 **Entregável:** o arquivo `docs/arquitetura-colaborativa.md` no fork, com a
 escolha justificada de um dos três modelos de arquitetura para a Rota Sul, mais
-dois diagramas em `docs/diagramas/`, um de componentes e um de implantação, com
-o arquivo `.puml` e a imagem exportada de cada um. Critério de aceitação: o
+dois diagramas em `docs/diagramas/`, um de componentes e um de implantação,
+cada um em um arquivo `.md` com bloco Mermaid. Critério de aceitação: o
 diagrama de componentes com no mínimo quatro componentes e as interfaces entre
-eles, o de implantação com no mínimo três nós, e a justificativa da escolha
-citando pelo menos duas das seis características de sistemas distribuídos do
-capítulo.
+eles, o de implantação com no mínimo três nós, os dois renderizando na página
+do fork no GitHub, e a justificativa da escolha citando pelo menos duas das
+seis características de sistemas distribuídos do capítulo.
 
 ### Retomada, 5 minutos
 
@@ -1061,10 +1081,14 @@ Laboratório de modelagem. Sem código de aplicação. Os diagramas de hoje são
 **esboços de arquitetura**: a notação UML é formalizada na Aula 05, e o que se
 cobra agora é a decisão, não o rigor de notação.
 
-A ferramenta é o PlantUML, escolhida porque o diagrama fica em arquivo de texto
-versionável no fork, ao lado do código, e porque pode ser desenhado no
-navegador sem instalar nada. Quem já tiver a extensão de PlantUML na IDE usa a
-IDE; quem não tiver usa o editor on-line e salva a imagem exportada no fork.
+A ferramenta é o **Mermaid**, e a escolha tem um motivo prático: o diagrama é
+texto, versionável no fork ao lado do código, e o **GitHub renderiza o bloco
+Mermaid direto na página do arquivo `.md`**, sem instalar nada e sem gerar
+imagem. O aluno confere o próprio trabalho abrindo o fork no navegador, e o
+professor corrige do mesmo jeito. Por isso cada diagrama é um arquivo `.md` com
+um bloco ```` ```mermaid ```` dentro, e não há imagem exportada para manter em
+dia. A convenção da disciplina, válida da Aula 04 até a Aula 19: **todo
+diagrama do fork é um bloco Mermaid dentro de um `.md` em `docs/diagramas/`.**
 
 1. **Preparar a pasta.** Criar `docs/diagramas/` no fork.
 2. **Listar os componentes.** Antes de desenhar, escrever numa folha os
@@ -1075,40 +1099,69 @@ IDE; quem não tiver usa o editor on-line e salva a imagem exportada no fork.
    não são coincidência: eles reaparecem na Aula 19 como quatro processos
    separados.
 3. **Desenhar o diagrama de componentes.** Criar
-   `docs/diagramas/componentes.puml`. Cada componente é um retângulo, e entre
-   eles ficam as interfaces, isto é, o que um componente oferece ao outro. A
-   pergunta que orienta cada seta é: **que informação passa daqui para lá, e
-   quem depende de quem?** O esqueleto mínimo, para o professor projetar:
+   `docs/diagramas/componentes.md`, com um título de primeiro nível e um bloco
+   Mermaid do tipo `flowchart`. Cada componente é um nó retangular, e cada seta
+   é rotulada com o que passa de um componente para o outro. A pergunta que
+   orienta cada seta é: **que informação passa daqui para lá, e quem depende de
+   quem?** O esqueleto mínimo, para o professor projetar:
 
+   ````
+   ```mermaid
+   flowchart LR
+     pedidos["Recebimento de pedidos"]
+     expedicao["Montagem de remessas"]
+     rastreamento["Rastreamento e ocorrências"]
+     parceiros["Integração com parceiros"]
+     pedidos -->|pedido validado| expedicao
+     expedicao -->|remessa criada| rastreamento
+     expedicao -->|volume da última milha| parceiros
+     parceiros -->|evento de entrega| rastreamento
    ```
-   @startuml
-   component "Recebimento de pedidos" as pedidos
-   component "Montagem de remessas" as expedicao
-   component "Rastreamento e ocorrências" as rastreamento
-   component "Integração com parceiros" as parceiros
-   pedidos --> expedicao : pedido validado
-   expedicao --> rastreamento : remessa criada
-   expedicao --> parceiros : volume da última milha
-   parceiros --> rastreamento : evento de entrega
-   @enduml
-   ```
+   ````
 
    Cada aluno adapta esse esqueleto ao que ele mesmo mapeou, e precisa
    acrescentar pelo menos uma seta que não esteja no exemplo.
-4. **Exportar e salvar.** Gerar a imagem e salvar como
-   `docs/diagramas/componentes.png`, ao lado do `.puml`. O arquivo de texto é o
-   que se versiona de verdade; a imagem existe para quem for ler o repositório
-   pelo navegador.
+4. **Conferir a renderização.** Fazer um commit e abrir o arquivo na página do
+   fork no GitHub. O diagrama precisa aparecer desenhado, não como texto. Bloco
+   que não renderiza quase sempre tem erro de sintaxe na primeira linha, um
+   acento dentro de identificador de nó em vez de dentro do rótulo entre aspas,
+   ou a palavra `end` usada como identificador, que é reservada no Mermaid.
 
 ### Ciclo 4, 21h25 às 21h50
 
 5. **Desenhar o diagrama de implantação.** Criar
-   `docs/diagramas/implantacao.puml`. Aqui a pergunta muda: não é mais quem
-   depende de quem, é **onde cada coisa roda**. Mínimo de três nós. Exemplo de
-   partida: o navegador do atendente e do expedidor, o dispositivo móvel do
-   motorista, o servidor de aplicação, o servidor de banco de dados e o sistema
-   do parceiro, que roda fora da Rota Sul. Marcar em cada ligação entre nós se
-   a comunicação é síncrona ou assíncrona, usando a definição formal do Ciclo 1.
+   `docs/diagramas/implantacao.md`, também com um bloco Mermaid do tipo
+   `flowchart`. Aqui a pergunta muda: não é mais quem depende de quem, é **onde
+   cada coisa roda**. Cada nó de implantação vira um `subgraph`, e o que roda
+   dentro dele vira um nó. Mínimo de três nós. Exemplo de partida: o navegador
+   do atendente e do expedidor, o dispositivo móvel do motorista, o servidor de
+   aplicação, o servidor de banco de dados e o sistema do parceiro, que roda
+   fora da Rota Sul. Marcar em cada ligação se a comunicação é síncrona ou
+   assíncrona, usando a definição formal do Ciclo 1. O esqueleto mínimo:
+
+   ````
+   ```mermaid
+   flowchart TB
+     subgraph navegador["Navegador do atendente e do expedidor"]
+       telaWeb["Telas da Rota Sul"]
+     end
+     subgraph celular["Dispositivo móvel do motorista"]
+       appRota["Aplicativo de rota"]
+     end
+     subgraph servidorApp["Servidor de aplicação"]
+       aplicacao["Rota Sul, Spring Boot"]
+     end
+     subgraph servidorBanco["Servidor de banco de dados"]
+       banco[("MySQL 8.4")]
+     end
+     sistemaParceiro["Sistema do parceiro, fora da Rota Sul"]
+     telaWeb -->|HTTP, síncrono| aplicacao
+     appRota -->|HTTP, síncrono| aplicacao
+     aplicacao -->|JDBC, síncrono| banco
+     aplicacao -->|integração, assíncrono| sistemaParceiro
+   ```
+   ````
+
 6. **Escrever a decisão.** Criar `docs/arquitetura-colaborativa.md` com três
    seções: `## Modelo escolhido`, com um dos três, centralizada,
    descentralizada ou híbrida; `## Justificativa`, citando **pelo menos duas**
@@ -1119,12 +1172,13 @@ IDE; quem não tiver usa o editor on-line e salva a imagem exportada no fork.
    Aula 02, com o modelo de arquitetura escolhido hoje. O inventário é vivo, e
    é assim que ele cresce.
 
-**Entregável do dia:** `docs/arquitetura-colaborativa.md` mais os quatro
-arquivos em `docs/diagramas/`, dois `.puml` e duas imagens. Critério de
-aceitação: diagrama de componentes com no mínimo quatro componentes e as
-interfaces entre eles; diagrama de implantação com no mínimo três nós e as
-ligações marcadas como síncronas ou assíncronas; justificativa citando pelo
-menos duas das seis características do capítulo.
+**Entregável do dia:** `docs/arquitetura-colaborativa.md` mais os dois arquivos
+em `docs/diagramas/`, `componentes.md` e `implantacao.md`, cada um com o seu
+bloco Mermaid. Critério de aceitação: os dois diagramas renderizando na página
+do fork no GitHub; componentes com no mínimo quatro componentes e as interfaces
+entre eles; implantação com no mínimo três nós e as ligações marcadas como
+síncronas ou assíncronas; justificativa citando pelo menos duas das seis
+características do capítulo.
 
 ### Fechamento, 21h50 às 22h00
 
@@ -1144,7 +1198,7 @@ menos duas das seis características do capítulo.
    aula, `pdf/003.pdf`.
 2. PIMENTEL, Mariano; FUCKS, Hugo. **Sistemas Colaborativos.** Rio de Janeiro:
    Campus, 2011. Referência indicada pelo capítulo.
-3. PlantUML. **Documentação da linguagem.** <https://plantuml.com/pt/>
+3. Mermaid. **Documentação oficial.** <https://mermaid.js.org/>
 4. `docs/colaboracao.md` do fork do aluno, entregável da Aula 03, usado como
    ponto de partida da lista de componentes.
 
@@ -1154,13 +1208,13 @@ menos duas das seis características do capítulo.
 
 **Módulo:** M1, Fundamentos e sistemas colaborativos
 **Capítulo do AVA:** `pdf/004.pdf`, Arquitetura de Software
-**Entregável:** dois diagramas UML formalizados em `docs/diagramas/`, um de
-classes do domínio e um de pacotes, cada um com o arquivo `.puml` e a imagem
-exportada, mais a revisão do diagrama de componentes da Aula 04 com a notação
-correta. Critério de aceitação: o diagrama de classes contendo as nove
-entidades do case com atributos e relacionamentos com multiplicidade, e o
-diagrama de pacotes refletindo a estrutura `br.uni9.rotasul` que a Aula 06 vai
-usar para escrever código.
+**Entregável:** dois diagramas formalizados em `docs/diagramas/`, um de classes
+do domínio e um de pacotes, cada um em um arquivo `.md` com bloco Mermaid, mais
+a revisão do diagrama de componentes da Aula 04. Critério de aceitação: o
+diagrama de classes contendo as nove entidades do case com atributos e
+relacionamentos com multiplicidade, o diagrama de pacotes refletindo a
+estrutura `br.uni9.rotasul` que a Aula 06 vai usar para escrever código, e os
+três arquivos renderizando na página do fork no GitHub.
 
 ### Retomada, 5 minutos
 
@@ -1321,13 +1375,18 @@ desenhou e para mais ninguém.
   | Como o código está agrupado logicamente? | Pacotes |
   | Como uma funcionalidade específica é montada por dentro? | Estrutura composta |
 
-- **Demonstração no projetor.** Reescrever ao vivo, em PlantUML, o esboço de
-  componentes da Aula 04 usando a notação correta: `component` para componente,
-  `interface` para o que ele oferece, e a seta de dependência. Em seguida,
-  desenhar do zero um diagrama de classes com duas entidades do case, `Remessa`
-  e `Volume`, com atributos, tipos e a multiplicidade `1..*` entre elas.
-  Mostrar como a multiplicidade responde uma pergunta que o esboço da semana
-  passada não respondia.
+- **Demonstração no projetor.** Reescrever ao vivo, em Mermaid, o esboço de
+  componentes da Aula 04, aplicando a convenção que a turma passa a seguir:
+  cada aresta deixa de ter texto livre e passa a ser rotulada com **a interface
+  que o componente de destino oferece**, no formato `nomeDaOperacao`. Dizer em
+  voz alta a limitação da ferramenta, para ninguém confundir ferramenta com
+  notação: o Mermaid não tem diagrama de componentes nem de implantação da UML,
+  e por isso os dois são desenhados como `flowchart`, com a convenção acima
+  fazendo o papel da notação. O que a UML tem e o Mermaid também tem é o
+  diagrama de classes, e é ele que vem a seguir. Desenhar do zero, com
+  `classDiagram`, duas entidades do case, `Remessa` e `Volume`, com atributos,
+  tipos e a multiplicidade `1..*` entre elas. Mostrar como a multiplicidade
+  responde uma pergunta que o esboço da semana passada não respondia.
 
 - **Exercício curto.** Cinco minutos, em duplas. Para cada uma das quatro
   perguntas a seguir, dizer qual dos cinco diagramas responde: (a) uma
@@ -1370,20 +1429,23 @@ Continua sem código de aplicação, mas o que sai daqui é o desenho que a Aula
 vai transformar em pacote Java.
 
 1. **Revisar o diagrama de componentes.** Abrir
-   `docs/diagramas/componentes.puml`, da Aula 04, e corrigir a notação: usar
-   `component` para cada componente e declarar explicitamente as interfaces
-   oferecidas, em vez de setas soltas com texto. Salvar por cima e exportar a
-   imagem de novo. O histórico do Git guarda a versão anterior, e é ele que
-   mostra a evolução do aluno.
+   `docs/diagramas/componentes.md`, da Aula 04, e aplicar a convenção do Ciclo
+   2: cada aresta passa a ser rotulada com **a interface oferecida pelo
+   componente de destino**, no formato `nomeDaOperacao`, em vez de texto livre
+   descrevendo o que passa. Exemplo: a aresta que ia rotulada
+   `pedido validado` passa a ser `receberPedidoValidado`. Salvar por cima. O
+   histórico do Git guarda a versão anterior, e é ele que mostra a evolução do
+   aluno.
 2. **Listar as classes do domínio.** Escrever as nove entidades do case:
    `Cliente`, `Pedido`, `Remessa`, `Volume`, `Rota`, `Veiculo`, `Motorista`,
    `Ocorrencia` e `Parceiro`. Para cada uma, no mínimo três atributos com tipo.
    Sem métodos por enquanto: o comportamento entra na Aula 06, quando as
    camadas aparecem.
 3. **Desenhar o diagrama de classes.** Criar
-   `docs/diagramas/classes-dominio.puml`. Toda associação precisa de
-   multiplicidade nas duas pontas. As decisões que a turma precisa tomar
-   explicitamente, e que o professor circula perguntando:
+   `docs/diagramas/classes-dominio.md`, com um bloco Mermaid do tipo
+   `classDiagram`. Toda associação precisa de multiplicidade nas duas pontas.
+   As decisões que a turma precisa tomar explicitamente, e que o professor
+   circula perguntando:
    - um `Pedido` gera uma ou várias `Remessa`?
    - uma `Remessa` tem quantos `Volume`?
    - uma `Ocorrencia` se liga ao `Volume`, à `Remessa` ou aos dois?
@@ -1393,48 +1455,58 @@ vai transformar em pacote Java.
 
    Esqueleto de partida, para o professor projetar:
 
+   ````
+   ```mermaid
+   classDiagram
+     class Pedido {
+       +Long id
+       +LocalDateTime criadoEm
+       +String situacao
+     }
+     class Remessa {
+       +Long id
+       +String codigoRastreio
+     }
+     class Volume {
+       +Long id
+       +BigDecimal pesoKg
+     }
+     Pedido "1" --> "1..*" Remessa
+     Remessa "1" --> "1..*" Volume
    ```
-   @startuml
-   class Pedido {
-     +Long id
-     +LocalDateTime criadoEm
-     +String situacao
-   }
-   class Remessa {
-     +Long id
-     +String codigoRastreio
-   }
-   class Volume {
-     +Long id
-     +BigDecimal pesoKg
-   }
-   Pedido "1" -- "1..*" Remessa
-   Remessa "1" -- "1..*" Volume
-   @enduml
-   ```
+   ````
 
-4. **Exportar.** Gerar `docs/diagramas/classes-dominio.png` ao lado do `.puml`.
+4. **Conferir a renderização.** Commitar e abrir `classes-dominio.md` na página
+   do fork no GitHub. As nove classes precisam aparecer desenhadas, com os
+   atributos dentro de cada caixa e a multiplicidade nas pontas das
+   associações.
 
 ### Ciclo 4, 21h25 às 21h50
 
-5. **Desenhar o diagrama de pacotes.** Criar `docs/diagramas/pacotes.puml`. A
+5. **Desenhar o diagrama de pacotes.** Criar `docs/diagramas/pacotes.md`. O
+   Mermaid não tem diagrama de pacotes, então o agrupamento lógico é
+   representado com `flowchart` e `subgraph`, um `subgraph` por pacote. A
    estrutura é a que a Aula 06 vai criar de verdade no código, e por isso os
    nomes são fixados agora e não mudam:
 
+   ````
+   ```mermaid
+   flowchart TB
+     subgraph raiz["br.uni9.rotasul"]
+       subgraph ctxPedido["pedido"]
+         camadaWeb["pedido.web"]
+         camadaService["pedido.service"]
+         camadaRepository["pedido.repository"]
+         camadaDomain["pedido.domain"]
+       end
+       ctxExpedicao["expedicao"]
+       ctxRastreamento["rastreamento"]
+     end
+     camadaWeb --> camadaService
+     camadaService --> camadaRepository
+     camadaService --> camadaDomain
    ```
-   @startuml
-   package "br.uni9.rotasul" {
-     package "pedido" {
-       package "pedido.web" {}
-       package "pedido.service" {}
-       package "pedido.repository" {}
-       package "pedido.domain" {}
-     }
-     package "expedicao" {}
-     package "rastreamento" {}
-   }
-   @enduml
-   ```
+   ````
 
    A convenção do semestre, que precisa ir para o slide: **contexto primeiro,
    camada depois**, no formato `br.uni9.rotasul.<contexto>.<camada>`. Os
@@ -1449,21 +1521,22 @@ vai transformar em pacote Java.
    registrando a convenção de pacotes escolhida, com a justificativa da direção
    das dependências.
 
-**Entregável do dia:** `docs/diagramas/classes-dominio.puml` e
-`docs/diagramas/pacotes.puml`, com as imagens exportadas, mais o
-`componentes.puml` revisado. Critério de aceitação: as nove entidades presentes
-no diagrama de classes, todas com atributos tipados e todas as associações com
-multiplicidade nas duas pontas; o diagrama de pacotes com os três contextos e
-as quatro camadas, e as dependências apontando de `web` para `service` e de
-`service` para `repository`.
+**Entregável do dia:** `docs/diagramas/classes-dominio.md` e
+`docs/diagramas/pacotes.md`, mais o `componentes.md` revisado. Critério de
+aceitação: os três renderizando na página do fork no GitHub; as nove entidades
+presentes no diagrama de classes, todas com atributos tipados e todas as
+associações com multiplicidade nas duas pontas; o diagrama de pacotes com os
+três contextos e as quatro camadas, e as dependências apontando de `web` para
+`service` e de `service` para `repository`.
 
 ### Fechamento, 21h50 às 22h00
 
 - `git add docs/diagramas docs/decisoes.md`
 - `git commit -m "docs(uml): formaliza classes do domínio e pacotes da Rota Sul"`
 - `git push`
-- Abrir o fork no navegador e conferir que as imagens aparecem. Diagrama que
-  ninguém consegue abrir não documenta nada.
+- Abrir os três arquivos de `docs/diagramas/` na página do fork no GitHub e
+  conferir que os blocos Mermaid aparecem desenhados. Diagrama que só existe
+  como texto cru não documenta nada.
 - **Prévia da Aula 06.** O diagrama de pacotes de hoje tem três camadas
   desenhadas e nenhuma linha de código dentro. Na próxima aula essas camadas
   viram código: `web`, `service` e `repository`, com o primeiro endpoint da
@@ -1483,7 +1556,7 @@ as quatro camadas, e as dependências apontando de `web` para `service` e de
    citado pelo capítulo como mantenedor da especificação.
 5. SEI, Carnegie Mellon University. <https://www.sei.cmu.edu/>, citado pelo
    capítulo como centro de referência em arquitetura de software.
-6. PlantUML. **Documentação da linguagem.** <https://plantuml.com/pt/>
+6. Mermaid. **Documentação oficial.** <https://mermaid.js.org/>
 
 ---
 
@@ -1502,8 +1575,8 @@ passando com `./mvnw test` e a saída de `GET /pedidos` colada no commit ou no
 
 ### Retomada, 5 minutos
 
-Na Aula 05 cada aluno entregou `docs/diagramas/pacotes.puml`, com os três
-contextos e as quatro camadas, e `docs/diagramas/classes-dominio.puml`, com as
+Na Aula 05 cada aluno entregou `docs/diagramas/pacotes.md`, com os três
+contextos e as quatro camadas, e `docs/diagramas/classes-dominio.md`, com as
 nove entidades. Projetar o diagrama de pacotes e dizer o que vai acontecer
 hoje: aqueles retângulos viram diretórios de verdade dentro de
 `src/main/java/br/uni9/rotasul`, e a seta que vai de `web` para `service` vira
@@ -1570,7 +1643,7 @@ aplicação.
      semelhantes dentro de camadas de serviço**, para facilitar a modelagem da
      arquitetura. É exatamente daí que sai o assunto do Ciclo 2.
 
-- **Demonstração no projetor.** Abrir o `docs/diagramas/componentes.puml` da
+- **Demonstração no projetor.** Abrir o `docs/diagramas/componentes.md` da
   Aula 05 e apontar o componente de integração com parceiros. Perguntar à
   turma: se esse componente não responder, o que acontece com o resto? Marcar
   no diagrama, com um comentário, que essa é uma dependência que não pode
@@ -1689,7 +1762,7 @@ nomes de convenção do framework em inglês, nomes de domínio em português.
 1. **Criar os pacotes.** Dentro de `src/main/java/br/uni9/rotasul/`, criar
    `pedido/domain`, `pedido/repository`, `pedido/service` e `pedido/web`. São
    quatro diretórios, e eles correspondem um a um às caixas do
-   `docs/diagramas/pacotes.puml`.
+   `docs/diagramas/pacotes.md`.
 2. **Escrever o domínio.** Em `pedido/domain`, criar a classe `Pedido` com os
    atributos que o aluno já definiu no diagrama de classes da Aula 05, no
    mínimo `id`, `cliente`, `descricao` e `situacao`, com construtor e
