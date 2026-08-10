@@ -230,16 +230,21 @@ RAIZ = pathlib.Path(__file__).resolve().parents[1]
 ASSETS = RAIZ / "aulas-1sem" / "assets"
 TEMA = ASSETS / "css" / "uninove-theme.css"
 
+# As 47 classes do bloco "Produces" desta task, sem excecao. Este teste e o que
+# guarda o contrato que os 20 decks consomem: classe de fora da lista pode sumir
+# do tema sem ninguem perceber, e o deck quebra so na projecao.
 CLASSES_OBRIGATORIAS = [
     "cover-slide", "title-slide", "content-slide", "section-slide",
     "quiz-slide", "exercise-slide", "end-slide", "slide-title-area",
     "accent-bar", "top-bar", "uninove-logo-header", "uninove-logo-full",
     "title-card", "lesson-bar", "slide-footer", "footer-bar", "footer-page",
-    "concept-cards", "concept-card", "side-by-side", "figure-split",
-    "slide-figure", "timeline", "takeaway", "takeaway-label", "callout",
-    "flow-diagram", "exercise-container", "exercise-steps", "code-compact",
-    "ref-badge", "decor-coral", "quiz-container", "quiz-question",
-    "quiz-options", "option-letter", "option-text", "quiz-feedback",
+    "concept-cards", "concept-card", "side-by-side", "side", "figure-split",
+    "slide-figure", "timeline", "tl-item", "tl-dot", "tl-year", "tl-tool",
+    "tl-desc", "is-past", "takeaway", "takeaway-label", "callout",
+    "flow-diagram", "flow-item", "flow-arrow", "exercise-container",
+    "exercise-steps", "code-compact", "ref-badge", "decor-coral",
+    "quiz-container", "quiz-question", "quiz-options", "option-letter",
+    "option-text", "quiz-feedback",
 ]
 
 ARQUIVOS_OBRIGATORIOS = [
@@ -268,7 +273,7 @@ def test_todas_as_classes_do_deck_existem_no_tema():
 def test_tema_nao_referencia_turmas():
     css = TEMA.read_text(encoding="utf-8")
     assert "turma" not in css.lower(), (
-        "este acervo nao tem resolucao de turma; o tema nao deve mencionar turma"
+        "este acervo não tem resolução de turma; o tema não deve mencionar turma"
     )
 ```
 
