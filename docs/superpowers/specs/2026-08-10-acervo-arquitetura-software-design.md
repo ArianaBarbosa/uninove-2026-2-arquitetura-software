@@ -119,7 +119,14 @@ Ele sustenta os três eixos da disciplina sem forçar nenhum:
 - **Colaborativo**, para as Aulas 03 e 04. Expedidor, motorista, atendente e
   parceiro coordenam a mesma entrega. O painel de ocorrências compartilhado é
   cooperação síncrona; a fila de eventos entre serviços é coordenação
-  assíncrona. O modelo 3C dos capítulos 02 e 03 tem onde aterrissar.
+  assíncrona. O modelo 3C tem onde aterrissar.
+
+  **Correção de 10/08/2026:** esta seção afirmava que o modelo 3C vinha "dos
+  capítulos 02 e 03". Não vem. Os dois capítulos foram lidos por inteiro durante
+  a Task 4 e nenhum deles apresenta o modelo. O 3C entra pela bibliografia do
+  próprio capítulo 02, que cita Pimentel e Fucks, referência canônica de sistemas
+  colaborativos no Brasil. A ancoragem é legítima e rastreável, mas o aluno não
+  encontrará o 3C lendo o capítulo do AVA, e o material precisa dizer isso.
 - **Distribuído e integrado**, para as Aulas 07 a 10. Serviços separados
   conversando por REST, um parceiro legado que só aceita SOAP com XML, e
   contratos de dados explícitos.
