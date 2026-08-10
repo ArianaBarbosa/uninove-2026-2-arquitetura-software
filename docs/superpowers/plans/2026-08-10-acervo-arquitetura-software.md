@@ -1456,8 +1456,27 @@ As Tasks 15 a 33 são a mesma sequência de passos, com parâmetros diferentes. 
 |---|---|---|---|---|---|---|
 | 15 | 02 | M1 | Padrões de projeto e frameworks: origem e distinção | `pdf/001.pdf` | Inventariar os frameworks e padrões que a Rota Sul vai usar, com a justificativa de cada escolha | `docs/decisoes.md` no fork, com uma linha por escolha e o motivo |
 | 16 | 03 | M1 | Sistemas colaborativos | `pdf/002.pdf` | Mapear as interações da Rota Sul no modelo 3C, marcando o que é síncrono e o que é assíncrono | `docs/colaboracao-3c.md` com a tabela das interações classificadas |
-| 17 | 04 | M1 | Arquitetura de sistemas colaborativos | `pdf/003.pdf` | Desenhar a arquitetura colaborativa em diagrama de componentes e de implantação | `docs/arquitetura/componentes.md` com os dois diagramas em Mermaid |
-| 18 | 05 | M1 | Arquitetura de software e representação em UML | `pdf/004.pdf` | Formalizar os diagramas estruturais: classes do domínio e pacotes | `docs/arquitetura/dominio.md` com as 9 entidades e os pacotes |
+| 17 | 04 | M1 | Arquitetura de sistemas colaborativos | `pdf/003.pdf` | Desenhar a arquitetura colaborativa em diagrama de componentes e de implantação | `docs/arquitetura/componentes.puml` com os dois diagramas, mais `componentes.md` embutindo a imagem pelo proxy do PlantUML |
+| 18 | 05 | M1 | Arquitetura de software e representação em UML | `pdf/004.pdf` | Formalizar os diagramas estruturais: classes do domínio e pacotes | `docs/arquitetura/dominio.puml` com as 9 entidades e os pacotes, mais `dominio.md` embutindo a imagem pelo proxy do PlantUML |
+
+**Ferramenta de diagrama, decidida pelo professor em 10/08/2026: PlantUML,
+renderizado no GitHub pelo proxy oficial.** A disciplina ensina representação em
+UML, e o Mermaid só tem diagrama de classes nativo: componentes, implantação e
+pacotes virariam fluxograma com convenção inventada, o que confunde ferramenta
+com notação numa aula que existe justamente para ensinar a notação. O PlantUML
+tem as quatro notações nativas.
+
+O aluno versiona o `.puml` e embute a imagem no `.md` irmão assim, com o caminho
+apontando para o `raw` do próprio fork:
+
+```markdown
+![Diagrama de componentes da Rota Sul](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/SEU_USUARIO/uninove-2026-2-rota-sul/main/docs/arquitetura/componentes.puml)
+```
+
+Duas coisas que o material precisa dizer em voz alta: a imagem depende de um
+serviço externo, o `plantuml.com`, e por isso some se o serviço cair; e o
+`.puml` precisa estar num repositório público, senão o proxy não consegue ler a
+fonte e a imagem quebra.
 | 19 | 06 | M1 | Arquitetura em 3 camadas e a evolução do MVC | `pdf/005.pdf` | Primeiro código: `PedidoController`, `PedidoService` e `PedidoRepository` em memória, com view Thymeleaf | Tela que lista pedidos, servida pelas três camadas separadas |
 | 20 | 07 | M2 | Arquitetura orientada a serviços, SOA | `pdf/006.pdf` | Separar contrato de implementação: interface `PedidoService` com duas implementações trocáveis por perfil | Teste JUnit que roda a mesma suíte contra as duas implementações |
 | 21 | 08 | M2 | Servidores de aplicação e a plataforma Java EE | `pdf/007.pdf` | Empacotar em JAR executável e comparar com o modelo WAR em servidor de aplicação | JAR rodando com `java -jar` e `docs/empacotamento.md` com a comparação |
