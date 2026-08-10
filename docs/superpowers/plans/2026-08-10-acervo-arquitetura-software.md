@@ -99,9 +99,12 @@ import pathlib
 RAIZ = pathlib.Path(__file__).resolve().parents[1]
 WORKFLOW = RAIZ / ".github" / "workflows" / "static.yml"
 
+# Precisa ser a lista completa do Step 7. Uma exclusao que esta no workflow mas
+# nao esta aqui pode ser removida do workflow sem o teste reclamar, e material de
+# trabalho vaza para o site publicado.
 EXCLUSOES_OBRIGATORIAS = [
     ".git", ".github", ".claude", "tools", "tests", "docs", "pdf",
-    "node_modules", "CLAUDE.md",
+    "node_modules", ".superpowers", "shots", "CLAUDE.md", "_site",
 ]
 
 
@@ -172,7 +175,7 @@ Conteúdo inicial: seção "Ordem de leitura ao abrir uma sessão" apontando par
 
 - [ ] **Step 7: Criar o `.github/workflows/static.yml`**
 
-Copiar de `ACERVO_DW/.github/workflows/static.yml` e ajustar a lista de exclusões do `rsync` para exatamente: `.git`, `.github`, `.claude`, `tools`, `tests`, `docs`, `pdf`, `node_modules`, `.superpowers`, `shots`, `CLAUDE.md`. Manter o passo que roda `find _site -type l` e falha o build se houver saída.
+Copiar de `ACERVO_DW/.github/workflows/static.yml` e ajustar a lista de exclusões do `rsync` para exatamente: `.git`, `.github`, `.claude`, `tools`, `tests`, `docs`, `pdf`, `node_modules`, `.superpowers`, `shots`, `CLAUDE.md`, `_site`. São doze, as mesmas doze do `EXCLUSOES_OBRIGATORIAS` do Step 1. O `_site` precisa excluir a si mesmo, senão o `rsync` copia o diretório de destino para dentro dele próprio. Manter o passo que roda `find _site -type l` e falha o build se houver saída.
 
 - [ ] **Step 8: Rodar o teste e confirmar que passa**
 
