@@ -29,10 +29,18 @@ por pixel:
     definido (ADR-002). O acervo de Desenvolvimento Web resolve turma por
     código e exige uma data correta no deck; aqui não existe resolução de
     turma, então a regra correspondente é a oposta, reprovar qualquer data
-    escrita à mão.
+    escrita à mão;
+  - o caminho mais provável de uma data entrar num deck deste acervo não é
+    escrita à mão: é copiar um deck do acervo de Desenvolvimento Web trazendo
+    junto o atributo `data-data-da-aula` e a referência a
+    `assets/js/turmas.js` (SKILL.md seção 6 chama isso de "diferença número
+    um" entre os dois acervos). Nesse caso a data é injetada em tempo de
+    execução, não aparece como texto no HTML estático, e escaparia da
+    checagem de data escrita à mão se não houvesse uma checagem própria para
+    o atributo e para a referência ao script (ADR-002).
 
-AS OITO CHECAGENS
------------------
+AS ONZE CHECAGENS
+------------------
 1. Toda `section` com classe `content-slide`, `quiz-slide` ou `exercise-slide`
    tem um `<div class="decor-coral">`.
 2. Toda `quiz-slide` e `exercise-slide` também tem `content-slide` na lista de
@@ -49,9 +57,13 @@ AS OITO CHECAGENS
 7. Todo `src` e `href` relativo a arquivo local existe no disco. Diretório só
    conta como existente se tiver `index.html` dentro, porque é assim que o
    GitHub Pages se comporta.
-8. Nenhuma data escrita à mão, no formato `DD/MM/AAAA` ou por extenso, aparece
-   no texto do deck. Este acervo não tem resolução de turma nem calendário
-   fechado: nenhum deck exibe data (ADR-002).
+8. Nenhuma data escrita à mão, no formato `DD/MM/AAAA` (dia e mês com um ou
+   dois dígitos) ou por extenso, aparece no texto do deck (ADR-002).
+9. Nenhum elemento carrega o atributo `data-data-da-aula` (ADR-002).
+10. Nenhuma referência, em `src` ou em `import`, a `assets/js/turmas.js`
+    (ADR-002).
+11. Dentro de `aulas-1sem/aulas/`, o nome do arquivo segue `aulaXX.html`.
+    Fora dessa pasta, a checagem não se aplica.
 
 NUMERAÇÃO DOS SLIDES
 --------------------
@@ -103,7 +115,7 @@ def classes_de(attrs):
 
 
 class LeitorDeDeck(HTMLParser):
-    """Percorre o deck uma vez e recolhe tudo o que as oito checagens usam.
+    """Percorre o deck uma vez e recolhe tudo o que as checagens usam.
 
     As `section` dos decks nunca são aninhadas (o Reveal usa slides verticais
     aninhados, que este acervo não usa), então 'a seção atual' é sempre a
@@ -114,12 +126,13 @@ class LeitorDeDeck(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.secoes = []          # uma entrada por slide, em ordem de documento
         self.ids = set()
-        self.textos = []          # (texto, linha); usado pela checagem de data manual
+        self.textos = []          # (texto, linha); usado pelas checagens de data
         self.quizzes = []         # {'secao', 'linha', 'corretas'}
         self.ancoras = []         # (alvo, linha, secao)
         self.caminhos = []        # (atributo, valor, linha, secao)
         self.rodapes = []         # (valor_texto, linha, secao)
         self.alternativas = []    # {'secao', 'linha', 'soltos'}
+        self.atributos_data_da_aula = []  # linha de cada data-data-da-aula
         self._quiz_aberto = None
         self._capturando_rodape = None
         self._quiz_options_aberto = False
@@ -190,6 +203,13 @@ class LeitorDeDeck(HTMLParser):
         if attrs.get("data-correct") == "true" and self._quiz_aberto is not None:
             self._quiz_aberto["corretas"] += 1
 
+        # -- resolução de turma reintroduzida (checagem 9) ------------------
+        # Este acervo não tem resolução de turma (ADR-002). Se o atributo
+        # aparece em qualquer elemento, é sinal de deck copiado do acervo de
+        # Desenvolvimento Web sem remover o mecanismo.
+        if "data-data-da-aula" in attrs:
+            self.atributos_data_da_aula.append(linha)
+
         if "footer-page" in classes and not autofechada:
             self._capturando_rodape = {
                 "texto": [],
@@ -210,8 +230,12 @@ class LeitorDeDeck(HTMLParser):
     def handle_data(self, data):
         if self._capturando_rodape is not None:
             self._capturando_rodape["texto"].append(data)
-        # Texto colhido para a checagem 8 (data escrita à mão): guarda a linha
-        # de cada trecho não vazio, para a mensagem de erro citar a linha.
+        # Texto colhido para as checagens 8 e 10 (data escrita à mão e
+        # referência a turmas.js): guarda a linha de cada trecho não vazio,
+        # para a mensagem de erro citar a linha. `<script>` também cai aqui,
+        # porque o HTMLParser trata o conteúdo de `<script>` como dado, não
+        # como marcação, e é lá que um `import ... from ".../turmas.js"`
+        # apareceria.
         limpo = data.strip()
         if limpo:
             self.textos.append((limpo, self.getpos()[0]))
@@ -235,7 +259,7 @@ class LeitorDeDeck(HTMLParser):
             )
 
 
-# -- as oito checagens ---------------------------------------------------
+# -- as onze checagens -----------------------------------------------------
 def checar_decor_coral(leitor, erros, rotulo):
     for i, secao in enumerate(leitor.secoes):
         if not any(c in secao["classes"] for c in CLASSES_QUE_EXIGEM_DECOR):
@@ -383,7 +407,15 @@ def checar_caminhos_locais(leitor, caminho_do_deck, erros, rotulo):
 
 # Datas em deck envelhecem o material sem que ninguém perceba, e esta
 # disciplina não tem calendário definido. Ver ADR-002.
-PADRAO_DATA_NUMERICA = re.compile(r"\b\d{2}/\d{2}/\d{4}\b")
+#
+# `\d{1,2}` nos dois primeiros campos, não `\d{2}`: dia e mês de um dígito são
+# escrita brasileira comum ("2/8/2026", "12/8/2026"), e a versão anterior com
+# `\d{2}` fixo deixava passar exatamente esses formatos, que é o defeito mais
+# provável de aparecer. O sufixo obrigatório `/\d{4}` evita falso positivo em
+# proporção ("16/9"), fração ("2/3 dos casos") ou faixa numérica ("404/500",
+# "8080/8090", "50/50"): nenhum desses tem um segundo "/" seguido de quatro
+# dígitos.
+PADRAO_DATA_NUMERICA = re.compile(r"\b\d{1,2}/\d{1,2}/\d{4}\b")
 MESES = (
     "janeiro|fevereiro|marco|março|abril|maio|junho|julho|agosto|setembro|"
     "outubro|novembro|dezembro"
@@ -392,18 +424,87 @@ PADRAO_DATA_POR_EXTENSO = re.compile(
     rf"\b\d{{1,2}}\s+de\s+({MESES})\b", re.IGNORECASE
 )
 
+# O módulo do acervo de Desenvolvimento Web que injeta data-data-da-aula em
+# tempo de execução. Ver ADR-002 e SKILL.md seção 6 ("diferença número um").
+REFERENCIA_A_TURMAS_JS = "assets/js/turmas.js"
+
 
 def checar_sem_data_manual(leitor, erros, rotulo):
-    """Checagem 8: nenhum deck deste acervo exibe data. Ver ADR-002."""
+    """Checagem 8: nenhuma data escrita à mão no texto do deck. Ver ADR-002."""
     for texto, linha in leitor.textos:
         for padrao in (PADRAO_DATA_NUMERICA, PADRAO_DATA_POR_EXTENSO):
             achado = padrao.search(texto)
             if achado:
                 erros.append(
-                    "%s  linha %d: data escrita à mão, %r. Este acervo não tem "
-                    "calendário e nenhum deck exibe data. Ver ADR-002."
+                    "%s  linha %d: data escrita à mão, %r; apague a data, "
+                    "este acervo não tem calendário definido e nenhum deck "
+                    "exibe data. Ver ADR-002."
                     % (rotulo, linha, achado.group(0))
                 )
+
+
+def checar_sem_atributo_data_da_aula(leitor, erros, rotulo):
+    """Checagem 9: nenhum elemento carrega data-data-da-aula. Ver ADR-002.
+
+    Esse atributo não aparece como texto: é o próprio mecanismo de resolução
+    de turma do acervo de Desenvolvimento Web, que injeta a data em tempo de
+    execução via `assets/js/turmas.js`. Um deck copiado de lá sem remover o
+    mecanismo escaparia da checagem 8, que só lê texto.
+    """
+    for linha in leitor.atributos_data_da_aula:
+        erros.append(
+            "%s  linha %d: atributo data-data-da-aula presente; remova-o, "
+            "este acervo não resolve turma e a data que ele carregaria nunca "
+            "apareceria como texto no HTML. Ver ADR-002."
+            % (rotulo, linha)
+        )
+
+
+def checar_sem_referencia_a_turmas_js(leitor, erros, rotulo):
+    """Checagem 10: nenhuma referência a assets/js/turmas.js. Ver ADR-002.
+
+    Cobre as duas formas de trazer o módulo para o deck: um `src`/`href`
+    apontando para o arquivo (checado em `leitor.caminhos`, preenchido pela
+    checagem 7) e um `import ... from ".../turmas.js"` dentro de
+    `<script type="module">`, que é texto, não atributo (checado em
+    `leitor.textos`).
+    """
+    for atributo, valor, linha, secao in leitor.caminhos:
+        if REFERENCIA_A_TURMAS_JS in valor:
+            erros.append(
+                "%s  slide %s (linha %d): %s=%r referencia turmas.js; remova "
+                "o script, este acervo não tem módulo de resolução de "
+                "turma. Ver ADR-002."
+                % (rotulo, secao, linha, atributo, valor)
+            )
+    for texto, linha in leitor.textos:
+        if REFERENCIA_A_TURMAS_JS in texto:
+            erros.append(
+                "%s  linha %d: import referenciando turmas.js; remova a "
+                "importação, este acervo não tem módulo de resolução de "
+                "turma. Ver ADR-002."
+                % (rotulo, linha)
+            )
+
+
+def checar_nome_do_arquivo(caminho, erros, rotulo):
+    """Checagem 11: dentro de aulas-1sem/aulas/, o nome segue aulaXX.html.
+
+    Não é gate: roda depois de todas as outras checagens e só se aplica a
+    arquivo dentro da pasta de decks publicados. Fixture de teste, arquivo
+    fora dessa pasta, fica isento, porque o padrão de nome é convenção de
+    publicação (o portal monta o `href` a partir dele), não requisito
+    estrutural do deck.
+    """
+    pasta_do_arquivo = os.path.dirname(os.path.abspath(caminho))
+    if pasta_do_arquivo != os.path.abspath(PASTA_DECKS):
+        return
+    if not re.match(r"^aula\d+\.html$", os.path.basename(caminho)):
+        erros.append(
+            "%s: nome fora do padrão aulaXX.html; renomeie o arquivo, é dele "
+            "que o card do portal e o glob de check_decks.py dependem"
+            % rotulo
+        )
 
 
 def checar_deck(caminho, erros):
@@ -422,6 +523,9 @@ def checar_deck(caminho, erros):
     checar_sequencia_dos_rodapes(leitor, erros, rotulo)
     checar_caminhos_locais(leitor, caminho, erros, rotulo)
     checar_sem_data_manual(leitor, erros, rotulo)
+    checar_sem_atributo_data_da_aula(leitor, erros, rotulo)
+    checar_sem_referencia_a_turmas_js(leitor, erros, rotulo)
+    checar_nome_do_arquivo(caminho, erros, rotulo)
 
     novos = len(erros) - antes
     print(
@@ -433,7 +537,7 @@ def checar_deck(caminho, erros):
         for erro in erros[antes:]:
             print("  - %s" % erro)
     else:
-        print("  OK: as oito checagens estruturais passaram")
+        print("  OK: as onze checagens estruturais passaram")
     return novos
 
 

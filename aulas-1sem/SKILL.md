@@ -586,8 +586,10 @@ A `li` de `.quiz-options` é `display: flex` com `gap: 12px`, então cada
 trecho de texto solto e cada elemento inline viram itens de flex separados: a
 alternativa ganha 12px de buraco de cada lado do `<code>`, no lugar onde
 deveria haver um espaço normal, e a frase se parte na projeção. Alternativa
-de texto puro dispensa o `span`. **Nenhum dos validadores pega isso**, porque
-nada estoura nem se sobrepõe; é disciplina do autor.
+de texto puro dispensa o `span`. **O `check_decks.py` cobre esse caso**
+(`checar_alternativas_sem_inline_solto`, ADR-007): nada disso estoura nem se
+sobrepõe, então `check_slides.py` e `check_canto_coral.py` não pegam, mas o
+`check_decks.py` lê o HTML e reprova o elemento inline solto direto.
 
 ```html
 <li data-correct="false"><span class="option-letter">D</span><span class="option-text">Anota a interface num campo <code>@Autowired</code> e deixa o Spring resolver a implementação.</span></li>
@@ -684,7 +686,7 @@ conferem coisas diferentes e nenhum substitui o outro.
 | Validador | O que cobre |
 |---|---|
 | `check_slides.py` | Geometria no navegador: estouro de 1280x720 e sobreposição. Não olha o conteúdo do arquivo |
-| `check_decks.py` | Estrutura estática do HTML: `decor-coral` faltando, `quiz-slide` sem `content-slide`, quiz com zero ou duas respostas certas, âncora `#/` sem `id` correspondente, `footer-page` fora de sequência, caminho relativo inexistente e **data escrita à mão** |
+| `check_decks.py` | Estrutura estática do HTML: `decor-coral` faltando, `quiz-slide` sem `content-slide`, quiz com zero ou duas respostas certas, alternativa de quiz com elemento inline solto fora de `option-text`, âncora `#/` sem `id` correspondente, `footer-page` fora de sequência, caminho relativo inexistente, nome de arquivo fora do padrão `aulaXX.html` (só dentro de `aulas-1sem/aulas/`) e as três variantes de data: **data escrita à mão** no texto, atributo `data-data-da-aula` presente e referência a `assets/js/turmas.js` |
 | `check_canto_coral.py` | O triângulo coral, pixel a pixel. Único que pega elemento opaco cobrindo a decoração |
 | `check_portal.py` | Os 20 cards do portal e um GET real em cada botão habilitado |
 
@@ -693,11 +695,15 @@ Os três validadores de deck reportam o slide em **base 0**, a mesma base de
 
 **Diferença deliberada em relação ao acervo de Desenvolvimento Web:** lá o
 `check_decks.py` confere se `data-data-da-aula` bate com o número no nome do
-arquivo. Aqui não existe esse atributo, porque não existe resolução de
-turma, e o `check_decks.py` deste acervo faz o oposto: **reprova qualquer
-data escrita à mão** no deck, no formato `DD/MM/AAAA` ou por extenso. Data
-escrita à mão é o defeito equivalente neste acervo, porque envelhece o
-material sem que ninguém perceba.
+arquivo. Aqui não existe resolução de turma, e o `check_decks.py` deste
+acervo reprova as três formas pelas quais uma data pode entrar num deck: uma
+**data escrita à mão** no texto (formato `DD/MM/AAAA` ou por extenso), o
+próprio **atributo `data-data-da-aula`** presente em qualquer elemento e
+qualquer **referência a `assets/js/turmas.js`**, em `src` ou em `import`. As
+duas últimas existem porque copiar um deck do acervo de Desenvolvimento Web
+sem remover o mecanismo de resolução de turma reintroduz uma data que é
+injetada em tempo de execução: ela não aparece como texto no HTML estático, e
+só a checagem de data escrita à mão não pegaria esse caso. Ver ADR-002.
 
 > **Os validadores deste acervo são cópias, não symlinks.** `tools/` foi
 > copiado do acervo de Desenvolvimento Web e depois adaptado: a regra de
