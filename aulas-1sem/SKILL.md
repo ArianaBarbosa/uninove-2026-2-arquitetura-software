@@ -587,8 +587,8 @@ trecho de texto solto e cada elemento inline viram itens de flex separados: a
 alternativa ganha 12px de buraco de cada lado do `<code>`, no lugar onde
 deveria haver um espaço normal, e a frase se parte na projeção. Alternativa
 de texto puro dispensa o `span`. **O `check_decks.py` cobre esse caso**
-(`checar_alternativas_sem_inline_solto`, ADR-007): nada disso estoura nem se
-sobrepõe, então `check_slides.py` e `check_canto_coral.py` não pegam, mas o
+(`checar_alternativas_sem_inline_solto`): nada disso estoura nem se sobrepõe,
+então `check_slides.py` e `check_canto_coral.py` não pegam, mas o
 `check_decks.py` lê o HTML e reprova o elemento inline solto direto.
 
 ```html
