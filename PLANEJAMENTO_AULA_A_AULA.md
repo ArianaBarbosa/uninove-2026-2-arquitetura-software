@@ -3057,3 +3057,1290 @@ UI listando os endpoints de `/remessas` em `/swagger-ui/index.html`, e
 5. `docs/arquitetura/componentes.puml` do fork do aluno, entregável da Aula
    05, componente "Integração com parceiros" que ganha implementação real
    nesta aula.
+
+---
+
+## Aula 11, Design Patterns
+
+**Módulo:** M3, Padrões e frameworks
+**Capítulo do AVA:** `pdf/010.pdf`, Design Patterns
+**Entregável:** o padrão Strategy aplicado ao cálculo de frete, com a interface
+`CalculadoraDeFrete` e as implementações `FreteRotaPropria` e
+`FreteTransportadoraParceira`, selecionadas em tempo de execução por
+`CalculoDeFreteService`; e o padrão Factory Method aplicado à criação de
+`Ocorrencia`, com a classe `OcorrenciaCreator` e as implementações
+`AtrasoOcorrenciaCreator` e `ExtravioOcorrenciaCreator`. Critério de aceitação:
+`CalculoDeFreteServiceTest` e `OcorrenciaCreatorTest` passando com `./mvnw
+test`, nenhuma anotação de framework nas classes de domínio envolvidas, e
+nenhuma classe fora dos pacotes `pedido.domain`, `pedido.service` e
+`rastreamento.domain` instanciando diretamente uma das quatro implementações
+concretas.
+
+### Retomada, 5 minutos
+
+Na Aula 10 cada aluno entregou o cliente SOAP em `br.uni9.rotasul.parceiro`,
+consumindo o endpoint que simula o parceiro legado, mais a API REST de
+`/remessas` documentada pelo springdoc-openapi, fechando o Módulo 2. A prévia
+daquela aula deixou uma dívida em aberto: a interface `PedidoService` da Aula
+07, com duas implementações trocáveis por perfil, e a suíte de teste abstrata
+`PedidoServiceContratoTest`, que roda os mesmos casos contra as duas, já eram
+um padrão de projeto usado sem nome. Projetar `PedidoServiceContratoTest` na
+tela e perguntar à turma: quem sabe como se chama uma classe abstrata que
+define um algoritmo em etapas fixas e deixa uma etapa específica para cada
+subclasse preencher? Hoje esse nome chega, Template Method, junto com o
+catálogo inteiro de onde ele vem.
+
+### Ciclo 1, 19h30 às 20h05
+
+- **Conceito.** A origem dos padrões de projeto, na descrição do capítulo [1].
+
+  **Os dois caminhos do desenvolvimento de software.** O capítulo abre
+  descrevendo dois modos de trabalho. No primeiro, por questão cultural, o
+  desenvolvedor constrói o aplicativo sem avaliar devidamente os problemas que
+  o software pode vir a ter, nem quando uma solução pode ser reaproveitada, e
+  acaba replicando o que já foi desenvolvido em vez de reaproveitar; se a
+  parte replicada precisar mudar depois, o custo de atualização e de reteste é
+  alto. No segundo modo, o desenvolvedor segue regras definidas por modelos de
+  arquitetura, orientações de frameworks e padrões de projeto: é mais
+  complexo, gasta mais tempo em planejamento, mas gasta bem menos tempo nas
+  demais atividades. O capítulo cita uma estimativa: no Brasil, cerca de 10%
+  do tempo de projeto vai para análise, 20% para programação e o restante para
+  correção de erros e outras alterações; num país com cultura de
+  desenvolvimento mais estruturada, como a Alemanha do exemplo do capítulo, a
+  proporção se inverte, cerca de 60% para análise, 30% para programação e 10%
+  para correção. A frase do capítulo que resume a diferença: "fazer e depois
+  pensar no que foi feito" contra "pensar em como deve ser feito, e depois
+  fazer".
+
+  **Origem histórica.** Os padrões de projeto, também chamados design
+  patterns, vêm de boas práticas de programação definidas por desenvolvedores
+  no início dos anos 1970. Em congressos e seminários, a troca de experiências
+  entre eles revelou problemas comuns a qualquer tipo de software: o primeiro
+  problema atacado foi a relação entre interface de usuário, regras de negócio
+  e base de dados, e como modificar uma dessas partes sem quebrar as outras
+  duas; o segundo foi a possibilidade de construir um novo software sem
+  precisar recomeçar do zero. O capítulo cita dois livros como referência
+  clássica do assunto, GAMMA e JOHNSON [2] e LARMAN [3].
+
+  **MVC como primeiro exemplo do capítulo.** Dessa troca de experiências
+  nasceu o MVC, Model-View-Controller, publicado por volta de 1975 e ainda em
+  uso, talvez o padrão de projeto mais aplicado entre os desenvolvedores. O
+  capítulo descreve o MVC como um padrão que orienta a separação do
+  código-fonte em três partes independentes entre si: interação com o usuário
+  (view), regras de negócio e acesso à base de dados (model), e algo que
+  conecta as duas (controller). A analogia do capítulo é o quebra-cabeça: cada
+  parte do software é uma peça com um desenho específico que conecta a outras
+  peças, e se todas encaixarem, formam uma ilustração completa. O objetivo do
+  MVC é reduzir o tempo de desenvolvimento e de teste em atualizações
+  futuras: uma vez pronta, cada parte pode ser reaproveitada em novos
+  softwares, e o responsável pelo projeto decide o que reaproveitar e o que
+  construir de novo.
+
+- **Demonstração no projetor.** Abrir o fork num terminal e listar
+  `src/main/java/br/uni9/rotasul/pedido`: `web`, `service`, `repository`,
+  `domain`. Ler em voz alta a definição de MVC do capítulo e perguntar à
+  turma onde está cada peça do quebra-cabeça. `PedidoController`, em `web`, é
+  quem recebe a requisição, mas hoje ele devolve JSON puro, sem um View
+  separado, porque a Rota Sul ainda não tem apresentação server-side; isso
+  muda na Aula 13. `PedidoService` e `Pedido`, em `service` e `domain`, fazem
+  o papel do Model. Não há, ainda, um Controller no sentido clássico do MVC
+  do capítulo, conectando view e model; o próprio `PedidoController` do
+  Spring acumula parte desse papel. A turma está usando uma variação do
+  padrão descrito no capítulo desde a Aula 06, sem ter lido a definição
+  formal até hoje.
+
+- **Exercício curto.** Cinco minutos, em duplas. Reler a frase já usada na
+  Aula 02, tirada do capítulo anterior do AVA: "os padrões de projeto são
+  modelos abstratos que orientam a implementação de um software para resolver
+  um problema específico, enquanto um framework inclui a implementação de
+  código para prover soluções". Classificar cada item como padrão de projeto
+  ou framework: (a) MVC; (b) Hibernate; (c) Spring Boot; (d) Strategy.
+  Gabarito: (a) padrão de projeto, é um modelo abstrato de organização, não
+  código pronto; (b) framework, é uma biblioteca com implementação; (c)
+  framework, pelo mesmo motivo; (d) padrão de projeto, ainda não apresentado
+  nesta aula, mas já classificável pela mesma definição.
+
+### Ciclo 2, 20h05 às 20h40
+
+- **Conceito.** O catálogo de padrões de projeto e os dois padrões do
+  laboratório de hoje.
+
+  > **Nota para o professor.** O capítulo do AVA apresenta a origem dos
+  > padrões de projeto e um único exemplo detalhado, o MVC. Ele não organiza
+  > os padrões em categorias, não lista o catálogo de 23 padrões e não nomeia
+  > Strategy nem Factory Method, os dois que o laboratório de hoje pede. Essa
+  > organização vem da própria bibliografia que o capítulo cita como
+  > referência, GAMMA, HELM, JOHNSON e VLISSIDES, **Design Patterns:
+  > Elements of Reusable Object-Oriented Software** (1994) [2], o livro que
+  > formalizou o catálogo e é conhecido pelo apelido "Gang of Four", GoF. Dizer
+  > isso à turma antes de avançar: o capítulo abre a porta, o catálogo vem de
+  > onde o próprio capítulo manda buscar.
+
+  **As três famílias do catálogo GoF.** Os 23 padrões do livro se organizam
+  em três categorias, pela pergunta que cada uma responde. **Criacionais**
+  respondem "como um objeto é instanciado": Factory Method, Abstract Factory,
+  Builder, Prototype e Singleton estão aqui. **Estruturais** respondem "como
+  classes e objetos se compõem para formar algo maior": Adapter, Bridge,
+  Composite, Decorator, Facade e Proxy estão aqui. **Comportamentais**
+  respondem "como os objetos interagem e distribuem responsabilidade":
+  Strategy, Template Method, Observer, State e Command estão entre eles.
+  Template Method, o padrão que a turma já usou na Aula 07 sem saber o nome,
+  é comportamental; os dois padrões de hoje são um de cada uma das outras duas
+  famílias.
+
+  **Strategy, comportamental.** Define uma família de algoritmos, encapsula
+  cada um numa classe própria e os torna intercambiáveis, de modo que o
+  algoritmo pode variar independentemente de quem o usa. Na Rota Sul: o
+  cálculo do valor do frete de um pedido muda de fórmula dependendo de quem
+  faz a entrega, a frota própria na rota principal ou uma transportadora
+  parceira na última milha, do jeito que o `PLANO_DE_ENSINO.md` descreve o
+  case. A operação é sempre a mesma, calcular o frete, mas o algoritmo por
+  trás muda, e a escolha acontece a cada pedido novo, em tempo de execução.
+  Isso é diferente do que a Aula 07 fez com `PedidoService`: lá a
+  implementação inteira é fixada uma vez, quando a aplicação sobe, pelo
+  parâmetro de perfil; aqui a escolha acontece de novo a cada chamada, dentro
+  do processo em execução, com base num dado do próprio pedido.
+
+  **Factory Method, criacional.** Define uma interface para criar um objeto,
+  mas deixa que subclasses decidam qual classe concreta instanciar. Na Rota
+  Sul: quando o atendente registra uma ocorrência por telefone, ele informa o
+  tipo, atraso ou extravio, e o sistema precisa instanciar a subclasse de
+  `Ocorrencia` correspondente sem que o código que atende a ligação conheça
+  as subclasses. Isso isola a decisão de qual classe instanciar dentro de uma
+  hierarquia de criadores, em vez de espalhar `if` de tipo pelo código que usa
+  o objeto.
+
+  **A diferença entre os dois, em uma frase.** Strategy troca o algoritmo de
+  uma operação que já tem um objeto para atuar; Factory Method troca qual
+  objeto é criado, antes de qualquer operação acontecer sobre ele.
+
+- **Demonstração no projetor.** Diagrama de classes do Strategy de hoje,
+  desenhado ao vivo com a mesma notação da Aula 05, para o professor colar no
+  editor on-line do PlantUML e projetar:
+
+  ```
+  @startuml
+  interface CalculadoraDeFrete {
+    +calcular(pedido: Pedido): BigDecimal
+  }
+  class FreteRotaPropria {
+    +calcular(pedido: Pedido): BigDecimal
+  }
+  class FreteTransportadoraParceira {
+    +calcular(pedido: Pedido): BigDecimal
+  }
+  class CalculoDeFreteService {
+    -rotaPropria: CalculadoraDeFrete
+    -transportadoraParceira: CalculadoraDeFrete
+    +calcular(pedido: Pedido): BigDecimal
+  }
+  CalculadoraDeFrete <|.. FreteRotaPropria
+  CalculadoraDeFrete <|.. FreteTransportadoraParceira
+  CalculoDeFreteService o-- CalculadoraDeFrete
+  @enduml
+  ```
+
+  Ler a seta `o--`: `CalculoDeFreteService` guarda uma referência às duas
+  estratégias e decide qual delas invocar a cada chamada, o "contexto" do
+  padrão Strategy na terminologia do GoF. Comparar com o diagrama de
+  componentes da Aula 05: lá as setas eram entre componentes inteiros; aqui
+  são entre classes dentro de um único componente, um nível de detalhe
+  abaixo.
+
+- **Exercício curto.** Cinco minutos, em duplas. Duas situações da Rota Sul,
+  decidir qual dos dois padrões se aplica a cada uma: (a) o cálculo do frete
+  de um pedido muda de fórmula conforme o destino é atendido pela frota
+  própria ou por um parceiro, e a escolha acontece a cada pedido novo; (b) ao
+  registrar uma ocorrência por telefone, o atendente informa o tipo, e o
+  sistema precisa instanciar a subclasse correta de `Ocorrencia` sem que o
+  código que atende a ligação conheça as subclasses. Gabarito: (a) Strategy,
+  o algoritmo varia e é intercambiável em tempo de execução; (b) Factory
+  Method, a decisão de qual classe concreta instanciar fica isolada na
+  hierarquia de criadores.
+
+### Quiz, 20h40 às 20h50
+
+**Pergunta.** Segundo o capítulo, qual das alternativas a seguir NÃO é
+característica de um design pattern?
+
+- A) Apresenta um modelo de organização de classes para resolver um problema
+  já conhecido.
+- B) É resultado de uma boa prática de programação, aplicada para resolver
+  problemas conhecidos.
+- C) Provê um mecanismo para estruturar o software de modo organizado,
+  facilitando manutenções futuras.
+- D) Não pode ser aplicado em arquiteturas organizadas em camadas.
+
+**Correta:** D.
+
+**Justificativa.** O próprio capítulo contradiz a alternativa D ao descrever o
+MVC, um design pattern, como um modelo que organiza o código-fonte
+exatamente em camadas independentes, interação com o usuário, regras de
+negócio e acesso a dados. Um padrão de projeto aplicado em camadas não é
+exceção, é o exemplo que o capítulo escolheu para explicar o conceito. As
+alternativas A, B e C são características reais, tiradas quase literalmente
+do texto: A e B descrevem a origem do padrão como boa prática que organiza
+uma solução para um problema conhecido, e C descreve o objetivo de
+estruturar o software e facilitar manutenção, presente na discussão inicial
+do capítulo sobre o custo de atualizar software mal organizado.
+
+### Ciclo 3, 20h50 às 21h25
+
+Laboratório de dois padrões de projeto. Nenhum endpoint novo nasce hoje: o
+Strategy entra na camada `domain` e `service` do contexto `pedido`, e o
+Factory Method abre o contexto `rastreamento`, reservado desde o diagrama de
+pacotes da Aula 05 e ainda sem nenhuma linha de código.
+
+1. **Criar o contrato da estratégia.** Em `pedido/domain`, criar a interface
+   `CalculadoraDeFrete`, com um único método, `BigDecimal calcular(Pedido
+   pedido)`. Sem anotação de framework: é domínio.
+2. **Acrescentar a região ao `Pedido`.** Em `pedido/domain/Pedido`, criado na
+   Aula 06, acrescentar o atributo `regiao`, do tipo `String`, com os valores
+   possíveis `"PRINCIPAL"` e `"ULTIMA_MILHA"`, mais o getter e o ajuste no
+   construtor. É a primeira vez que a classe `Pedido` muda desde que nasceu, e
+   ela continua sem depender de nada do Spring.
+3. **Escrever a primeira estratégia.** `FreteRotaPropria implements
+   CalculadoraDeFrete`, em `pedido/domain`, com uma tarifa fixa de `new
+   BigDecimal("15.00")` para qualquer pedido, representando o custo da frota
+   própria na rota principal.
+4. **Escrever a segunda estratégia.** `FreteTransportadoraParceira implements
+   CalculadoraDeFrete`, também em `pedido/domain`, aplicando um adicional de
+   30% sobre a mesma tarifa base, `new BigDecimal("15.00")` multiplicado por
+   `new BigDecimal("1.30")`, resultando em `19.50`, representando o repasse
+   pago ao parceiro da última milha.
+5. **Escrever o contexto do Strategy.** Em `pedido/service`, criar
+   `CalculoDeFreteService`, anotada `@Service`, recebendo `FreteRotaPropria` e
+   `FreteTransportadoraParceira` pelo construtor e guardando as duas. O
+   método `calcular(Pedido pedido)` decide qual delas chamar olhando
+   `pedido.getRegiao()`: `"ULTIMA_MILHA"` usa a segunda, qualquer outro valor
+   usa a primeira. É o único ponto do código que conhece as duas
+   implementações concretas; todo o resto do sistema só vai conhecer a
+   interface `CalculadoraDeFrete` e o serviço.
+6. **Testar o Strategy.** `CalculoDeFreteServiceTest`, em
+   `src/test/java/br/uni9/rotasul/pedido/service/`, com dois casos: um
+   `Pedido` com `regiao` `"PRINCIPAL"` calcula `15.00`, e um `Pedido` com
+   `regiao` `"ULTIMA_MILHA"` calcula `19.50`. Rodar `./mvnw test`.
+
+### Ciclo 4, 21h25 às 21h50
+
+7. **Criar o contexto `rastreamento`.** Dentro de
+   `src/main/java/br/uni9/rotasul/`, criar `rastreamento/domain`. É o
+   primeiro código real do terceiro contexto previsto desde a Aula 05; até
+   hoje só existiam `pedido` e `expedicao`.
+8. **Escrever a hierarquia de produtos.** Em `rastreamento/domain`, a classe
+   abstrata `Ocorrencia`, com os atributos `codigoRastreio` e `registradaEm`
+   (`LocalDateTime`) e o método abstrato `String getTipo()`. Duas subclasses:
+   `OcorrenciaAtraso`, com o atributo extra `horasDeAtraso` e `getTipo()`
+   devolvendo `"ATRASO"`, e `OcorrenciaExtravio`, com o atributo extra
+   `ultimaLocalizacaoConhecida` e `getTipo()` devolvendo `"EXTRAVIO"`.
+9. **Escrever a hierarquia de criadores, o Factory Method.** Também em
+   `rastreamento/domain`, a classe abstrata `OcorrenciaCreator`:
+
+   ```java
+   public abstract class OcorrenciaCreator {
+
+       public final Ocorrencia registrar(String codigoRastreio) {
+           if (codigoRastreio == null || codigoRastreio.isBlank()) {
+               throw new IllegalArgumentException(
+                   "codigo de rastreio e obrigatorio");
+           }
+           return criarOcorrencia(codigoRastreio, LocalDateTime.now());
+       }
+
+       protected abstract Ocorrencia criarOcorrencia(
+           String codigoRastreio, LocalDateTime registradaEm);
+   }
+   ```
+
+   O método `registrar` é final, de propósito: ele é o passo comum a toda
+   ocorrência, validar o código de rastreio antes de criar qualquer coisa. O
+   método `criarOcorrencia` é o Factory Method propriamente dito, abstrato,
+   deixado para cada subclasse decidir qual produto concreto instanciar.
+   Duas subclasses: `AtrasoOcorrenciaCreator`, recebendo `horasDeAtraso` pelo
+   construtor e devolvendo `new OcorrenciaAtraso(...)`, e
+   `ExtravioOcorrenciaCreator`, recebendo `ultimaLocalizacaoConhecida` pelo
+   construtor e devolvendo `new OcorrenciaExtravio(...)`.
+10. **Testar o Factory Method.** `OcorrenciaCreatorTest`, em
+    `src/test/java/br/uni9/rotasul/rastreamento/domain/`, com três casos:
+    `new AtrasoOcorrenciaCreator(3).registrar("RS12345")` devolve uma
+    instância de `OcorrenciaAtraso` com `getTipo()` igual a `"ATRASO"`; `new
+    ExtravioOcorrenciaCreator("Galpao Osasco").registrar("RS99999")` devolve
+    uma instância de `OcorrenciaExtravio` com `getTipo()` igual a
+    `"EXTRAVIO"`; e chamar `registrar("")` em qualquer um dos dois criadores
+    lança `IllegalArgumentException`. Rodar `./mvnw test`.
+11. **Registrar as duas decisões.** Em `docs/decisoes.md`, duas linhas novas:
+    uma explicando que o cálculo de frete usa Strategy porque a fórmula
+    precisa variar por pedido, em tempo de execução, e outra explicando que a
+    criação de `Ocorrencia` usa Factory Method porque o código que recebe a
+    ligação do atendente não deve conhecer as subclasses concretas.
+
+**Entregável do dia:** `CalculadoraDeFrete` com `FreteRotaPropria` e
+`FreteTransportadoraParceira`, mais `CalculoDeFreteService` escolhendo entre
+elas; `OcorrenciaCreator` com `AtrasoOcorrenciaCreator` e
+`ExtravioOcorrenciaCreator`, mais as duas subclasses de `Ocorrencia`. Critério
+de aceitação: `CalculoDeFreteServiceTest` e `OcorrenciaCreatorTest` passando
+com `./mvnw test`, nenhuma anotação de framework em `Ocorrencia` nem em suas
+subclasses, e as duas decisões registradas em `docs/decisoes.md`.
+
+### Fechamento, 21h50 às 22h00
+
+- `git add src docs`
+- `git commit -m "feat(padroes): aplica Strategy no calculo de frete e Factory Method na criacao de Ocorrencia"`
+- `git push`
+- Fechar o Ciclo 4 relendo em voz alta a frase que abre o Módulo 3: até aqui a
+  Rota Sul usou padrões sem nomear (Template Method na Aula 07), e hoje
+  nomeou dois novos e aplicou os dois de propósito. A próxima aula pergunta de
+  onde vem o poder de um framework de controlar essa aplicação inteira.
+- **Prévia da Aula 12.** O capítulo de hoje citou, de passagem, que um
+  framework "determina como o aplicativo funcionará". A Aula 12 abre
+  exatamente esse ponto, batizado de inversão de controle, e mostra como o
+  Spring decide, sozinho, qual bean injetar em cada perfil, `dev` ou `prod`.
+  O contraste com o Strategy de hoje vai ficar explícito: aqui quem decide
+  qual implementação usar é o código da Rota Sul; lá, quem decide é o
+  framework.
+
+### Referências
+
+1. MESQUITA, Paulo Ricardo Batista. **Capítulo 10: Design Patterns.**
+   Arquitetura de Software. AVA, Uninove. Fonte primária desta aula,
+   `pdf/010.pdf`.
+2. GAMMA, Erich; HELM, Richard; JOHNSON, Ralph; VLISSIDES, John. **Design
+   Patterns: Elements of Reusable Object-Oriented Software.**
+   Addison-Wesley, 1994. Referência indicada pelo capítulo, e a fonte do
+   catálogo das três famílias apresentado no Ciclo 2.
+3. LARMAN, Craig. **Utilizando UML e Padrões.** Bookman, 2007. Referência
+   indicada pelo capítulo.
+4. JUnit. **JUnit 5 User Guide.** <https://junit.org/junit5/docs/current/user-guide/>
+5. PlantUML. **Documentação da linguagem.** <https://plantuml.com/pt/>
+6. `docs/arquitetura/pacotes.puml` do fork do aluno, entregável da Aula 05,
+   contexto `rastreamento` que ganha seu primeiro código nesta aula.
+
+---
+
+## Aula 12, Frameworks: anatomia e inversão de controle
+
+**Módulo:** M3, Padrões e frameworks
+**Capítulo do AVA:** `pdf/011.pdf`, Frameworks
+**Entregável:** a interface `NotificadorDeOcorrencia`, com as implementações
+`NotificadorDeOcorrenciaConsole` e `NotificadorDeOcorrenciaWebhookSimulado`,
+ligadas explicitamente aos perfis `dev` e `prod` por métodos `@Bean` na classe
+`NotificacaoConfig`, mais um `CommandLineRunner` que registra no log, a cada
+subida, qual implementação o container injetou. Critério de aceitação: subir
+com `-Dspring-boot.run.profiles=dev` e depois com `=prod` e ver, nos dois
+logs, o nome de uma classe diferente; `NotificacaoConfigDevTest` e
+`NotificacaoConfigProdTest` passando com `./mvnw test`.
+
+### Retomada, 5 minutos
+
+Na Aula 11 cada aluno entregou dois padrões de projeto: o Strategy no cálculo
+de frete, com `CalculadoraDeFrete`, `FreteRotaPropria` e
+`FreteTransportadoraParceira`, e o Factory Method na criação de `Ocorrencia`,
+com `OcorrenciaCreator` e seus dois criadores concretos. Projetar
+`CalculoDeFreteService` na tela e relembrar: ali, quem decide qual estratégia
+usar é o próprio código da Rota Sul, uma linha de `if` dentro do serviço.
+Perguntar à turma: e a interface `PedidoService` da Aula 07, com duas
+implementações escolhidas pelo parâmetro de perfil, quem decidiu ali qual
+classe usar? Ninguém no código da Rota Sul escreveu esse `if`. Foi o Spring.
+A aula de hoje abre exatamente essa caixa.
+
+### Ciclo 1, 19h30 às 20h05
+
+- **Conceito.** O que é um framework, na definição do capítulo [1].
+
+  **Framework, definição do capítulo.** Um framework é uma solução
+  desenvolvida para resolver um problema específico, mas que ainda não é um
+  software executável por si só: é um conjunto de bibliotecas associado a
+  interfaces que permitem acoplar essas bibliotecas ao software em
+  desenvolvimento. O objetivo é fornecer uma funcionalidade genérica que, ao
+  ser usada por um desenvolvedor, implementa uma funcionalidade específica.
+  O exemplo do capítulo é gráfico: os componentes de interface do Android
+  permitem ao desenvolvedor implementar rapidamente as telas de um
+  aplicativo, sem escrever cada botão do zero.
+
+  **A frase central do capítulo, sobre controle.** "Um framework determina
+  como o aplicativo funcionará, pois ele é que controla o fluxo de execução
+  de operações que o aplicativo necessita. A isso se dá o nome de inversão
+  de controle." É a passagem que dá nome à aula de hoje: não é o código da
+  Rota Sul que decide quando cada parte do framework roda, é o framework que
+  decide quando chamar o código da Rota Sul. Comparar com uma biblioteca
+  comum, onde é o próprio programa que decide quando chamar cada função: com
+  um framework, a direção da chamada se inverte.
+
+  **Framework contra padrão de projeto, revisitado.** O capítulo repete a
+  distinção já usada nas Aulas 02 e 11: padrões de projeto são modelos
+  abstratos que orientam a implementação para resolver um problema
+  específico, enquanto um framework inclui a implementação de código para
+  prover soluções. Um framework pode ser modelado com vários padrões de
+  projeto ao mesmo tempo, mas sempre tem domínio de uma aplicação
+  particular, o que os padrões de projeto, sozinhos, não têm.
+
+  **Cinco vantagens do capítulo:** maior facilidade para detectar erros;
+  garantia melhor de qualidade do software; o desenvolvedor se concentra no
+  desenvolvimento do aplicativo final, não na infraestrutura; reuso de
+  soluções que já resolvem problemas conhecidos; uso otimizado de recursos.
+  **A desvantagem central:** o código-fonte do framework normalmente não é
+  editável, de propósito, porque a intenção é que o desenvolvedor use o
+  framework para formar o núcleo do aplicativo e adicione blocos de código
+  novos em torno dele, não que reescreva o núcleo. O capítulo soma a isso o
+  aumento de tamanho final do software, as classes de acoplamento que
+  seriam desnecessárias num aplicativo do zero, e o tempo de aprendizado, que
+  se gasto durante a execução do projeto pode anular o ganho esperado de
+  produtividade.
+
+  **Frameworks de empresa, exemplo do capítulo.** Além dos frameworks
+  genéricos, como o próprio Spring que a turma já usa desde a Aula 01, o
+  capítulo cita empresas com problemas específicos o bastante para
+  justificar um framework próprio: a Sony, para o processamento de imagens
+  das suas câmeras, e a Ericsson, para as centrais de comunicação telefônica
+  que produz.
+
+- **Demonstração no projetor.** Abrir `PedidoServicePadrao` e
+  `PedidoServiceComAnaliseDeRisco`, da Aula 07, e apontar: nenhuma das duas
+  classes chama a outra, nenhuma delas decide qual vai rodar. Quem decide é
+  o `spring.profiles.active` do `application.properties`, lido pelo Spring
+  antes de qualquer linha do código da Rota Sul executar. Essa é a inversão
+  de controle em ação: o framework decide o quê instanciar e quando, o
+  desenvolvedor só descreve as opções.
+
+- **Exercício curto.** Cinco minutos, individual. Responder por escrito: no
+  `PedidoServicePadrao` da Aula 07, quem chama o construtor da classe, o
+  código da Rota Sul ou o Spring? E se a turma removesse a anotação
+  `@Service` dessa classe, o que aconteceria ao subir a aplicação com o
+  perfil `padrao`? Gabarito: quem chama o construtor é o Spring, durante a
+  inicialização do container; sem `@Service`, o Spring não teria como saber
+  que aquela classe deve virar um bean, e a aplicação falharia ao subir,
+  porque nenhum candidato a `PedidoService` estaria disponível para injetar
+  no `PedidoController`.
+
+### Ciclo 2, 20h05 às 20h40
+
+- **Conceito.** A anatomia do container de inversão de controle, e a
+  diferença entre configuração implícita e explícita.
+
+  **O que o container faz ao subir.** Quando `./mvnw spring-boot:run`
+  executa, o Spring varre o código em busca de candidatos a bean: classes
+  anotadas `@Component`, `@Service`, `@Repository`, e métodos anotados
+  `@Bean` dentro de classes `@Configuration`. Para cada candidato, ele
+  registra uma definição de bean; se a definição tiver `@Profile`, o
+  container só a ativa quando o perfil correspondente está entre os
+  ativos, lidos de `spring.profiles.active`. Só depois de resolver todas as
+  definições o container começa a instanciar os beans e a injetá-los onde
+  um construtor pede, como no `PedidoController` recebendo `PedidoService`.
+  É esse mecanismo, e não mágica, que decide qual `PedidoServiceX` vira
+  ativo em cada subida.
+
+  **Configuração implícita, o que a Aula 07 já fez.** Anotar a própria
+  classe de implementação com `@Service` e `@Profile("padrao")` é a forma
+  mais comum de registrar um bean no Spring, e funciona bem quando a decisão
+  de qual implementação existe é simples. A decisão de qual perfil usa qual
+  classe fica espalhada, uma anotação por classe.
+
+  **Configuração explícita, o que o laboratório de hoje pede.** Uma classe
+  `@Configuration` concentra, num único lugar, a decisão de qual
+  implementação vira bean em qual perfil, por meio de métodos `@Bean`. As
+  classes de implementação em si não precisam de nenhuma anotação de
+  framework: elas só implementam a interface, e é o método `@Bean` que as
+  registra. A vantagem pedagógica: quem lê a classe de configuração vê, de
+  uma vez, o mapa inteiro de "qual implementação em qual ambiente", sem
+  precisar abrir cada classe candidata para procurar `@Profile`.
+
+- **Demonstração no projetor.** Esqueleto de uma classe `@Configuration`
+  qualquer, para mostrar a anatomia antes de escrever a de hoje:
+
+  ```java
+  @Configuration
+  public class ExemploConfig {
+
+      @Bean
+      @Profile("dev")
+      public MinhaInterface implementacaoDeDev() {
+          return new ImplementacaoDeDev();
+      }
+
+      @Bean
+      @Profile("prod")
+      public MinhaInterface implementacaoDeProd() {
+          return new ImplementacaoDeProd();
+      }
+  }
+  ```
+
+  Apontar as três peças: o método é o que o container chama para obter o
+  bean; o `@Profile` decide se o método participa da subida atual; o tipo de
+  retorno, `MinhaInterface`, é o que fica disponível para qualquer construtor
+  que peça essa interface, não o tipo concreto. Só um dos dois métodos roda
+  em cada subida, nunca os dois ao mesmo tempo.
+
+- **Exercício curto.** Cinco minutos, em duplas. Prever a saída: se a
+  aplicação subir sem nenhum parâmetro de perfil, e nenhum dos dois métodos
+  `@Bean` do exemplo tiver um perfil `default`, o que acontece ao Spring
+  tentar montar um bean que dependa de `MinhaInterface`? Gabarito: a subida
+  falha, porque nenhum dos dois beans fica ativo sem um perfil declarado
+  como ativo, e o container não tem candidato para injetar, o mesmo problema
+  que a Aula 07 já preveniu fixando `spring.profiles.active=padrao` no
+  `application.properties`.
+
+### Quiz, 20h40 às 20h50
+
+**Pergunta.** Segundo o capítulo, quando um desenvolvedor usa um framework
+para estruturar seu aplicativo, quem passa a controlar o fluxo de execução
+das operações que o aplicativo necessita?
+
+- A) O próprio desenvolvedor, que chama cada função do framework
+  manualmente, na ordem que escolher.
+- B) O framework, que determina como o aplicativo vai funcionar, fenômeno
+  que o capítulo chama de inversão de controle.
+- C) O sistema operacional, que agenda a execução de cada classe do
+  framework por prioridade.
+- D) Framework e aplicativo executam em processos totalmente independentes,
+  sem nenhuma relação de controle entre os dois.
+
+**Correta:** B.
+
+**Justificativa.** É a frase literal do capítulo: "um framework determina
+como o aplicativo funcionará, pois ele é que controla o fluxo de execução de
+operações que o aplicativo necessita. A isso se dá o nome de inversão de
+controle." A alternativa A descreve o oposto do que o capítulo afirma, o uso
+comum de uma biblioteca, não de um framework. A C inventa um mecanismo de
+sistema operacional que o capítulo não menciona em nenhum momento. A D nega
+a própria definição de framework do capítulo, que descreve bibliotecas
+acopladas ao aplicativo por interfaces, e não dois processos independentes.
+
+### Ciclo 3, 20h50 às 21h25
+
+Laboratório de configuração explícita. O código de hoje mora no contexto
+`rastreamento`, aberto ontem, e acrescenta a camada `service`, ainda sem
+nenhuma classe.
+
+1. **Criar o contrato de notificação.** Em `rastreamento/service`, criar a
+   interface `NotificadorDeOcorrencia`, com um único método, `void
+   notificar(Ocorrencia ocorrencia)`. Nenhuma anotação de framework: como
+   toda interface de contrato do semestre, ela não sabe que o Spring existe.
+2. **Escrever a implementação de dev.** `NotificadorDeOcorrenciaConsole`,
+   também em `rastreamento/service`, sem anotação nenhuma, registrando no
+   log, via `Logger` do SLF4J, uma linha como `"[DEV] ocorrencia {} do tipo
+   {} registrada"`, com o `codigoRastreio` e o `getTipo()` da ocorrência.
+3. **Escrever a implementação de prod.** `NotificadorDeOcorrenciaWebhookSimulado`,
+   recebendo `urlWebhook` pelo construtor, também sem anotação. O método
+   `notificar` não faz chamada de rede real, só registra no log `"[PROD]
+   enviaria POST para {} com a ocorrencia {}"`, com a URL e o código de
+   rastreio. É simulado de propósito, pela mesma razão da Aula 10: a aula
+   não pode depender de um endpoint externo de verdade para funcionar em
+   qualquer sala.
+4. **Registrar os dois beans, explicitamente.** Criar
+   `NotificacaoConfig`, anotada `@Configuration`, em `rastreamento/service`,
+   com dois métodos `@Bean`: `notificadorDeOcorrenciaDev()`, anotado
+   `@Profile("dev")`, devolvendo `new NotificadorDeOcorrenciaConsole()`; e
+   `notificadorDeOcorrenciaProd(@Value("${rotasul.webhook.parceiro-notificacao}")
+   String urlWebhook)`, anotado `@Profile("prod")`, devolvendo `new
+   NotificadorDeOcorrenciaWebhookSimulado(urlWebhook)`.
+5. **Criar os dois arquivos de propriedades por perfil.** Em
+   `src/main/resources`, `application-dev.properties`, vazio por enquanto, e
+   `application-prod.properties`, com a linha
+   `rotasul.webhook.parceiro-notificacao=https://parceiro.rotasul.exemplo/webhook`.
+   É a segunda metade da "configuração por perfil" do entregável de hoje: não
+   só o bean muda, a propriedade também muda, e só o perfil `prod` precisa
+   saber o endereço do parceiro.
+6. **Comprovar por log.** Acrescentar, ainda em `NotificacaoConfig`, um
+   terceiro `@Bean`, `logarNotificadorAtivo(NotificadorDeOcorrencia
+   notificador)`, do tipo `CommandLineRunner`, que registra no log, ao subir,
+   `"Notificador ativo: " + notificador.getClass().getSimpleName()`. Esse
+   bean não tem `@Profile`: ele roda em qualquer perfil e imprime qual dos
+   dois foi injetado, o mesmo `NotificadorDeOcorrencia` que os outros beans
+   da aplicação vão receber.
+
+### Ciclo 4, 21h25 às 21h50
+
+7. **Subir com o perfil `dev`.** `./mvnw spring-boot:run
+   -Dspring-boot.run.profiles=dev` e conferir, no log de inicialização, a
+   linha `Notificador ativo: NotificadorDeOcorrenciaConsole`.
+8. **Subir com o perfil `prod`.** Parar a aplicação e subir de novo com
+   `./mvnw spring-boot:run -Dspring-boot.run.profiles=prod`, conferindo a
+   linha `Notificador ativo: NotificadorDeOcorrenciaWebhookSimulado`. As
+   duas capturas de log, dev e prod, são a evidência literal que o
+   entregável de hoje pede.
+9. **Testar os dois perfis.** Duas classes de teste em
+   `src/test/java/br/uni9/rotasul/rastreamento/service/`:
+   `NotificacaoConfigDevTest`, anotada `@SpringBootTest` e
+   `@ActiveProfiles("dev")`, injetando `NotificadorDeOcorrencia` e
+   confirmando `instanceof NotificadorDeOcorrenciaConsole`; e
+   `NotificacaoConfigProdTest`, com `@ActiveProfiles("prod")`, confirmando
+   `instanceof NotificadorDeOcorrenciaWebhookSimulado`. Rodar `./mvnw test`
+   e ver as duas passarem sem que a suíte precise escolher perfil nenhum na
+   linha de comando: cada teste fixa o seu.
+10. **Deixar o gancho para a Aula 19.** Ninguém chama `notificar(...)` de
+    dentro de `OcorrenciaCreator` ainda, e está certo que seja assim: hoje o
+    objetivo é a configuração por perfil, não o fluxo completo de
+    notificação. Anotar em `docs/decisoes.md` que a chamada real a
+    `NotificadorDeOcorrencia` entra quando os serviços da Rota Sul
+    conversarem entre si de verdade, na Aula 19.
+11. **Registrar a decisão.** Em `docs/decisoes.md`, uma linha explicando a
+    escolha de configuração explícita por `@Configuration` em vez de
+    `@Profile` direto na classe, e por quê: concentrar a decisão de ambiente
+    num único lugar, legível sem abrir cada implementação.
+
+**Entregável do dia:** `NotificadorDeOcorrencia` com
+`NotificadorDeOcorrenciaConsole` e `NotificadorDeOcorrenciaWebhookSimulado`,
+a classe `NotificacaoConfig` com os dois `@Bean` por perfil e o
+`CommandLineRunner` de log, mais os dois arquivos de propriedades por
+perfil. Critério de aceitação: o log de `dev` e o log de `prod` mostrando
+classes diferentes na mesma linha de saída, e `NotificacaoConfigDevTest` e
+`NotificacaoConfigProdTest` passando com `./mvnw test`.
+
+### Fechamento, 21h50 às 22h00
+
+- `git add src docs`
+- `git commit -m "feat(rastreamento): configura NotificadorDeOcorrencia por perfil dev e prod, com injecao explicita"`
+- `git push`
+- Fechar o ciclo comparando as duas aulas: ontem a Rota Sul decidiu, dentro
+  do próprio código, qual estratégia de frete usar; hoje foi o container do
+  Spring que decidiu, fora do código de negócio, qual notificador injetar.
+  As duas são formas legítimas de trocar comportamento, e a diferença entre
+  elas é exatamente o que separa um padrão de projeto de uma característica
+  de framework.
+- **Prévia da Aula 13.** Até aqui a Rota Sul só devolve JSON. A próxima aula
+  acrescenta uma segunda porta de entrada, uma tela de verdade, com
+  Thymeleaf, layout e fragments, para o atendente cadastrar um pedido sem
+  abrir o navegador numa URL de API. O mesmo `PedidoService` de sempre vai
+  atender as duas portas, REST e HTML, sem duplicar regra de negócio.
+
+### Referências
+
+1. MESQUITA, Paulo Ricardo Batista. **Capítulo 11: Frameworks.** Arquitetura
+   de Software. AVA, Uninove. Fonte primária desta aula, `pdf/011.pdf`.
+2. KRTZIG, M. **A Software Framework For Data Based Analysis.** VDM Verlag,
+   Alemanha, 2008. Referência indicada pelo capítulo.
+3. SURHONE, L. M.; TENNOE, M. T.; HESSONOW, S. F. **Software Framework.**
+   Betascript, 2010. Referência indicada pelo capítulo.
+4. Spring. **Documentação do Spring Framework**, seção do container de IoC e
+   de beans. <https://docs.spring.io/spring-framework/reference/core/beans.html>
+5. Spring Boot. **Documentação**, seção de propriedades específicas de
+   perfil. <https://docs.spring.io/spring-boot/reference/features/external-config.html>
+6. JUnit. **JUnit 5 User Guide.** <https://junit.org/junit5/docs/current/user-guide/>
+
+---
+
+## Aula 13, Frameworks para aplicativos web
+
+**Módulo:** M3, Padrões e frameworks
+**Capítulo do AVA:** `pdf/012.pdf`, Frameworks para Aplicativos Web
+**Entregável:** a tela de cadastro de pedido em `/pedidos/novo`, construída em
+Thymeleaf com um layout compartilhado por fragments, o formulário validando o
+campo `cliente` como obrigatório, e uma tela de confirmação mostrando o frete
+calculado pelo `CalculoDeFreteService` da Aula 11. Critério de aceitação:
+submeter o formulário sem preencher `cliente` devolve a mesma tela com a
+mensagem de erro, sem registrar nada; submeter com `cliente` preenchido
+registra o pedido e mostra a confirmação; `PedidoFormControllerTest` passando
+com `./mvnw test`.
+
+### Retomada, 5 minutos
+
+Na Aula 12 cada aluno entregou `NotificadorDeOcorrencia`, com
+`NotificadorDeOcorrenciaConsole` para o perfil `dev` e
+`NotificadorDeOcorrenciaWebhookSimulado` para o perfil `prod`, ligados
+explicitamente por `NotificacaoConfig`, e comprovou pelo log que o container
+troca de implementação sozinho conforme o perfil ativo. Projetar a tabela da
+Aula 06 que compara o capítulo com a stack da Rota Sul, na linha Visão:
+"Thymeleaf, a partir da Aula 13". A promessa feita há sete aulas vence hoje: a
+Rota Sul ganha sua primeira tela de verdade, e o `PedidoService` que já existe
+desde a Aula 06 vai atender essa tela sem que uma linha de regra de negócio
+precise ser reescrita.
+
+### Ciclo 1, 19h30 às 20h05
+
+- **Conceito.** A origem das tecnologias de apresentação web, na narrativa do
+  capítulo [1].
+
+  **Da ARPANET ao HTML.** O capítulo reconstrói a linha do tempo: nos anos
+  1960, militares americanos idealizaram uma base de informações
+  descentralizada, para que um ataque não apagasse dados de toda a rede; daí
+  nasceu a ARPANET, construída por um consórcio de universidades, que evoluiu
+  para a Internet. No início bastava apresentar informação, e para organizar
+  essa apresentação surgiu o HTML, HyperText Markup Language, uma linguagem
+  de marcação que qualquer navegador interpreta do mesmo jeito. Com o uso
+  comercial da Internet nos anos 1990, foi preciso deixar o usuário
+  interagir com a página, e o próprio HTML precisou mudar; surgiram o CSS,
+  para o leiaute, e o JavaScript, definido pela W3C para controlar
+  dinamicamente o conteúdo a partir da interação do usuário. Antes do
+  JavaScript, formulários eram tratados por Applets Java, logo substituídos
+  por Servlets e por CGI, rotinas de servidor escritas em C ou C++.
+
+  **De site estático a site orientado a serviços.** Até o início dos anos
+  2000, um site podia ser puramente de conteúdo estático, apresentando
+  informação de uma empresa. O outro tipo, orientado a serviços, muda o
+  conteúdo conforme a interação do usuário; hoje é raro encontrar um site
+  puramente estático, e redes sociais, portais de notícia e comércio
+  eletrônico são exemplos do segundo tipo, citados pelo capítulo.
+
+  **A tríade Java Web do capítulo.** Para sistemas de alta complexidade, o
+  capítulo descreve o subconjunto Java Web da plataforma Java EE, formado
+  por três peças: **JSP**, misturado ao HTML em arquivos de extensão `.jsp`,
+  controla o conteúdo apresentado ao usuário; **Servlet**, classe que trata
+  requisições e gera respostas, controla a navegação entre páginas e o uso
+  das classes JavaBeans; **JavaBeans**, classes que executam a regra de
+  negócio e as tarefas de infraestrutura, como o acesso à base de dados. Para
+  funcionar, uma aplicação Java Web precisa do Descritor de Deployment,
+  `web.xml`, que configura como os Servlets são mapeados e como o Servlet
+  Container deve operar.
+
+- **Demonstração no projetor.** Ler as três definições do capítulo, JSP,
+  Servlet e JavaBeans, e escrever ao lado o equivalente que a Rota Sul vai
+  construir hoje: Thymeleaf no lugar de JSP, controlando o que é apresentado;
+  `PedidoFormController`, um `@Controller` novo, no lugar do Servlet,
+  recebendo a requisição e decidindo qual página devolver; `PedidoService` e
+  `Pedido`, que já existem desde a Aula 06, no lugar das JavaBeans, com a
+  regra de negócio. O `web.xml` do capítulo não tem equivalente direto: o
+  Spring Boot resolve o mapeamento de URLs por anotação, sem descritor de
+  deployment separado.
+
+- **Exercício curto.** Cinco minutos, individual. Responder por escrito: na
+  tríade do capítulo, JSP, Servlet e JavaBeans, qual das três teria a regra
+  "pedido sem cliente é recusado", herdada da Aula 06? E, na versão da Rota
+  Sul, em qual classe essa mesma regra continua morando hoje? Gabarito: na
+  tríade do capítulo, a regra pertence à JavaBean; na Rota Sul, ela continua
+  em `PedidoService`, e vai continuar lá mesmo depois que a tela de hoje
+  existir, porque trocar a porta de entrada não muda onde a regra de negócio
+  mora.
+
+### Ciclo 2, 20h05 às 20h40
+
+- **Conceito.** Como o servidor decide sincronizar dados com o cliente, e a
+  fronteira entre apresentação e regra de negócio.
+
+  **PUSH e PULL, a classificação do capítulo.** O capítulo descreve dois
+  modos de sincronizar dados entre cliente e servidor. No modo **PUSH**, os
+  componentes do lado do servidor enviam os dados já prontos para o lado do
+  cliente; os frameworks mais conhecidos para esse mecanismo são Struts,
+  Ruby on Rails e **Spring MVC**, citado nominalmente pelo capítulo. No modo
+  **PULL**, os componentes do lado do cliente solicitam a componentes de
+  controle do servidor que lhes enviem as informações a mostrar; os
+  frameworks mais conhecidos aqui são JavaServer Faces, Struts2, ASP.Net Web
+  Forms e Laravel. O laboratório de hoje é PUSH: o `PedidoFormController` já
+  monta a página inteira, com os dados prontos, antes de enviá-la ao
+  navegador.
+
+  > **Nota para o professor.** O capítulo cita o Hibernate como framework
+  > para aplicativos web, ao lado de BootStrap, jQuery e Ajax, descrevendo-o
+  > como algo que conecta interfaces gráficas às classes de persistência.
+  > Essa classificação mistura camadas, apresentação e persistência não são a
+  > mesma coisa, e o Hibernate volta com mais precisão na Aula 15. Dizer isso
+  > à turma sem corrigir o capítulo na frente dela: o texto do AVA é a fonte,
+  > e esta observação é só para o professor não repetir a mistura em sala.
+
+  **A fronteira entre view e regra de negócio, o ponto central de hoje.** O
+  formulário de hoje vai validar que o campo `cliente` foi preenchido, antes
+  mesmo de qualquer dado chegar ao `PedidoService`. Essa validação de tela
+  não substitui a regra "pedido sem cliente é recusado" que o `PedidoService`
+  já aplica desde a Aula 06; ela apenas antecipa o mesmo problema, numa
+  camada mais barata de errar. Se alguém pular a tela e chamar `POST
+  /pedidos` direto, sem passar pelo formulário, o `PedidoService` continua
+  sendo a última linha de defesa, porque é ele quem carrega a regra, não o
+  Thymeleaf.
+
+  **Layout e fragments, o padrão de composição de hoje.** Em vez de repetir
+  cabeçalho e rodapé em cada página, o Thymeleaf permite marcar um trecho de
+  um arquivo com `th:fragment` e incluí-lo em outra página com `th:replace`
+  ou `th:insert`. É composição de página, não herança de classe: a página
+  final é montada colando pedaços marcados, o mesmo princípio de reuso que
+  já apareceu nos componentes de software desde a Aula 06, agora aplicado à
+  camada de visão.
+
+- **Demonstração no projetor.** Esqueleto mínimo de um fragment, para mostrar
+  a mecânica antes de escrever o layout de verdade:
+
+  ```html
+  <header th:fragment="cabecalho(titulo)">
+    <h1 th:text="${titulo}">Título da página</h1>
+  </header>
+  ```
+
+  E o uso desse fragment em outra página:
+
+  ```html
+  <div th:replace="~{fragments/layout :: cabecalho(titulo='Novo pedido')}"></div>
+  ```
+
+  Apontar: o parâmetro `titulo` entra pelo fragment, exatamente como um
+  parâmetro de método; `th:replace` troca a própria `div` pelo conteúdo do
+  fragment, `th:insert` inseriria o conteúdo dentro da `div`, mantendo a
+  tag. A aula de hoje usa `th:replace` nos dois casos, cabeçalho e rodapé.
+
+- **Exercício curto.** Cinco minutos, em duplas. Decidir, para cada situação,
+  se a validação pertence à view ou à regra de negócio, e por quê: (a)
+  impedir que o formulário seja enviado sem o campo `cliente` preenchido; (b)
+  recusar um pedido cujo lojista está na lista de bloqueados, herdada da
+  Aula 07; (c) mostrar uma mensagem de erro em português perto do campo
+  vazio. Gabarito: (a) e (c) são view, cuidam da experiência de quem
+  preenche o formulário; (b) é regra de negócio, porque depende de dado que
+  só o domínio conhece e precisa valer para qualquer porta de entrada, tela
+  ou API.
+
+### Quiz, 20h40 às 20h50
+
+**Pergunta.** A Rota Sul decide que, ao processar um novo pedido, o servidor
+já gera a página HTML pronta com os dados atualizados e a envia ao navegador
+do atendente, sem que o navegador precise pedir nada além da requisição
+inicial. Segundo a classificação do capítulo, esse mecanismo de sincronização
+de dados entre cliente e servidor é conhecido como:
+
+- A) PUSH, mecanismo implementado por frameworks como Struts, Ruby on Rails e
+  Spring MVC.
+- B) PULL, mecanismo implementado por frameworks como JavaServer Faces e
+  Struts2.
+- C) Ajax, técnica que atualiza parcialmente uma página sem recarregá-la por
+  inteiro.
+- D) ORM, mecanismo que mapeia objetos da aplicação para tabelas do banco de
+  dados.
+
+**Correta:** A.
+
+**Justificativa.** O capítulo descreve o PUSH exatamente assim: "os
+componentes de software que são executados do lado do servidor enviam os
+dados para os componentes executados do lado do cliente", citando Struts,
+Ruby on Rails e Spring MVC como frameworks conhecidos para esse mecanismo, o
+mesmo Spring MVC que sustenta o Thymeleaf usado no laboratório de hoje. A
+alternativa B descreve o modo PULL, o oposto, em que o cliente é quem
+solicita os dados a componentes de controle do servidor, e cita outra
+família de frameworks. A C descreve Ajax, uma técnica do mesmo capítulo, mas
+para atualização parcial de página, não para o mecanismo de sincronização
+completa descrito no enunciado. A D descreve mapeamento objeto-relacional,
+assunto de um capítulo diferente, sem relação com sincronização entre
+cliente e servidor.
+
+### Ciclo 3, 20h50 às 21h25
+
+Laboratório de apresentação. O laboratório de hoje não é sobre visual: o
+foco é o papel da camada de apresentação, o padrão de composição por layout
+e fragments, e a fronteira entre view e regra de negócio. O HTML fica
+deliberadamente simples, sem framework de CSS.
+
+1. **Acrescentar as dependências.** No `pom.xml`,
+   `spring-boot-starter-thymeleaf`, fixada no contrato técnico desde a Aula
+   01 e usada pela primeira vez hoje, e `spring-boot-starter-validation`,
+   nova, necessária para `@NotBlank` e `@Valid` no formulário.
+2. **Criar o layout compartilhado.** Em
+   `src/main/resources/templates/fragments/layout.html`, dois fragments:
+   `cabecalho(titulo)`, com um `<h1>` mostrando o título recebido por
+   parâmetro e um menu com dois links, um para `/pedidos` (a API REST da
+   Aula 06) e outro para `/pedidos/novo` (a tela de hoje); e `rodape`, com
+   uma linha fixa identificando o painel interno da Rota Sul.
+3. **Criar o modelo de formulário.** Em `pedido/web`, a classe `PedidoForm`,
+   com os atributos `cliente` (anotado `@NotBlank(message = "Cliente e
+   obrigatorio")`), `descricao` (sem validação) e `regiao` (`String`, com
+   valor padrão `"PRINCIPAL"`, o mesmo atributo que a Aula 11 acrescentou ao
+   `Pedido`). Diferente de `Pedido`, `PedidoForm` pode ter anotação de
+   framework: ela pertence à camada `web`, não ao domínio.
+4. **Escrever o controlador da tela.** `PedidoFormController`, em
+   `pedido/web`, anotado `@Controller`, não `@RestController`, mapeado em
+   `/pedidos/novo`. Recebe `PedidoService` e `CalculoDeFreteService` pelo
+   construtor. O método `GET` monta um `PedidoForm` vazio, adiciona ao
+   `Model` com o nome `pedidoForm` e devolve o nome lógico da view,
+   `"pedidos/formulario"`, sem o `.html`, resolvido pelo Thymeleaf.
+5. **Escrever o template do formulário.** Em
+   `src/main/resources/templates/pedidos/formulario.html`, incluir o
+   cabeçalho e o rodapé com `th:replace`, e um `<form>` com
+   `th:object="${pedidoForm}"`, um `<input th:field="*{cliente}">`, um
+   `<span th:if="${#fields.hasErrors('cliente')}" th:errors="*{cliente}">`
+   para a mensagem de erro, um campo de texto para `descricao` e um
+   `<select th:field="*{regiao}">` com as opções `PRINCIPAL` e
+   `ULTIMA_MILHA`.
+6. **Subir e ver a tela.** `./mvnw spring-boot:run` e abrir
+   `http://localhost:PORTA/pedidos/novo` no navegador, na porta que o
+   terminal imprimiu. Conferir que o cabeçalho, o formulário e o rodapé
+   aparecem, mesmo sem nenhuma folha de estilo.
+
+### Ciclo 4, 21h25 às 21h50
+
+7. **Escrever o `POST` com validação.** No mesmo `PedidoFormController`, um
+   método `POST` em `/pedidos/novo`, recebendo `@Valid @ModelAttribute("pedidoForm")
+   PedidoForm form` e `BindingResult resultado`. Se `resultado.hasErrors()`,
+   devolver de novo `"pedidos/formulario"`, sem redirecionar, para o
+   Thymeleaf reconstruir a página com as mensagens de erro ao lado dos
+   campos. Se não houver erro, montar um `Pedido` a partir do `PedidoForm`,
+   chamar `pedidoService.registrar(pedido)`, calcular o frete com
+   `calculoDeFreteService.calcular(pedido)`, e devolver a view
+   `"pedidos/confirmacao"`, com o pedido e o frete no `Model`.
+8. **Escrever o template de confirmação.** Em
+   `templates/pedidos/confirmacao.html`, reaproveitando o cabeçalho e o
+   rodapé do mesmo jeito, mostrando o nome do cliente registrado e o valor
+   do frete calculado, com o texto "Frete calculado pela estratégia de
+   $regiao$", ligando visualmente o formulário de hoje ao Strategy da Aula
+   11.
+9. **Testar a validação sem navegador.** `PedidoFormControllerTest`, em
+   `src/test/java/br/uni9/rotasul/pedido/web/`, anotado `@WebMvcTest(PedidoFormController.class)`,
+   com `PedidoService` e `CalculoDeFreteService` como `@MockBean`. Dois
+   casos com `MockMvc`: um `POST` para `/pedidos/novo` sem o parâmetro
+   `cliente` devolve status 200 e a view `pedidos/formulario` de novo, sem
+   chamar `pedidoService.registrar`; um `POST` com `cliente` preenchido
+   devolve a view `pedidos/confirmacao` e chama `pedidoService.registrar`
+   exatamente uma vez. Rodar `./mvnw test`.
+10. **Confirmar a fronteira em voz alta.** Enviar, por `curl`, um `POST
+    /pedidos` (a API REST da Aula 06, não a tela) sem o campo `cliente`, e
+    conferir que o `PedidoService` recusa do mesmo jeito que recusaria vindo
+    da tela. É a prova de que a regra de negócio não migrou para o
+    Thymeleaf, só ganhou uma segunda porta de entrada na frente dela.
+11. **Registrar a decisão.** Em `docs/decisoes.md`, uma linha explicando a
+    escolha de layout e fragments em vez de repetir HTML em cada página, e
+    outra linha explicitando que a validação de `PedidoForm` é
+    responsabilidade da view, sem substituir a regra de `PedidoService`.
+
+**Entregável do dia:** `PedidoFormController`, `PedidoForm`,
+`templates/fragments/layout.html`, `templates/pedidos/formulario.html` e
+`templates/pedidos/confirmacao.html`. Critério de aceitação: `POST
+/pedidos/novo` sem `cliente` devolvendo a mesma tela com erro, com `cliente`
+devolvendo a confirmação com o frete calculado, `PedidoFormControllerTest`
+passando com `./mvnw test`, e o `POST /pedidos` da API REST continuando a
+recusar pedido sem cliente, comprovando que a regra não saiu do
+`PedidoService`.
+
+### Fechamento, 21h50 às 22h00
+
+- `git add src docs`
+- `git commit -m "feat(pedido): adiciona tela de cadastro em Thymeleaf com layout, fragments e validacao"`
+- `git push`
+- Fechar o ciclo relendo a tabela da Aula 06: a linha "Visão" que dizia
+  "Thymeleaf, a partir da Aula 13" acaba de se cumprir, e as outras três
+  linhas, Controle, Modelo com regra e Modelo com dados, não mudaram uma
+  vírgula.
+- **Prévia da Aula 14.** A tela de hoje ainda grava tudo em
+  `PedidoRepositoryEmMemoria`, a mesma implementação da Aula 06: fechar a
+  aplicação apaga todo pedido cadastrado pela tela nova. A próxima aula
+  ataca exatamente esse ponto, trocando o repositório em memória por JDBC
+  puro, e a turma vai medir, em linhas de código, o preço dessa mudança.
+
+### Referências
+
+1. MESQUITA, Paulo Ricardo Batista. **Capítulo 12: Frameworks para
+   Aplicativos Web.** Arquitetura de Software. AVA, Uninove. Fonte primária
+   desta aula, `pdf/012.pdf`.
+2. LINWOOD, J.; MINTER, D.; OTTINGER, J. **Beginning Hibernate.** Apress,
+   2014. Referência indicada pelo capítulo.
+3. FLORES, R. **Getting Started With Bootstrap 3.** Smashwords, 2015.
+   Referência indicada pelo capítulo.
+4. SILVA, M. S. **jQuery, a Biblioteca do Programador JavaScript.** Novatec,
+   2013. Referência indicada pelo capítulo.
+5. Thymeleaf. **Documentação**, seção de layout e fragments.
+   <https://www.thymeleaf.org/doc/tutorials/3.1/usingthymeleaf.html>
+6. Spring. **Documentação do Spring Framework**, seção de validação de
+   formulário. <https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-validation.html>
+7. JUnit. **JUnit 5 User Guide.** <https://junit.org/junit5/docs/current/user-guide/>
+
+---
+
+## Aula 14, Frameworks para gerenciamento de dados
+
+**Módulo:** M3, Padrões e frameworks
+**Capítulo do AVA:** `pdf/013.pdf`, Frameworks para Gerenciamento de Dados
+**Entregável:** `PedidoRepositoryJdbc`, nova implementação de `PedidoRepository`
+usando JDBC puro contra um MySQL real, no lugar de
+`PedidoRepositoryEmMemoria`, mais a contagem de linhas de código das duas
+implementações registrada em `docs/decisoes.md`. Critério de aceitação: a
+aplicação subindo com `PedidoRepositoryJdbc` como único bean de
+`PedidoRepository`, um pedido sobrevivendo a um reinício da aplicação,
+`PedidoRepositoryJdbcTest` passando com `./mvnw test` usando Testcontainers, e
+a contagem de linhas antes e depois registrada.
+
+> **Nota para o professor.** Na Aula 06, a troca do repositório em memória por
+> um banco real foi anunciada como "o exercício da Aula 15", dentro do
+> Módulo 4. O detalhamento do Módulo 3 refinou esse plano em dois passos: a
+> Aula 14 troca a memória por JDBC puro, sentindo a verbosidade na mão; a
+> Aula 15 troca o JDBC por JPA, sentindo o alívio. Nada do que a Aula 06 disse
+> está errado, só ficou mais fino: o banco real continua entrando na segunda
+> metade do semestre, só que em duas etapas em vez de uma. Vale mencionar isso
+> à turma se algum aluno notar a diferença entre o que a Aula 06 prometeu e o
+> que acontece hoje.
+
+### Retomada, 5 minutos
+
+Na Aula 13 cada aluno entregou a tela de cadastro de pedido em
+`/pedidos/novo`, com layout, fragments e validação do campo `cliente`. Abrir
+essa tela, cadastrar um pedido, reiniciar a aplicação com `Ctrl+C` e `./mvnw
+spring-boot:run`, e voltar em `/pedidos`: o pedido sumiu. Perguntar à turma
+por quê. A resposta está em `PedidoRepositoryEmMemoria`, viva desde a Aula
+06: uma `List` dentro da JVM, que existe enquanto o processo existe e some
+quando ele para. A aula de hoje ataca exatamente esse ponto.
+
+### Ciclo 1, 19h30 às 20h05
+
+- **Conceito.** Persistência de dados e a motivação de um framework ou API
+  dedicados a ela, na descrição do capítulo [1].
+
+  **Por que persistir com um mecanismo eficiente.** O capítulo abre
+  afirmando que o objetivo principal de um aplicativo é prover dados a seus
+  usuários, obtidos de outros sistemas ou digitados pelo próprio usuário; para
+  isso, o aplicativo precisa persistir esses dados com eficiência,
+  mantendo-os sempre disponíveis e atualizados. A forma mais comum de
+  armazenamento é um SGBD, sistema de gerenciamento de banco de dados, e o
+  capítulo cita uma proporção de mercado de aproximadamente 80% de SGBDs
+  relacionais, que executam SQL, contra 20% para os demais modelos,
+  incluindo NoSQL.
+
+  **A origem do ODBC, e a ideia de independência.** Entre os anos 1970 e
+  1990, os aplicativos evoluíram até um padrão chamado ODBC, Open DataBase
+  Connectivity, a primeira solução, segundo o capítulo, a manter alguma
+  independência entre o aplicativo e o SGBD que ele usa. A ideia do ODBC era
+  prover uma interface que o desenvolvedor acopla aos drivers específicos de
+  cada fornecedor de SGBD, deixando a camada de execução de transações
+  desacoplada do driver de conexão. Uma camada de persistência assim,
+  totalmente independente da aplicação, pode ser reaproveitada por qualquer
+  aplicativo que precise persistir dados, na forma de um framework ou de uma
+  API.
+
+  **Framework contra API de persistência, a distinção do capítulo.** No caso
+  de um framework, os componentes têm interfaces de conexão que acoplam o
+  framework ao aplicativo, e é o framework quem determina como a camada de
+  persistência funciona, ainda que o desenvolvedor mantenha algum controle.
+  No caso de uma API, os componentes também têm interfaces de conexão, mas
+  quem realiza as tarefas de persistir é a própria API, sem o desenvolvedor
+  controlar como isso acontece por dentro. `PedidoRepositoryJdbc`, que a
+  turma escreve hoje, não é nenhum dos dois: é o próprio desenvolvedor
+  controlando cada instrução SQL, sem framework nem API de persistência no
+  meio. É exatamente esse contraste, sentido na mão, que prepara a Aula 15.
+
+- **Demonstração no projetor.** Projetar `PedidoRepositoryEmMemoria`, da
+  Aula 06, ao lado da definição de camada de persistência do capítulo:
+  independente da aplicação, reutilizável por qualquer aplicativo. A versão
+  em memória cumpre a independência da interface, `PedidoRepository`, mas
+  não cumpre a persistência de verdade: os dados não sobrevivem ao processo.
+  Hoje a turma escreve uma implementação que cumpre as duas coisas.
+
+- **Exercício curto.** Cinco minutos, individual. Segundo a definição do
+  capítulo, framework de persistência é quem determina como a camada de
+  dados funciona, com algum controle do desenvolvedor; API de persistência é
+  quem executa as tarefas de persistir sem o desenvolvedor controlar como.
+  Classificar: Spring Data JPA, que a Aula 15 vai apresentar, é mais parecido
+  com framework ou com API, segundo essa definição? Gabarito: mais parecido
+  com framework, porque o desenvolvedor escreve a interface do repositório e
+  mantém controle sobre o mapeamento das entidades, mesmo que o Spring Data
+  gere a implementação.
+
+### Ciclo 2, 20h05 às 20h40
+
+- **Conceito.** Mapa objeto-relacional e os padrões de projeto que o
+  capítulo lista para persistência de dados.
+
+  **A raiz do problema do ORM.** O capítulo explica por que existe o mapa
+  objeto-relacional: a estrutura de tabelas de um SGBD relacional não é
+  diretamente mapeável para a forma como a programação orientada a objetos
+  estrutura classes e objetos. Um mapa objeto-relacional, ORM, orienta o
+  desenvolvedor a escrever classes de entidade, cada uma representando uma
+  entidade do SGBD, informando à API o nome da entidade associada, as
+  colunas e as restrições de chave. A API usa reflexão de objetos, a técnica
+  que permite a uma classe examinar a estrutura de outra em tempo de
+  execução, para elaborar os comandos SQL a partir dessas classes.
+
+  > **Nota para o professor.** O capítulo ilustra ORM com uma classe `Banda`
+  > anotada `@Entity`, `@Table`, `@Id` e `@OneToMany`, e com uma
+  > `AbstractFacade<T>` genérica chamando `EntityManager`. Isso é JPA, o
+  > assunto da Aula 15, não de hoje. Ler esse trecho do capítulo com a turma
+  > é útil para mostrar aonde o semestre está indo, mas nenhuma dessas
+  > anotações entra no laboratório de hoje: o laboratório de hoje é
+  > deliberadamente o oposto disso, JDBC sem nenhum mapeamento automático.
+
+  **Os cinco padrões de projeto que o capítulo lista para persistência.**
+  Unit-of-Work, que agrupa várias instruções SQL numa única transação, para
+  não gastar uma transação por comando; **Repository Pattern**, que orienta o
+  desenvolvedor a escrever uma camada abstrata de dados, usada pela aplicação
+  para obter o que precisa, em vez de se conectar diretamente à base; Bridge
+  Pattern, que conecta um aplicativo a diferentes tipos de base de dados;
+  Factory Pattern, que define um modo conveniente de criar os objetos que a
+  regra de negócio precisa; Gateway Pattern, que determina a lógica de
+  conexão entre regra de negócio e banco de dados.
+
+  **O nome que faltava desde a Aula 06.** `PedidoRepository`, a interface
+  criada na Aula 06 e ainda o contrato de hoje, é uma aplicação do Repository
+  Pattern do capítulo: uma camada abstrata de dados, que `PedidoService`
+  usa sem se conectar diretamente a banco nenhum. A turma usa esse padrão há
+  oito aulas sem o nome; hoje o capítulo devolve o nome, e mostra por que a
+  interface valeu a pena, trocar a implementação de hoje não vai custar uma
+  linha sequer em `PedidoService`.
+
+- **Demonstração no projetor.** Ler em voz alta a listagem do capítulo com a
+  classe `Banda`, contando as anotações de mapeamento numa única declaração
+  de atributo, `@Id`, `@GeneratedValue`, `@Column`. Contrastar com o que a
+  turma vai escrever daqui a pouco em `PedidoRepositoryJdbc`: nenhuma
+  anotação de mapeamento, e em troca, cada coluna lida com
+  `resultado.getString("cliente")`, à mão. É o preço e o benefício invertidos
+  entre os dois mundos, e a Aula 15 mostra o outro lado da balança.
+
+- **Exercício curto.** Cinco minutos, em duplas. Reler a definição de
+  Repository Pattern do capítulo e decidir: se `PedidoService` chamasse
+  `DriverManager.getConnection(...)` diretamente, dentro de si mesmo, em vez
+  de depender de `PedidoRepository`, isso ainda seria uma aplicação do
+  Repository Pattern? Gabarito: não, porque o padrão exige exatamente a
+  camada abstrata entre a aplicação e a base, e uma conexão direta dentro do
+  serviço apaga essa camada, mesmo que o resultado funcione.
+
+### Quiz, 20h40 às 20h50
+
+**Pergunta.** O capítulo lista cinco padrões de projeto usados no
+desenvolvimento de frameworks e APIs de persistência de dados. Desde a Aula
+06, a Rota Sul já usa a interface `PedidoRepository`, com implementações
+trocáveis (a de hoje troca a versão em memória por JDBC), sem que
+`PedidoService` precise mudar uma linha. Qual dos cinco padrões do capítulo
+descreve exatamente essa prática?
+
+- A) Unit-of-Work, que agrupa várias instruções SQL dentro de uma única
+  transação.
+- B) Repository Pattern, que orienta o desenvolvedor a escrever uma camada
+  abstrata de dados, usada pela aplicação para obter o que precisa, em vez
+  de se conectar diretamente à base de dados.
+- C) Bridge Pattern, que conecta um aplicativo a diferentes tipos de base de
+  dados.
+- D) Gateway Pattern, que determina a lógica de conexão entre regra de
+  negócio e banco de dados.
+
+**Correta:** B.
+
+**Justificativa.** É a definição literal do capítulo para o Repository
+Pattern, e descreve exatamente o papel de `PedidoRepository`: uma camada
+abstrata entre `PedidoService` e a origem real dos dados, trocável sem
+alterar quem a consome. A é um padrão real do capítulo, mas resolve outro
+problema, agrupar comandos numa transação, não abstrair o acesso. A C
+descreve conectar-se a diferentes tipos de banco ao mesmo tempo, o que não é
+o caso da Rota Sul, que troca uma implementação por outra, não usa as duas
+juntas. A D descreve uma lógica de conexão entre regra de negócio e banco,
+mais próxima do que um `Gateway` faria dentro do próprio repositório do que
+do papel da interface em si.
+
+### Ciclo 3, 20h50 às 21h25
+
+Laboratório de troca de implementação. O contrato `PedidoRepository`, com
+`salvar(Pedido)` e `listarTodos()`, não muda uma linha; só a implementação
+por trás dele muda, de memória para um MySQL real acessado por JDBC puro,
+sem `JdbcTemplate` e sem ORM.
+
+1. **Acrescentar as dependências.** No `pom.xml`:
+   `spring-boot-starter-jdbc`, que traz o `DataSource` autoconfigurado pelo
+   Spring Boot; `mysql-connector-j`, o driver JDBC do MySQL; `flyway-core`, já
+   fixado no contrato técnico para controlar a evolução do schema; e
+   `org.testcontainers:mysql`, para o teste de hoje subir um MySQL descartável
+   automaticamente.
+2. **Subir um MySQL local.** `docker run --name rotasul-mysql -e
+   MYSQL_ROOT_PASSWORD=${DB_PASSWORD} -e MYSQL_DATABASE=rotasul -p
+   3306:3306 -d mysql:8.4`, com `DB_PASSWORD` lida do `.env`, nunca escrita
+   no comando nem no repositório.
+3. **Escrever a migration.** Em
+   `src/main/resources/db/migration/V1__cria_tabela_pedido.sql`, criar a
+   tabela `pedido`, com `id` (chave primária autoincremento), `cliente`
+   (obrigatório), `descricao`, `situacao` (obrigatório) e `regiao`
+   (obrigatório, o atributo que a Aula 11 acrescentou ao domínio). O Flyway
+   aplica essa migration sozinho na próxima subida da aplicação.
+4. **Configurar o datasource.** Em `application.properties`,
+   `spring.datasource.url=jdbc:mysql://localhost:3306/rotasul`,
+   `spring.datasource.username=root` e
+   `spring.datasource.password=${DB_PASSWORD}`. Nenhuma senha em texto puro
+   no arquivo, a mesma regra desde a Aula 01.
+5. **Escrever `PedidoRepositoryJdbc`.** Em `pedido/repository`, implementando
+   `PedidoRepository` com `java.sql` puro, recebendo `DataSource` pelo
+   construtor:
+
+   ```java
+   @Override
+   public Pedido salvar(Pedido pedido) {
+       String sql = "INSERT INTO pedido (cliente, descricao, situacao, regiao) "
+           + "VALUES (?, ?, ?, ?)";
+       try (Connection conexao = dataSource.getConnection();
+            PreparedStatement comando = conexao.prepareStatement(
+                sql, Statement.RETURN_GENERATED_KEYS)) {
+           comando.setString(1, pedido.getCliente());
+           comando.setString(2, pedido.getDescricao());
+           comando.setString(3, pedido.getSituacao());
+           comando.setString(4, pedido.getRegiao());
+           comando.executeUpdate();
+           try (ResultSet chaves = comando.getGeneratedKeys()) {
+               if (chaves.next()) {
+                   pedido.setId(chaves.getLong(1));
+               }
+           }
+           return pedido;
+       } catch (SQLException erro) {
+           throw new IllegalStateException("falha ao salvar pedido", erro);
+       }
+   }
+   ```
+
+   `listarTodos()` segue o mesmo padrão, com `SELECT`, um
+   `PreparedStatement`, um `ResultSet` percorrido em `while (resultado.next())`
+   e a montagem manual de cada `Pedido` a partir das colunas lidas. Ajustar
+   os nomes de campo e o construtor de `Pedido` conforme a versão que cada
+   aluno já tem, escrita na Aula 06 e ajustada na Aula 11.
+6. **Compilar e contar as linhas.** `./mvnw compile`, e então `wc -l
+   src/main/java/br/uni9/rotasul/pedido/repository/PedidoRepositoryEmMemoria.java
+   src/main/java/br/uni9/rotasul/pedido/repository/PedidoRepositoryJdbc.java`,
+   anotando os dois números num papel ou num editor de texto à parte, para o
+   registro do Ciclo 4.
+
+### Ciclo 4, 21h25 às 21h50
+
+7. **Desativar a implementação em memória.** Remover a anotação
+   `@Repository` de `PedidoRepositoryEmMemoria`. A classe continua existindo
+   no código, intacta, só deixa de ser candidata a bean; é o material de
+   comparação da contagem de linhas, não código morto para apagar. Acrescentar
+   `@Repository` em `PedidoRepositoryJdbc`, que passa a ser a única
+   implementação que o Spring enxerga.
+8. **Provar a persistência real.** Subir a aplicação, `./mvnw
+   spring-boot:run`, cadastrar um pedido pela tela `/pedidos/novo` da Aula
+   13, parar a aplicação com `Ctrl+C`, subir de novo, e conferir em
+   `/pedidos` que o pedido continua lá. É o oposto exato do que a retomada
+   de hoje mostrou com a versão em memória.
+9. **Testar com Testcontainers.** `PedidoRepositoryJdbcTest`, em
+   `src/test/java/br/uni9/rotasul/pedido/repository/`, anotado
+   `@Testcontainers` e `@SpringBootTest`, com um `@Container static
+   MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.4")`, e um método
+   `@DynamicPropertySource` sobrescrevendo `spring.datasource.url`,
+   `username` e `password` com os valores do container. Um caso: salvar um
+   `Pedido` e conferir que `listarTodos()` devolve uma lista de tamanho um.
+   Esse teste sobe um MySQL descartável a cada execução, sem depender do
+   container manual do passo 2. Rodar `./mvnw test`.
+10. **Registrar a contagem, o entregável central de hoje.** Em
+    `docs/decisoes.md`, uma linha com os dois números do passo 6, por
+    exemplo "`PedidoRepositoryEmMemoria`: 24 linhas; `PedidoRepositoryJdbc`:
+    58 linhas", mais uma frase curta explicando de onde vem a diferença:
+    abertura e fechamento de conexão, `PreparedStatement`, tratamento de
+    `SQLException` e montagem manual de cada `Pedido` a partir do
+    `ResultSet`, tudo isso que a versão em memória nunca precisou fazer.
+11. **Registrar a decisão de arquitetura.** Uma segunda linha em
+    `docs/decisoes.md`, nomeando o Repository Pattern do capítulo como a
+    razão de essa troca ter custado zero linha em `PedidoService`.
+
+**Entregável do dia:** `PedidoRepositoryJdbc` como única implementação ativa
+de `PedidoRepository`, a migration Flyway, `PedidoRepositoryJdbcTest` com
+Testcontainers, e a contagem de linhas registrada em `docs/decisoes.md`.
+Critério de aceitação: um pedido cadastrado pela tela sobrevivendo a um
+reinício da aplicação, `./mvnw test` passando, e as duas linhas de
+`docs/decisoes.md` do passo 10 e do passo 11 presentes.
+
+### Fechamento, 21h50 às 22h00
+
+- `git add src docs pom.xml`
+- `git commit -m "feat(pedido): troca PedidoRepositoryEmMemoria por PedidoRepositoryJdbc com JDBC puro"`
+- `git push`
+- Fechar o Módulo 3 relendo as quatro aulas em uma frase cada: Strategy e
+  Factory Method nomeando o que a Rota Sul já fazia, inversão de controle
+  explicando quem decide qual bean sobe, Thymeleaf abrindo uma segunda porta
+  de entrada sem duplicar regra de negócio, e hoje o primeiro contato com um
+  banco de verdade, sentido na mão em linhas de código.
+- **Prévia da Aula 15.** A contagem de hoje não é só estatística: é a régua
+  que a próxima aula usa. A Aula 15 troca `PedidoRepositoryJdbc` por uma
+  versão sobre a API de Persistência Java, e a turma mede de novo quantas
+  linhas isso custa, desta vez para menos. O nome dessa API já apareceu hoje,
+  de relance, na classe `Banda` do capítulo: é o assunto de amanhã.
+
+### Referências
+
+1. MESQUITA, Paulo Ricardo Batista. **Capítulo 13: Frameworks para
+   Gerenciamento de Dados.** Arquitetura de Software. AVA, Uninove. Fonte
+   primária desta aula, `pdf/013.pdf`.
+2. BALZER, Stephanie. **Contracted Persistent Object Programming.**
+   University of Glasgow, School of CS Research; ETH Zürich, 2015.
+   Referência indicada pelo capítulo.
+3. Oracle. **MySQL Reference Manual.** <https://dev.mysql.com/doc/>
+4. Flyway. **Documentação**, seção de migrations.
+   <https://documentation.red-gate.com/fd/migrations-184127470.html>
+5. Testcontainers. **Documentação do módulo MySQL.**
+   <https://java.testcontainers.org/modules/databases/mysql/>
+6. Oracle. **JDBC API Documentation.**
+   <https://docs.oracle.com/javase/8/docs/technotes/guides/jdbc/>
+7. JUnit. **JUnit 5 User Guide.** <https://junit.org/junit5/docs/current/user-guide/>
+
