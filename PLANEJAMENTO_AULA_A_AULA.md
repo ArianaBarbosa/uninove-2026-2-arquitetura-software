@@ -1928,3 +1928,1132 @@ registrada.
 4. Spring. **Documentação do Spring Boot**, seção de desenvolvimento de
    aplicações web. <https://docs.spring.io/spring-boot/index.html>
 5. JUnit. **JUnit 5 User Guide.** <https://junit.org/junit5/docs/current/user-guide/>
+
+---
+
+## Aula 07, Arquitetura orientada a serviços, SOA
+
+**Módulo:** M2, Integração e serviços distribuídos
+**Capítulo do AVA:** `pdf/006.pdf`, Arquitetura Orientada a Serviços (SOA)
+**Entregável:** a interface `PedidoService` no pacote
+`br.uni9.rotasul.pedido.service`, com duas implementações trocáveis por perfil
+do Spring, `PedidoServicePadrao` e `PedidoServiceComAnaliseDeRisco`, mais uma
+suíte de teste JUnit 5 que roda os mesmos casos contra as duas implementações.
+Critério de aceitação: as duas implementações passando na mesma suíte com
+`./mvnw test`, nenhuma anotação de framework na interface, e o
+`PedidoController` chamando apenas a interface, sem conhecer nenhuma das
+classes concretas.
+
+### Retomada, 5 minutos
+
+Na Aula 06 cada aluno entregou a primeira fatia em três camadas do pacote
+`br.uni9.rotasul.pedido`, com `PedidoController`, `PedidoService` como classe
+concreta, a interface `PedidoRepository` e a implementação em memória.
+Projetar o `PedidoService` de um aluno e apontar: ele é uma classe, não uma
+interface, e o `PedidoController` depende diretamente dela. Perguntar à turma:
+e se a Rota Sul precisar de duas formas diferentes de decidir se aceita um
+pedido, uma para o fluxo normal e outra para quando o lojista está sob análise
+de risco? Hoje o controlador precisaria mudar. A aula de hoje resolve isso do
+mesmo jeito que a Aula 06 já resolveu para o repositório: separando contrato
+de implementação, agora na camada de serviço.
+
+### Ciclo 1, 19h30 às 20h05
+
+- **Conceito.** Como componentes de software trocam mensagens, na descrição do
+  capítulo [1], que é a base sobre a qual o modelo SOA se apoia.
+
+  **Componente de software, revisitado.** O capítulo retoma a definição já
+  vista na Aula 06 e a aplica à comunicação: componente de software é a parte
+  do sistema responsável por executar um único serviço, como validar um número
+  de CPF, verificar os dados de um endereço a partir de um CEP, ou gerar um
+  número de identificação de usuário ao gravar seus dados numa base. Esse
+  conceito é o mais comum ao modelo de Arquitetura Orientada a Serviços, SOA,
+  sigla de *Service Oriented Architecture*, que orienta o desenvolvedor a
+  basear o projeto em componentes que executam serviços específicos e se
+  comunicam entre si, seja para realizar um serviço, seja para solicitar que
+  outro componente o faça.
+
+  **Comunicação entre componentes.** Um componente se comunica com outro por
+  troca de mensagens: quem envia inicia a comunicação solicitando um
+  processamento, quem recebe verifica o que precisa fazer e executa, e ao
+  final envia outra mensagem de volta, com a resposta. Uma mensagem carrega ou
+  uma solicitação de serviço ou o resultado de um processamento. Controlar
+  esse tráfego exige uma estratégia.
+
+  **Ponto a ponto, ou unicast.** Os dados são inseridos no sistema por um nó,
+  que faz uma cópia da mensagem e a envia a um nó, ou conjunto de nós,
+  conectados na rede. É chamado ponto a ponto porque só os nós de origem e de
+  destino processam a mensagem; os demais apenas a repassam. O processamento é
+  simples e rápido, mas cada novo cliente adicionado aumenta o uso da rede, e
+  o capítulo lista três problemas que podem surgir: atraso nas transmissões,
+  perda de sincronismo nas mensagens e escalabilidade que se torna inviável.
+
+  **Cliente-servidor, como mitigação.** A mensagem inserida no sistema vai
+  para um servidor que centraliza o processamento, e o servidor a distribui
+  aos clientes. Vantagem: os clientes não precisam ficar sempre conectados,
+  o que reduz o uso da rede. Problema: com o processamento centralizado
+  espalhado por vários servidores, é possível que mais de um processe a mesma
+  mensagem, gerando redundância.
+
+  **Unicast, em geral.** Os dois modelos acima são unicast: um nó determina o
+  nó, ou nós, que deve receber a mensagem, o que costuma exigir verificação de
+  recebimento em cada nó, aumentando o processamento. Esse custo pode ser
+  reduzido com broadcast ou multicast.
+
+  **Broadcast.** Funciona como uma transmissão de rádio ou TV: um nó envia a
+  mensagem, ela fica disponível a todo nó conectado na rede, e só quem deseja
+  a processa. Isso evita redundância, mas exige que a rede suporte esse tipo
+  de envio, e que os interessados estejam conectados no momento do envio,
+  porque a mensagem é descartada depois de um tempo.
+
+  **A convergência para o SOA.** O capítulo observa que combinar vários
+  modelos de comunicação é comum, mas isso soma tanto as vantagens quanto as
+  desvantagens de cada um. Para reduzir o impacto negativo, surgiu um modelo
+  em que os nós podem desempenhar, ao mesmo tempo, os papéis de cliente e
+  servidor. É esse modelo híbrido que torna o SOA popular, e é o assunto do
+  Ciclo 2.
+
+- **Demonstração no projetor.** Duas situações da Rota Sul, para distinguir os
+  modelos na prática. Primeiro, o atendente liga para um motorista específico
+  perguntando onde está o volume: ponto a ponto, só os dois nós participam,
+  como já visto na Aula 03. Segundo, um alarme sonoro soa no armazém avisando
+  todos os expedidores presentes de que um caminhão está atrasado: broadcast,
+  a mensagem chega a todos os conectados, e só quem está prestando atenção a
+  processa.
+
+- **Exercício curto.** Cinco minutos, individual. Classificar três comunicações
+  da Rota Sul como ponto a ponto, cliente-servidor ou broadcast: (a) o
+  atendente liga para o motorista X perguntando sua posição; (b) o painel de
+  ocorrências mostra, ao mesmo tempo, para todos os expedidores conectados,
+  uma ocorrência recém-registrada; (c) o sistema recebe todos os pedidos do
+  dia num servidor central, que os distribui aos expedidores conforme a rota.
+  Gabarito: (a) ponto a ponto, (b) broadcast, (c) cliente-servidor.
+
+### Ciclo 2, 20h05 às 20h40
+
+- **Conceito.** O modelo de Arquitetura Orientada a Serviços, SOA, na
+  definição do capítulo.
+
+  **Serviço.** No modelo SOA, o termo serviço tem significado parecido com o
+  de componente de software: é um componente que executa uma funcionalidade,
+  independente dos demais e autocontido, ou seja, capaz de terminar o que está
+  fazendo independentemente de o resultado do processamento ser negativo ou
+  positivo. A forma de identificar os serviços de um sistema é praticamente a
+  mesma usada para projetar componentes: o projetista identifica quais
+  serviços o software precisa e como eles se comunicam, seja por metadados,
+  seja por mensagens.
+
+  **Os três componentes principais do modelo SOA:**
+
+  - **Provedor de Serviço.** Executa um determinado serviço e mantém a rede
+    informada sobre qual tipo de serviço está oferecendo.
+  - **Serviço de Descoberta.** Armazena a localização dos serviços disponíveis
+    na rede e conecta o serviço solicitado a quem o solicitou.
+  - **Consumidor.** É quem solicita a execução de um serviço.
+
+  O SOA se apoia no modelo de comunicação híbrida do Ciclo 1: um nó pode ser
+  ao mesmo tempo Provedor e Consumidor.
+
+  **Descrição de Serviço e interface de serviço.** Todo Provedor de Serviços
+  define uma Descrição de Serviço: o que ele faz e quais informações o
+  Consumidor precisa fornecer para usá-lo. Com isso, o Consumidor decide se o
+  serviço atende às suas necessidades e como se conectar à interface de
+  serviço, que é um conjunto de métodos invocáveis mais os tipos de dados
+  usados na invocação. A interface permite que o Consumidor use o serviço sem
+  saber como o Provedor funciona por dentro, o que é a base do reuso de
+  software no modelo SOA.
+
+  **Consequências dessas características.** Um sistema SOA é, por
+  construção, um sistema distribuído, provavelmente rodando num ambiente
+  heterogêneo, o que exige interoperabilidade: o Provedor pode ser acessado
+  por Consumidores de outros aplicativos, escritos com outras tecnologias, e
+  por isso precisa de padrões de protocolo e de metadados. O resultado é baixo
+  acoplamento entre os componentes, que podem ser localizados e invocados
+  dinamicamente. O capítulo acrescenta que é possível combinar serviços já
+  existentes para criar novos serviços, e que nesse caso é necessário um
+  componente que coordene a execução dos serviços combinados.
+
+  **Aplicando o modelo a sistemas colaborativos.** O capítulo fecha ligando o
+  SOA aos assuntos das Aulas 03 e 04: nos aplicativos colaborativos, os
+  usuários podem atuar tanto como Provedores, ao criar e publicar um serviço,
+  quanto como Consumidores, ao pesquisar um serviço que atenda a uma
+  necessidade e invocá-lo.
+
+- **Demonstração no projetor.** Abrir `docs/arquitetura/componentes.puml`, da
+  Aula 05, e reler o diagrama com o vocabulário de hoje: o componente
+  "Integração com parceiros" é um Provedor de Serviço, que oferece a interface
+  `despacharUltimaMilha`; o componente "Montagem de remessas" é o Consumidor
+  dessa interface. O diagrama que a turma desenhou há duas aulas já é, sem que
+  ninguém tivesse dito o nome, um desenho de arquitetura orientada a serviços.
+  Falta uma peça: o capítulo cita como exemplo real de Provedor de Serviço o
+  serviço de consulta de CEP dos Correios, que a Aula 10 vai usar como modelo
+  para o parceiro legado da Rota Sul.
+
+- **Exercício curto.** Cinco minutos, em duplas. Para cada interação, decidir
+  quem é o Provedor e quem é o Consumidor: (a) o motorista solicita ao
+  servidor da Rota Sul a lista de entregas do dia; (b) o parceiro da última
+  milha avisa a Rota Sul que um volume foi entregue; (c) o atendente da Rota
+  Sul consulta o serviço de CEP dos Correios para validar um endereço.
+  Gabarito: (a) Provedor é o servidor da Rota Sul, Consumidor é o aplicativo
+  do motorista; (b) Provedor é o parceiro, Consumidor é a Rota Sul; (c)
+  Provedor são os Correios, Consumidor é a Rota Sul.
+
+### Quiz, 20h40 às 20h50
+
+**Pergunta.** A Rota Sul decide expor a montagem de remessas como um serviço
+que outros componentes podem invocar sem conhecer sua implementação interna.
+Segundo o capítulo, qual afirmação descreve corretamente o conceito de serviço
+no modelo SOA?
+
+- A) Um serviço SOA é um conceito completamente diferente de componente de
+  software, sem relação entre os dois.
+- B) No modelo SOA, o termo serviço tem significado parecido com o de
+  componente de software: é um componente independente e autocontido, capaz
+  de terminar o que está fazendo independentemente de o resultado do
+  processamento ser positivo ou negativo.
+- C) Um serviço SOA só pode ser consumido por aplicativos escritos na mesma
+  linguagem de programação do Provedor.
+- D) O modelo SOA elimina a necessidade de qualquer comunicação em rede entre
+  os componentes.
+
+**Correta:** B.
+
+**Justificativa.** É a definição literal do capítulo: o termo serviço tem
+significado parecido com o de componente de software, e um serviço é
+independente e autocontido, terminando o que está fazendo independentemente
+do resultado ser positivo ou negativo. A alternativa A nega a relação que o
+capítulo estabelece explicitamente entre os dois conceitos. A C contraria a
+interoperabilidade que o capítulo aponta como consequência natural do
+ambiente heterogêneo em que o SOA opera. A D ignora que toda a arquitetura
+SOA existe justamente para orquestrar comunicação em rede entre Provedores e
+Consumidores.
+
+### Ciclo 3, 20h50 às 21h25
+
+Laboratório de separação de contrato. O código de hoje não cria endpoint novo:
+ele reorganiza o `pedido.service` que a Aula 06 entregou, aplicando à camada
+de serviço a mesma lição que a Aula 06 já aplicou à camada de repositório.
+
+1. **Extrair a interface.** Em `pedido/service`, criar a interface
+   `PedidoService` com as duas assinaturas já existentes: `Pedido
+   registrar(Pedido pedido)` e `List<Pedido> listar()`. Nenhuma anotação de
+   framework na interface: ela é o contrato, não a implementação.
+2. **Renomear a implementação atual.** A classe `PedidoService` da Aula 06
+   passa a se chamar `PedidoServicePadrao` e a implementar a interface
+   `PedidoService`, mantendo o construtor que recebe `PedidoRepository` e a
+   regra de recusar pedido sem cliente. Anotar com `@Service` e com
+   `@Profile("padrao")`.
+3. **Ajustar o controlador.** Conferir que `PedidoController` passa a receber
+   `PedidoService`, a interface, no construtor, e não mais o tipo concreto.
+   Se o controlador ainda importa `PedidoServicePadrao` em algum lugar, é
+   sinal de que a separação não terminou.
+4. **Configurar o perfil padrão.** Em `src/main/resources/application.properties`,
+   acrescentar `spring.profiles.active=padrao`. Sem essa linha, nenhum bean de
+   `PedidoService` fica ativo, porque os dois candidatos estão guardados por
+   `@Profile`, e o Spring recusa subir sem um deles disponível. Rodar
+   `./mvnw spring-boot:run` e conferir que `GET /pedidos` continua respondendo
+   exatamente como na Aula 06.
+5. **Criar a segunda implementação.** `PedidoServiceComAnaliseDeRisco`,
+   também implementando `PedidoService`, anotada `@Service` e
+   `@Profile("risco")`, recebendo `PedidoRepository` pelo mesmo construtor.
+   Mantém a regra herdada, pedido sem cliente é recusado, e acrescenta uma
+   segunda: um conjunto fixo de lojistas bloqueados, por exemplo
+   `Set.of("LOJISTA-BLOQUEADO")`, e pedido de um lojista bloqueado também é
+   recusado. A assinatura dos métodos é idêntica à da outra implementação:
+   é exatamente isso que faz das duas implementações trocáveis.
+
+### Ciclo 4, 21h25 às 21h50
+
+6. **Escrever a suíte de contrato.** Em
+   `src/test/java/br/uni9/rotasul/pedido/service/`, criar a classe abstrata
+   `PedidoServiceContratoTest`, com um método `protected abstract
+   PedidoService criarServico()` e dois testes: `registraPedidoValido`, que
+   registra um pedido com cliente e confirma que ele aparece em `listar()`, e
+   `recusaPedidoSemCliente`, que confirma a recusa. Nenhum dos dois testes
+   sabe qual implementação está rodando: eles testam apenas o contrato.
+7. **Estender a suíte para cada implementação.** Duas classes concretas,
+   `PedidoServicePadraoContratoTest` e
+   `PedidoServiceComAnaliseDeRiscoContratoTest`, cada uma implementando
+   `criarServico()` para devolver a sua própria implementação, com um novo
+   `PedidoRepositoryEmMemoria` a cada teste. Rodar `./mvnw test`: os dois
+   métodos da classe abstrata executam duas vezes, uma para cada
+   implementação, e as quatro execuções precisam passar.
+8. **Confirmar a troca de perfil em tempo de execução.** Subir a aplicação com
+   `./mvnw spring-boot:run -Dspring-boot.run.profiles=risco` e enviar, por
+   `curl` ou pelo navegador, um `POST /pedidos` com o cliente
+   `LOJISTA-BLOQUEADO`. A resposta precisa ser de recusa. Voltar a subir sem o
+   parâmetro de perfil, que volta para `padrao`, e enviar o mesmo pedido: a
+   resposta precisa ser de sucesso. Colar as duas evidências no commit.
+9. **Registrar a decisão.** Em `docs/decisoes.md`, uma linha nova explicando o
+   padrão de contrato mais implementações trocáveis por perfil, e uma frase
+   ligando isso ao vocabulário de hoje: a interface é a Descrição de Serviço,
+   e cada implementação é um Provedor diferente por trás do mesmo contrato.
+
+**Entregável do dia:** a interface `PedidoService`, as duas implementações
+`PedidoServicePadrao` e `PedidoServiceComAnaliseDeRisco`, e a suíte de teste
+abstrata estendida pelas duas. Critério de aceitação: `./mvnw test` passando
+com as quatro execuções verdes, `PedidoController` dependendo apenas da
+interface, e a troca de perfil mudando o comportamento observável da API sem
+qualquer alteração no controlador.
+
+### Fechamento, 21h50 às 22h00
+
+- `git add src docs`
+- `git commit -m "feat(pedido): separa contrato PedidoService de duas implementações trocáveis por perfil"`
+- `git push`
+- **Prévia da Aula 08.** Hoje a Rota Sul trocou a implementação de um serviço
+  sem tocar em quem o consome. Amanhã ela troca a forma de empacotar e rodar
+  a aplicação inteira, comparando o `.jar` executável que a turma já usa desde
+  a Aula 01 com o modelo de servidor de aplicações que o próximo capítulo
+  descreve. O entregável será o `.jar` rodando sozinho, sem `./mvnw`, mais a
+  comparação escrita entre os dois modelos.
+
+### Referências
+
+1. MESQUITA, Paulo Ricardo Batista. **Capítulo 06: Arquitetura Orientada a
+   Serviços (SOA).** Arquitetura de Software. AVA, Uninove. Fonte primária
+   desta aula, `pdf/006.pdf`.
+2. PIMENTEL, Mariano; FUCKS, Hugo. **Sistemas Colaborativos.** Rio de Janeiro:
+   Campus, 2011. Referência indicada pelo capítulo, já usada na Aula 03.
+3. SWENEY, R. **Achieving Service-Oriented Architecture: Applying an
+   Enterprise Architecture Approach.** Wiley, 2010. Referência indicada pelo
+   capítulo.
+4. Spring. **Documentação do Spring Framework**, seção de perfis (`@Profile`).
+   <https://docs.spring.io/spring-framework/reference/core/beans/environment.html>
+5. JUnit. **JUnit 5 User Guide.** <https://junit.org/junit5/docs/current/user-guide/>
+6. `docs/arquitetura/componentes.puml` do fork do aluno, entregável da Aula
+   05, usado na demonstração do Ciclo 2.
+
+---
+
+## Aula 08, Servidores de aplicação e a plataforma Java EE
+
+**Módulo:** M2, Integração e serviços distribuídos
+**Capítulo do AVA:** `pdf/007.pdf`, Servidores de Aplicação
+**Entregável:** o `.jar` executável do projeto, gerado por `./mvnw clean
+package` e rodando com `java -jar`, mais o arquivo `docs/empacotamento.md`
+comparando o modelo de JAR embarcado do laboratório com o modelo de WAR em
+servidor de aplicações que o capítulo descreve. Critério de aceitação: a
+aplicação respondendo em `GET /pedidos` a partir do `java -jar`, sem usar
+`./mvnw spring-boot:run`, e a comparação cobrindo ao menos quatro pontos:
+instalação, empacotamento, portabilidade e quem fornece os serviços de
+infraestrutura.
+
+### Retomada, 5 minutos
+
+Na Aula 07 cada aluno entregou a interface `PedidoService` com duas
+implementações trocáveis por perfil, `PedidoServicePadrao` e
+`PedidoServiceComAnaliseDeRisco`, mais a suíte de teste que roda contra as
+duas. Retomar uma frase da aula: a interface separa contrato de
+implementação. Hoje essa mesma pergunta, contrato contra implementação, sobe
+um nível: não é mais sobre um serviço dentro da aplicação, é sobre a própria
+aplicação. Como ela é empacotada, e o que promete a quem vai executá-la.
+
+### Ciclo 1, 19h30 às 20h05
+
+- **Conceito.** O que é um servidor de aplicações e por que a plataforma Java
+  EE depende de um, na descrição do capítulo [1].
+
+  **Servidor, em geral.** Um servidor provê algum tipo de serviço aos seus
+  usuários: armazenamento de dados, correio eletrônico, compartilhamento de
+  arquivos, e os servidores web, usados para hospedar e executar aplicativos
+  na Internet. O capítulo usa redes sociais como Facebook, WhatsApp,
+  Instagram e Youtube como exemplo de aplicações de grande porte, acessadas
+  por browser ou dispositivo móvel, e lista quatro requisitos comuns a esse
+  tipo de aplicação: uso intensivo de uma rede de dados; autenticação de
+  usuários para acesso ao conteúdo e gerenciamento dele; um sistema eficiente
+  para armazenar dados; e sincronização entre as informações exibidas ao
+  usuário, tanto pelo browser quanto pelo dispositivo móvel, garantindo que
+  ele veja exatamente a mesma coisa nos dois casos.
+
+  **De aplicação a plataforma.** Quando uma aplicação como o Facebook fica
+  complexa o bastante para permitir que outros aplicativos usem seus
+  recursos, ela deixa de ser entendida apenas como aplicação e passa a ser
+  entendida como plataforma. Isso traz dois requisitos extras: verificar se o
+  aplicativo que quer usar os recursos é uma fonte segura, e verificar quais
+  informações do usuário esse aplicativo pode acessar. Consequência direta:
+  a comunicação entre aplicativos remotos, e entre os servidores que os
+  executam, precisa ser segura.
+
+  **A definição de servidor de aplicações.** É "uma ferramenta para
+  desenvolver e executar aplicações de grande porte". Além de aplicações como
+  o Facebook, o capítulo enquadra nessa categoria os sistemas colaborativos,
+  os sistemas corporativos como os de automação bancária, e os sistemas de
+  gestão empresarial conhecidos como ERP.
+
+  **Java EE.** É uma das plataformas que resolve esse tipo de necessidade,
+  com um conjunto de frameworks, modelos de programação e APIs prontas para
+  os serviços de infraestrutura que aplicações de grande porte precisam. Para
+  ser usada, precisa de um servidor de aplicações, que é a forma pela qual a
+  plataforma é disponibilizada aos desenvolvedores. Os problemas de
+  infraestrutura que o Java EE resolve: segurança no acesso às informações;
+  garantia de disponibilidade dos serviços; balanceamento da carga de uso dos
+  servidores; e gerenciamento das bases de dados usadas pela aplicação. Isso
+  permite que o desenvolvedor foque seus esforços nas regras de negócio,
+  seguindo quatro regras: seguir os padrões e especificações da Java EE; que
+  seu aplicativo possa prover serviços de infraestrutura para outras
+  aplicações; que ele saiba gerenciar comunicação com outros servidores de
+  aplicações; e, quando possível, disponibilizar frameworks para outras
+  aplicações usarem.
+
+  **Servidores usados no mercado.** JBoss e WebSphere, instalados sobre
+  Linux ou Windows. O capítulo compara com a plataforma .Net, que é similar
+  em proposta, mas onde o servidor de aplicações é qualquer versão do
+  servidor Windows, e não uma ferramenta específica como no caso do Java.
+
+  **Java EE contra .Net**, na comparação do capítulo, ponto a ponto: em
+  portabilidade de sistema operacional, aplicativos Java rodam em qualquer
+  SO, enquanto aplicativos .Net dependem do Windows para aproveitar todo o
+  potencial da plataforma, apesar de iniciativas como Mono e DotGNU para
+  Linux; em escalabilidade, as duas plataformas têm mecanismos eficazes; em
+  linguagens de programação, o .Net permite VB.NET, C#, C/C++ ou J#, o que
+  aumenta o custo de manutenção por exigir especialistas em várias
+  linguagens, enquanto o Java EE usa só Java; a curva de aprendizado das duas
+  é parecida, mas o Java tem mais material disponível; e em portabilidade
+  final, um aplicativo Java EE roda em qualquer sistema operacional, enquanto
+  o .Net só é totalmente aproveitado no sistema operacional da Microsoft.
+
+- **Demonstração no projetor.** Rodar `./mvnw dependency:tree | grep -i
+  tomcat` no fork da turma e mostrar que um servidor web, o Tomcat, já está
+  entre as dependências transitivas do projeto, puxado pelo
+  `spring-boot-starter-web`, sem ninguém ter instalado nada. Perguntar à
+  turma: onde está o servidor de aplicações desta disciplina? A resposta é o
+  gancho para o Ciclo 2.
+
+- **Exercício curto.** Cinco minutos, individual. Para cada um dos quatro
+  requisitos do capítulo, uso intensivo de rede, autenticação, armazenamento
+  eficiente e sincronização, escrever uma frase dizendo como a Rota Sul já
+  atende esse requisito com o que foi construído até a Aula 07, ou dizendo
+  que ainda não atende e por quê. Duas ou três leituras em voz alta.
+
+### Ciclo 2, 20h05 às 20h40
+
+- **Conceito.** As tecnologias da plataforma Java EE, e o contraste honesto
+  entre o modelo do capítulo e o modelo do laboratório.
+
+  **As tecnologias da Java EE**, na lista do capítulo: Enterprise JavaBeans,
+  EJB, modelo de programação para componentes escritos em Java que outros
+  aplicativos, dentro ou fora do servidor, podem usar; API Java para Web
+  Services, JAX-WS, para expor web services baseados em Servlets e EJBs; Java
+  Remote Method Invocation, RMI, para comunicação remota entre componentes
+  Java, assunto da Aula 10; Java Naming and Directory Interface, JNDI, para
+  acessar serviços de nomenclatura e diretório espalhados pela rede; Java
+  Database Connectivity, JDBC, para acessar bancos relacionais; Java
+  Transaction API e Java Transaction Service, JTA e JTS, para realizar e
+  acompanhar transações remotas; Java Messaging Service, JMS, para
+  componentes que executam transações baseadas em troca de mensagens; Java
+  Web, o conjunto de especificações para aplicações web dinâmicas baseadas em
+  páginas JSP e Servlets, base de muitos frameworks; Java Server Faces, JSF,
+  framework para desenvolvimento rápido de aplicações web baseadas em
+  componentes reutilizáveis do lado do servidor, assunto da Aula 18; e Java
+  Persistence API, JPA, API para gerenciar conexões com bases relacionais sem
+  escrever todo o SQL na mão, usando um modelo baseado em classes de
+  entidades controladas por beans de sessão, assunto das Aulas 15 e 16.
+
+  **As vantagens do Java EE**, segundo o capítulo: agilidade no
+  desenvolvimento; qualidade mais efetiva, por usar componentes já testados e
+  reusados; flexibilidade para moldar o aplicativo a vários modelos de
+  arquitetura; e a possibilidade de desenvolver componentes reusáveis em
+  outros aplicativos, expandindo as possibilidades da plataforma. Seguindo os
+  padrões e sem usar função específica de um fornecedor, o aplicativo fica
+  garantido de rodar em qualquer servidor de aplicações, independentemente do
+  fornecedor. A conclusão do capítulo: um servidor de aplicações é o
+  ambiente que permite desenvolver e executar aplicações de grande porte
+  baseadas em modelos de arquitetura distribuída, usado porque já traz
+  pronta a implementação dos serviços da plataforma.
+
+  > **Nota para o professor.** O capítulo descreve o aplicativo Java EE como
+  > algo que é "instalado no servidor de aplicações que será usado", sem usar
+  > o termo WAR. Isso é complemento de leitura atual, não do capítulo: o
+  > formato de empacotamento padrão da Java EE clássica é o WAR, *Web
+  > Application Archive*, um arquivo que contém só o código da aplicação e
+  > pressupõe um servidor já instalado e em execução para interpretá-lo.
+  > É esse modelo, WAR mais servidor de aplicações administrado à parte, que
+  > o laboratório de hoje contrasta com o `.jar` executável que a turma usa
+  > desde a Aula 01.
+
+  **O contraste com o laboratório.** No modelo do capítulo, o desenvolvedor
+  empacota a aplicação num WAR, que contém só o código dela, e a instala num
+  servidor de aplicações, JBoss ou WebSphere, instalado e administrado à
+  parte, que fornece os serviços de infraestrutura, segurança, transação,
+  acesso a diretório, pool de conexão, via as APIs da Java EE. No laboratório
+  da disciplina, decisão registrada na ADR-001 da spec do acervo, o Spring
+  Boot embarca o próprio servidor web dentro do `.jar` que a build gera: não
+  há servidor de aplicações separado para instalar, e `java -jar` já sobe a
+  aplicação inteira. Boa parte do que a Java EE resolve com JTA, JNDI e EJB
+  tem hoje equivalente dentro do próprio Spring, sem precisar de um servidor
+  externo, o que a Aula 12 formaliza como inversão de controle.
+
+- **Demonstração no projetor.** Rodar `./mvnw clean package` e, ao terminar,
+  `jar tf target/*.jar | head -30`, mostrando as entradas `BOOT-INF/classes`,
+  com as classes do aluno, `BOOT-INF/lib`, com o Tomcat embarcado e as demais
+  dependências, e `META-INF/MANIFEST.MF`. Abrir o `MANIFEST.MF` com `unzip -p
+  target/*.jar META-INF/MANIFEST.MF` e apontar duas linhas: `Start-Class`,
+  que aponta para a classe do aluno, e `Main-Class`, que aponta para o
+  launcher do próprio Spring Boot, não para o código do aluno. É esse launcher
+  que sobe o Tomcat embarcado antes de entregar o controle à aplicação.
+
+- **Exercício curto.** Cinco minutos, em duplas. Duas colunas no caderno: "o
+  que o servidor de aplicações do capítulo faz por você" e "quem faz isso na
+  Rota Sul hoje", para quatro itens: segurança de acesso, balanceamento de
+  carga, gerenciamento de bases de dados, hospedagem HTTP. Gabarito parcial,
+  para o professor conferir: hospedagem HTTP é o Tomcat embarcado; gerenciamento
+  de bases de dados vai ser o Spring Data JPA a partir do Módulo 4; segurança e
+  balanceamento ainda não existem no fork, e isso é lacuna consciente do
+  estágio atual, não erro.
+
+### Quiz, 20h40 às 20h50
+
+**Pergunta.** Segundo o capítulo, qual das alternativas a seguir NÃO é um dos
+requisitos que ele associa a aplicativos de grande porte, como as redes
+sociais usadas como exemplo?
+
+- A) Autenticação de usuários para o acesso ao conteúdo postado e
+  gerenciamento de seu conteúdo.
+- B) Uso intensivo de uma rede de dados.
+- C) Sincronização entre as informações exibidas para um usuário, tanto pelo
+  browser quanto pelo dispositivo móvel.
+- D) Interface de usuário desenhada com um tema visual atraente.
+
+**Correta:** D.
+
+**Justificativa.** O capítulo lista, textualmente, quatro requisitos comuns a
+aplicativos de grande porte: uso intensivo de rede, autenticação, um sistema
+eficiente de armazenamento de dados, e sincronização entre o que é exibido no
+browser e no dispositivo móvel. As alternativas A, B e C reproduzem três
+desses quatro requisitos. A D fala de um atributo visual da interface, que
+nenhuma parte do capítulo menciona como requisito de infraestrutura: toda
+aplicação precisa de alguma interface, mas o capítulo nunca condiciona isso a
+um "tema visual atraente", que é critério de design, não de infraestrutura.
+
+### Ciclo 3, 20h50 às 21h25
+
+Laboratório de empacotamento. Nenhuma linha de regra de negócio muda hoje: o
+código de produção da Rota Sul continua o mesmo das Aulas 06 e 07, só a forma
+de rodá-lo muda.
+
+1. **Confirmar o empacotamento.** Abrir o `pom.xml` do fork e localizar o
+   plugin `spring-boot-maven-plugin` dentro de `<build><plugins>`. É ele que
+   transforma o `.jar` comum, que só teria o código do aluno, num `.jar`
+   executável, com o Tomcat e as demais dependências embutidos.
+2. **Gerar o `.jar`.** Parar qualquer `./mvnw spring-boot:run` em execução e
+   rodar `./mvnw clean package`. Ao final, conferir que existe um arquivo em
+   `target/`, terminado em `.jar`.
+3. **Rodar com `java -jar`.** Num terminal novo, `java -jar target/*.jar`,
+   trocando pelo nome real do arquivo gerado. Conferir no log a mesma
+   inicialização e a mesma linha de porta de sempre, e chamar `GET /pedidos`
+   na porta que o terminal imprimiu. Nenhum servidor de aplicações foi
+   instalado para isso acontecer.
+4. **Inspecionar o `.jar` por dentro.** Repetir a inspeção da demonstração,
+   agora com as mãos do aluno: `jar tf target/*.jar | head -30` e abrir o
+   `MANIFEST.MF`, localizando `Start-Class` e `Main-Class`.
+5. **Escrever a comparação.** Criar `docs/empacotamento.md`, com uma tabela de
+   quatro linhas, colunas `Aspecto`, `Modelo do capítulo, Java EE mais
+   servidor de aplicações` e `Modelo do laboratório, Spring Boot com JAR
+   executável`. Linhas mínimas: instalação (instala e administra JBoss ou
+   WebSphere à parte, contra nenhuma instalação, `java -jar` já sobe tudo);
+   empacotamento (WAR, só o código da aplicação, contra JAR, aplicação mais
+   servidor embarcado); portabilidade (depende do servidor de aplicações do
+   ambiente de destino, contra roda em qualquer máquina com a JVM 21); e quem
+   fornece os serviços de infraestrutura (o servidor de aplicações, via JTA,
+   JNDI e EJB, contra o próprio framework Spring, via inversão de controle,
+   tema da Aula 12).
+
+### Ciclo 4, 21h25 às 21h50
+
+6. **Escrever a conclusão.** Ao final de `docs/empacotamento.md`, um
+   parágrafo respondendo por que a indústria migrou do modelo do capítulo
+   para o modelo do laboratório: o custo de instalar e administrar um
+   servidor de aplicações em cada ambiente, a agilidade de empacotar tudo
+   junto para rodar em contêineres, prévia da Aula 19, e o fato de boa parte
+   dos serviços que a Java EE resolvia com JTA, JNDI e EJB terem hoje um
+   equivalente mais simples dentro do próprio Spring. O parágrafo precisa
+   citar pelo menos um serviço da Java EE e dizer o que faz o papel dele no
+   laboratório.
+7. **Conferir o `.gitignore`.** Garantir que `target/` está listado, para o
+   `.jar` gerado não ser commitado. O que vai para o fork é a comparação
+   escrita, não o binário.
+8. **Registrar a decisão.** Em `docs/decisoes.md`, uma linha nova registrando
+   a escolha de empacotamento executável em vez de WAR, com a justificativa
+   resumida em uma frase.
+
+**Entregável do dia:** o `.jar` executável rodando com `java -jar`, com a
+evidência de `GET /pedidos` colada no commit, mais `docs/empacotamento.md`
+com a tabela de comparação e a conclusão. Critério de aceitação: a tabela
+cobrindo os quatro aspectos mínimos, a conclusão citando pelo menos um
+serviço da Java EE com o seu equivalente no laboratório, e `target/` fora do
+commit.
+
+### Fechamento, 21h50 às 22h00
+
+- `git add docs/empacotamento.md docs/decisoes.md`
+- `git commit -m "docs(empacotamento): compara o JAR executável do laboratório com o modelo WAR do capítulo"`
+- `git push`
+- **Prévia da Aula 09.** Hoje a comparação foi sobre como a aplicação roda.
+  Amanhã ela é sobre como a aplicação fala com quem consome os seus dados: os
+  dois formatos de metadados que o próximo capítulo descreve, XML e JSON,
+  aplicados a uma entidade nova da Rota Sul, `Remessa`. O entregável será um
+  endpoint que responde nos dois formatos, dependendo do que o cliente pedir.
+
+### Referências
+
+1. MESQUITA, Paulo Ricardo Batista. **Capítulo 07: Servidores de Aplicação.**
+   Arquitetura de Software. AVA, Uninove. Fonte primária desta aula,
+   `pdf/007.pdf`.
+2. Site do Java EE, Oracle. Referência indicada pelo capítulo.
+   <http://www.oracle.com/technetwork/java/javaee/overview/index.html>
+3. `docs/superpowers/specs/2026-08-10-acervo-arquitetura-software-design.md`,
+   seção 6.1, ADR-001, decisão de usar Spring Boot no lugar de Jakarta EE
+   clássico.
+4. Spring. **Documentação do Spring Boot.**
+   <https://docs.spring.io/spring-boot/index.html>
+5. Oracle. **Java SE 21 Documentation.**
+   <https://docs.oracle.com/en/java/javase/21/>
+
+---
+
+## Aula 09, Metadados para troca de dados: XML e JSON
+
+**Módulo:** M2, Integração e serviços distribuídos
+**Capítulo do AVA:** `pdf/008.pdf`, Metadados para Troca de Dados (XML e JSON)
+**Entregável:** o endpoint `GET /remessas/{id}`, no novo contexto
+`br.uni9.rotasul.expedicao`, respondendo em JSON ou em XML conforme o
+cabeçalho `Accept` da requisição, usando Jackson, mais um teste JUnit 5 que
+confirma os dois formatos. Critério de aceitação: `Accept: application/json`
+devolvendo JSON, `Accept: application/xml` devolvendo XML válido, ambos com os
+mesmos dados da `Remessa`, e `./mvnw test` passando.
+
+### Retomada, 5 minutos
+
+Na Aula 08 cada aluno entregou o `.jar` executável rodando com `java -jar` e
+`docs/empacotamento.md`, comparando esse modelo com o WAR do capítulo.
+Retomar: hoje a aplicação já roda sozinha, sem servidor de aplicações. A
+pergunta de hoje é diferente: quando essa aplicação responde a quem pediu
+alguma coisa, em que formato ela responde, e quem decide isso, ela ou quem
+perguntou?
+
+### Ciclo 1, 19h30 às 20h05
+
+- **Conceito.** Metadados, e o formato XML, na descrição do capítulo [1].
+
+  **Metadados.** São informações a respeito de outros dados, e existem desde
+  os anos 1970, usados inicialmente para armazenar dados dos aplicativos e,
+  depois, para comunicação e compartilhamento de informação entre eles.
+  Costumam ser escritos em texto simples, por ser o formato mais fácil de
+  processar e transmitir pela rede. Nos anos 1990, a Internet trouxe novos
+  tipos de metadados baseados em padrões abertos, XML e JSON. A principal
+  vantagem dos dois: podem ser escritos e lidos por rotinas de qualquer
+  linguagem de programação, e os dois padrões definem só como os metadados
+  devem ser formatados e referenciados, deixando os nomes livres para o
+  desenvolvedor escolher. Por isso, arquivos JSON ou XML podem funcionar como
+  protocolo ou interface de comunicação entre sistemas, o que os liga
+  diretamente ao SOA da Aula 07.
+
+  **XML, eXtensible Markup Language.** É uma recomendação do consórcio W3C,
+  linguagem de marcação com cinco princípios, todos do capítulo: separar o
+  conteúdo a ser apresentado da formatação do conteúdo, em arquivos DTD; ser
+  uma estrutura entendível tanto por máquinas quanto por seres humanos; não
+  ter limite na quantidade de tags que podem ser criadas; servir de agente de
+  transporte de informação entre sistemas e bases de dados distintos; e
+  manter o foco do desenvolvedor no conteúdo a ser transmitido, não na
+  aparência. Por causa dessa liberdade, o XML popularizou-se além da
+  tecnologia da informação, em telecomunicações, saúde e aplicações
+  governamentais, e outros padrões nasceram baseados nele, como o XHTML, o
+  protocolo de mensagens MMS e os próprios Web Services.
+
+  **Estrutura.** Uma tag inicial declara a versão do XML e a codificação de
+  caractere usada. As demais tags são hierárquicas, sempre em pares de
+  abertura e fechamento, e podem representar coleções de dados repetidas.
+
+  **A desvantagem que o capítulo aponta.** A quantidade de bytes gasta com o
+  nome das tags, comparada ao conteúdo. No exemplo do capítulo, uma tag
+  `nome` com o valor "Bilbo Bolseiro" usa treze bytes só para as tags de
+  abertura e fechamento, contra catorze bytes de conteúdo: quase metade dos
+  vinte e sete bytes do trecho é informação que o aplicativo descarta
+  rapidamente, o que pesa quando a tarifação é por volume de bytes
+  transmitido. Some-se a isso o processamento mais lento de abrir e fechar
+  cada tag, que deixa mais demorado tanto gerar quanto ler arquivos XML.
+
+- **Demonstração no projetor.** Escrever no quadro um XML pequeno para um
+  `Volume` da Rota Sul: `<volume><etiqueta>VOL-001</etiqueta><pesoKg>12.5
+  </pesoKg></volume>`. Contar ao vivo, com a turma, quantos bytes são de tag e
+  quantos são de conteúdo, repetindo o exercício de contagem do capítulo, e
+  chegar a uma proporção parecida, perto de quarenta por cento em tags.
+
+- **Exercício curto.** Cinco minutos, individual. Escrever à mão um XML para
+  uma `Remessa` com `codigoRastreio` e `previsaoEntrega`, e contar quantos
+  bytes são de tag e quantos são de conteúdo, decidindo se o resultado fica
+  acima ou abaixo dos quarenta por cento vistos na demonstração.
+
+### Ciclo 2, 20h05 às 20h40
+
+- **Conceito.** JSON, e como um mesmo dado pode falar dois formatos.
+
+  **JSON, JavaScript Object Notation.** Alternativa popular ao XML, criada
+  como padrão de baixo custo de processamento para transmitir informação
+  entre cliente e servidor de aplicações web. Três características do
+  capítulo: é uma coleção de dados no formato `nome da informação : valor da
+  informação`, inspirada nas estruturas de dados das linguagens C e C++, e
+  tratada como um vetor; tem estrutura facilmente entendida por seres humanos
+  e por máquinas; e, apesar de ser um subconjunto da linguagem JavaScript, a
+  forma como a informação é tratada é totalmente independente da linguagem de
+  programação. As vantagens sobre o XML, segundo o capítulo: as mesmas
+  vantagens do XML, mas com uso menor de bytes, por não depender de tags, e
+  mais simples de escrever um interpretador para ele. Começou como
+  substituto do XML em aplicações que usam Ajax e hoje é usado por portais
+  como Google, Flickr, Yahoo e Facebook para expor pesquisas em suas bases a
+  aplicativos externos. Estrutura: `{` e `}` delimitam o escopo dos dados,
+  `[` e `]` delimitam coleções repetidas, e dentro deles sempre há o par
+  `"nome da informação": "valor da informação"`, separado por vírgula.
+
+  > **Nota para o professor.** O capítulo apresenta XML e JSON como dois
+  > formatos de metadados, mas não trata de como um mesmo endpoint responde
+  > nos dois formatos dependendo do que o cliente pede. Esse mecanismo, a
+  > negociação de conteúdo HTTP pelo cabeçalho `Accept`, não está no
+  > capítulo 08: é técnica de HTTP e do framework web, posterior ao material.
+  > É a aplicação prática, na Rota Sul, do que o próprio capítulo já
+  > estabelece como princípio, que os dois formatos "podem ser usados como
+  > protocolos ou interfaces de comunicação", cabendo ao sistema decidir qual
+  > usar para cada consumidor.
+
+  **Negociação de conteúdo.** O cliente que chama a API da Rota Sul envia um
+  cabeçalho HTTP `Accept`, dizendo em que formato quer a resposta,
+  `application/json` ou `application/xml`. O Spring já traz um conversor para
+  JSON, baseado no Jackson, ativado por padrão em qualquer projeto que use o
+  `spring-boot-starter-web`. Para responder também em XML, é preciso
+  acrescentar o módulo `jackson-dataformat-xml`: com ele no classpath, o
+  Spring passa a ter um segundo conversor disponível e escolhe entre os dois
+  comparando o `Accept` da requisição com o que o endpoint declara que
+  produz.
+
+- **Demonstração no projetor.** Sem ainda ter o código pronto, escrever no
+  quadro os dois arquivos que a Rota Sul vai gerar para a mesma `Remessa` ao
+  final do Ciclo 4, um JSON e um XML, no mesmo molde das listagens do
+  capítulo, com `codigoRastreio`, `previsaoEntrega` e `situacao`. Apontar que
+  o conteúdo é idêntico nos dois; só a casca muda.
+
+- **Exercício curto.** Cinco minutos, em duplas. Dado um `Volume` com
+  `etiqueta`, `pesoKg` e `remessaId`, escrever a representação em JSON e, em
+  seguida, a mesma informação em XML, e comparar o total de bytes das duas.
+
+### Quiz, 20h40 às 20h50
+
+**Pergunta.** Segundo o capítulo, qual das afirmações a seguir NÃO é um
+princípio correto sobre o uso de JSON?
+
+- A) É facilmente entendido tanto por seres humanos quanto por máquinas.
+- B) Usa um número maior de bytes do que o XML para representar os mesmos
+  metadados.
+- C) Pode ser gerado e interpretado em qualquer linguagem de programação.
+- D) O escopo das coleções de dados é delimitado por caracteres simples, `{`
+  e `}`, e `[` e `]`.
+
+**Correta:** B.
+
+**Justificativa.** O capítulo é explícito ao afirmar que o JSON "permite um
+uso menor de bytes para transmissão da informação, por não ser baseado em
+tags", justamente o oposto do que a alternativa B afirma. A A, a C e a D
+reproduzem características que o capítulo atribui corretamente ao JSON: fácil
+entendimento por humanos e máquinas, independência de linguagem de
+programação, e a delimitação de escopo por `{}` e `[]`.
+
+### Ciclo 3, 20h50 às 21h25
+
+Laboratório de metadados. Hoje nasce o segundo contexto do case, `expedicao`,
+já previsto no diagrama de pacotes da Aula 05.
+
+1. **Criar o pacote de expedição.** Dentro de
+   `src/main/java/br/uni9/rotasul/`, criar `expedicao/domain`,
+   `expedicao/repository`, `expedicao/service` e `expedicao/web`, seguindo a
+   mesma convenção contexto primeiro, camada depois, da Aula 05.
+2. **Escrever o domínio.** Em `expedicao/domain`, a classe `Remessa`, com
+   `id`, `codigoRastreio`, `previsaoEntrega` e `situacao`. Uma exceção
+   pontual à regra da Aula 06 de domínio sem anotação de framework: a classe
+   recebe `@JacksonXmlRootElement(localName = "remessa")`, porque, sem ela, a
+   tag raiz do XML sairia com o nome da classe Java, não com um nome de
+   domínio em português. É uma anotação de serialização, não de persistência
+   nem de web, e por isso a exceção fica registrada e não vira regra geral.
+3. **Escrever o repositório.** Interface `RemessaRepository`, com
+   `buscarPorId(Long id)`, e a implementação `RemessaRepositoryEmMemoria`,
+   pré-carregada com duas ou três remessas de exemplo, seguindo o mesmo
+   padrão interface primeiro da Aula 06.
+4. **Escrever o serviço.** `RemessaService`, anotado `@Service`, com o método
+   `buscarPorId(Long id)` delegando ao repositório.
+5. **Adicionar o módulo Jackson XML.** No `pom.xml`, a dependência
+   `com.fasterxml.jackson.dataformat:jackson-dataformat-xml`. Sem ela, o
+   Spring só tem o conversor de JSON disponível, e qualquer pedido de XML
+   recebe erro 406, *Not Acceptable*.
+6. **Escrever o controlador.** `RemessaController`, em `expedicao/web`,
+   `@RestController` mapeado em `/remessas`, com `GET /remessas/{id}`
+   declarado com `produces = { MediaType.APPLICATION_JSON_VALUE,
+   MediaType.APPLICATION_XML_VALUE }`. O Spring escolhe sozinho qual dos dois
+   usar, comparando essa lista com o `Accept` da requisição.
+
+### Ciclo 4, 21h25 às 21h50
+
+7. **Subir e testar manualmente.** `./mvnw spring-boot:run`, e então
+   `curl -H "Accept: application/json" http://localhost:PORTA/remessas/1` e
+   `curl -H "Accept: application/xml" http://localhost:PORTA/remessas/1`,
+   trocando `PORTA` pela porta que o terminal imprimiu. Confirmar que o
+   primeiro devolve `{ ... }` e o segundo devolve `<remessa>...</remessa>`,
+   com o mesmo conteúdo nos dois.
+8. **Escrever o teste.** `RemessaControllerTest`, anotado com
+   `@WebMvcTest(RemessaController.class)` e `MockMvc`, com dois métodos: um
+   chamando o endpoint com `Accept: application/json` e conferindo
+   `content().contentType(MediaType.APPLICATION_JSON)`, outro com `Accept:
+   application/xml` conferindo `content().contentType(MediaType.APPLICATION_XML)`.
+   Rodar `./mvnw test` e ver os dois passarem.
+9. **Registrar a decisão.** Em `docs/decisoes.md`, uma linha explicando a
+   escolha de um único endpoint com negociação de conteúdo, em vez de dois
+   endpoints separados, um para cada formato, com a justificativa: um único
+   recurso deve ter uma única URI, princípio que a Aula 10, sobre REST, vai
+   formalizar.
+
+**Entregável do dia:** `RemessaController` respondendo `GET /remessas/{id}`
+em JSON e em XML conforme o `Accept`, mais `RemessaControllerTest` cobrindo os
+dois formatos. Critério de aceitação: as duas chamadas manuais devolvendo o
+conteúdo correto no formato pedido, `./mvnw test` passando, e nenhum endpoint
+duplicado por formato.
+
+### Fechamento, 21h50 às 22h00
+
+- `git add src/main/java/br/uni9/rotasul/expedicao src/test/java/br/uni9/rotasul/expedicao pom.xml docs`
+- `git commit -m "feat(expedicao): remessa em JSON e em XML por negociação de conteúdo"`
+- `git push`
+- **Prévia da Aula 10.** Hoje a Rota Sul aprendeu a falar dois formatos para
+  quem pergunta. Amanhã ela se conecta com quem só fala um formato antigo, o
+  parceiro legado, que só entende SOAP, e documenta formalmente a sua própria
+  API REST de remessas. É a última aula do Módulo 2 e fecha o assunto de
+  integração.
+
+### Referências
+
+1. MESQUITA, Paulo Ricardo Batista. **Capítulo 08: Metadados para Troca de
+   Dados (XML e JSON).** Arquitetura de Software. AVA, Uninove. Fonte
+   primária desta aula, `pdf/008.pdf`.
+2. CHOWDHURY, A.; CHAUDHARY, P. **JAX: Java APIs for XML.** Sams Publishing,
+   2002. Referência indicada pelo capítulo.
+3. FRIESEN, F. **Java XML and JSON.** Apress, 2016. Referência indicada pelo
+   capítulo.
+4. Spring. **Documentação do Spring Framework**, negociação de conteúdo HTTP
+   e `HttpMessageConverter`.
+   <https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-config/content-negotiation.html>
+5. FasterXML. **Jackson-dataformat-xml.**
+   <https://github.com/FasterXML/jackson-dataformat-xml>
+
+---
+
+## Aula 10, Objetos remotos: RMI, SOAP e REST
+
+**Módulo:** M2, Integração e serviços distribuídos
+**Capítulo do AVA:** `pdf/009.pdf`, RMI, SOAP (Web Services) e REST
+**Entregável:** o cliente SOAP em `br.uni9.rotasul.parceiro`, consumindo um
+serviço que simula o parceiro legado, mais a API REST de remessas documentada
+pelo springdoc-openapi. Critério de aceitação: o cliente SOAP devolvendo a
+situação de entrega para um código de rastreio de teste, a interface Swagger
+UI abrindo em `/swagger-ui/index.html` com os endpoints de `/remessas`
+listados, e `./mvnw test` passando.
+
+### Retomada, 5 minutos
+
+Na Aula 09 cada aluno entregou `RemessaController`, respondendo `GET
+/remessas/{id}` em JSON ou em XML conforme o cabeçalho `Accept`. Retomar: a
+Rota Sul já sabe falar dois formatos com quem pergunta em português, por
+assim dizer, o mesmo protocolo HTTP que ela já usa desde a Aula 06. A pergunta
+de hoje é mais dura: e quando quem pergunta é um sistema mais antigo, que só
+fala um protocolo específico, com regras próprias de envelope e assinatura?
+É o capítulo mais longo dos dezoito do AVA, e fecha o Módulo 2.
+
+### Ciclo 1, 19h30 às 20h05
+
+- **Conceito.** A origem histórica da comunicação remota e o RMI, na
+  descrição do capítulo [1]. RMI entra hoje como leitura, não como
+  laboratório: o exercício prático da aula é sobre SOAP e REST, que é o que a
+  Rota Sul de fato vai construir daqui a pouco.
+
+  **SABRE, o primeiro sistema com necessidade de comunicação remota.**
+  Desenvolvido nos anos 1950 pela IBM para a American Airlines, que precisava
+  gerenciar reservas de lugares em seus aviões e não conseguia lidar com o
+  aumento de passageiros. A solução foi um servidor central numa pequena
+  cidade do estado de Nova Iorque, acessado por terminais de reservas
+  espalhados pelos Estados Unidos, processando cerca de oitenta e três mil
+  chamadas telefônicas por dia na primeira versão. Esse sistema abriu caminho
+  para grandes corporações trocarem dados entre filiais e matriz, com
+  soluções proprietárias de empresas como IBM, Unisys, NCR e Honeywell, até a
+  mudança de foco da ARPANET, de uso militar para uso público, dar origem à
+  Internet, que pedia por padrões abertos.
+
+  **RPC, Remote Procedure Call, 1976.** Implementação de software para
+  compartilhamento remoto de recursos: permite que um programa chame e
+  execute outro programa rodando em outro computador da mesma rede, sem o
+  programador precisar implementar a conexão entre os dois, porque isso já é
+  resolvido pelos protocolos de transferência de dados da Internet. A chamada
+  ao programa remoto acontece como se fosse local. Em 1976 a Internet ainda
+  tinha alcance restrito ao meio acadêmico, então o primeiro uso comercial do
+  RPC ocorreu em soluções cliente-servidor, e ele se popularizou quando os
+  fabricantes de sistemas Unix passaram a disponibilizar pacotes para
+  facilitar seu uso. As plataformas de desenvolvimento incorporaram
+  implementações de RPC: RMI para Java, DCOM para .Net.
+
+  **RMI, Remote Method Invocation.** O aplicativo cliente invoca um aplicativo
+  no servidor, envia uma mensagem com os dados a processar e espera uma
+  mensagem de volta com o resultado. O servidor precisa estar sempre em
+  execução, processando ou esperando requisição. Cinco cuidados que o
+  capítulo exige do desenvolvedor: tratar erros de falha na rede, tanto no
+  cliente quanto no servidor; considerar possíveis falhas no aplicativo do
+  servidor; trocar informação só por mensagens, já que variáveis apontam
+  endereços de memória que um lado não alcança do outro; aceitar queda de
+  desempenho, porque a comunicação remota consome tempo; e garantir que o
+  servidor saiba sempre quem fez a solicitação, para devolver o resultado ao
+  cliente certo, de modo seguro. Implementar um serviço RMI exige, depois de
+  iniciar o `rmiregistry`, criar uma interface que estende `Remote`, com
+  métodos que declaram `throws RemoteException`, e uma classe que a
+  implementa, registrada no `rmiregistry` por `registry.bind`; o cliente
+  localiza o serviço por `Naming.lookup`. Vantagem apontada pelo capítulo: a
+  programação do cliente é facilitada, porque o objeto remoto pode ser usado
+  como se fosse uma instância local, e a segurança é reforçada porque o
+  acesso só acontece pela interface. Desvantagens: o software inteiro precisa
+  ser Java, e mudanças nas políticas de segurança das versões mais recentes
+  da JVM podem exigir atualizar classes e chamadas já escritas.
+
+- **Demonstração no projetor.** Ler em voz alta a interface `ServicoPotencia`
+  do capítulo, `extends Remote` e cada método com `throws RemoteException`, e
+  comparar com a interface `PedidoService` da Aula 07, que não lança nada
+  parecido. A diferença de assinatura é o preço da transparência de
+  localização: toda chamada remota pode falhar por rede, e a linguagem
+  obriga o desenvolvedor a admitir isso já na assinatura do método; uma
+  chamada local, como a da Aula 07, não precisa admitir isso, porque não
+  atravessa rede nenhuma.
+
+- **Exercício curto.** Cinco minutos, individual. Diante do trecho do
+  capítulo que registra o serviço no `rmiregistry`, responder por escrito: o
+  que aconteceria se o `rmiregistry` não estivesse em execução no momento em
+  que o servidor tentasse `registry.bind`? E por que o `main` do servidor
+  precisa capturar tanto `RemoteException` quanto `AlreadyBoundException`?
+  Duas leituras em voz alta.
+
+### Ciclo 2, 20h05 às 20h40
+
+- **Conceito.** SOAP e REST, os dois modelos que o laboratório de hoje usa de
+  verdade.
+
+  **SOAP, Simple Object Access Protocol.** Especificação de protocolo para
+  troca de dados estruturados entre aplicativos pela Internet, por meio de
+  web services. A especificação começou na Microsoft, e sua coordenação foi
+  transferida para a W3C [2]. O exemplo do capítulo é o serviço de consulta
+  de CEP dos Correios do Brasil: o sistema que consulta informa parâmetros
+  de busca, e recebe a resposta, tudo em protocolo baseado em XML definido
+  pelo web service. A proposta do SOAP é estender funcionalidades entre
+  aplicativos mantendo neutralidade quanto a sistema operacional e linguagem
+  de programação, o que ele consegue porque as mensagens são sempre
+  formatadas segundo o padrão XML e transmitidas por protocolos de camada de
+  aplicação da Internet, normalmente HTTP ou SMTP. Toda mensagem SOAP segue
+  uma estrutura fixa: um elemento Envelope, que identifica o arquivo XML como
+  mensagem SOAP; um elemento Header, opcional, com informação específica da
+  aplicação, como autenticação; um elemento Body, com o conteúdo real da
+  requisição ou da resposta; e um elemento Fault, dentro do Body, para erros
+  e status. O atributo `mustUnderstand`, quando presente, diz se um elemento
+  do cabeçalho é obrigatório, valor 1, ou opcional, valor 0, para quem
+  recebe. Em Java, a implementação moderna que o capítulo apresenta usa a API
+  JAX-WS, com anotações como `@WebService`, `@WebMethod` e `@WebParam`
+  substituindo a escrita manual do XML.
+
+  **REST, Representational State Transfer.** Outra solução para integração
+  de aplicativos por web services, mas ao contrário do SOAP, que troca
+  arquivos XML entre cliente e serviço, o REST foca o uso do protocolo HTTP e
+  das URIs. Em suma: o REST disponibiliza recursos identificados por URIs,
+  manipulados por uma interface padrão, o próprio HTTP, e a troca de
+  informação ocorre pelas representações desses recursos. Na plataforma Java
+  EE, a API JAX-RS implementa esse modelo, com anotações como `@Path`, `@GET`
+  e `@Produces(MediaType.APPLICATION_JSON)` para declarar o que cada recurso
+  responde. O exemplo do capítulo mostra a resposta chegando direto no
+  navegador, pela própria barra de endereço, sem precisar montar um envelope
+  como no SOAP.
+
+  > **Nota para o professor.** O capítulo não fala de `springdoc-openapi` nem
+  > de documentação automática de API REST: a ferramenta é posterior ao
+  > material. Mas o problema que ela resolve é o mesmo que o capítulo chama,
+  > na Aula 07, de Descrição de Serviço: uma descrição do que o serviço faz e
+  > do que o Consumidor precisa fornecer. O `springdoc-openapi` gera essa
+  > descrição automaticamente a partir do código da Rota Sul, publicada em
+  > `/v3/api-docs` e navegável em `/swagger-ui/index.html`, cumprindo para o
+  > REST o mesmo papel que o WSDL cumpre para o SOAP.
+
+  **Contraste dos três modelos**, para fechar o ciclo: RMI só funciona entre
+  aplicativos Java, com objetos trafegando de forma nativa, sem XML; SOAP é
+  neutro quanto a linguagem e sistema operacional, mas exige o envelope XML
+  inteiro, com header, body e fault; REST é neutro do mesmo jeito, mas mais
+  leve, apoiado só em HTTP, URIs e na representação do recurso, que a Aula 09
+  já mostrou poder ser JSON ou XML conforme quem pergunta.
+
+- **Demonstração no projetor.** Lado a lado, a mensagem SOAP `GetPrice` do
+  capítulo, copiada no quadro com o Envelope, o Body e a operação, contra a
+  saída do `curl -H "Accept: application/json"` da Aula 09 para uma
+  `Remessa`. Contar as linhas de cada uma até chegar ao dado que interessa,
+  `1.90` num caso, o `codigoRastreio` no outro, e apontar a diferença de
+  verbosidade entre os dois modelos.
+
+- **Exercício curto.** Cinco minutos, em duplas. Preencher uma tabela de três
+  linhas, RMI, SOAP e REST, e três colunas, "formato de dado", "protocolo de
+  transporte" e "só funciona em Java?". Gabarito: RMI, objetos Java nativos,
+  protocolo próprio do RMI sobre TCP, sim; SOAP, XML, HTTP ou SMTP, não;
+  REST, o que o servidor decidir produzir, HTTP, não.
+
+### Quiz, 20h40 às 20h50
+
+**Pergunta.** A Rota Sul precisa se conectar ao sistema do parceiro legado,
+que só entende arquivos XML, e depois documentar sua própria API para os
+demais sistemas consumirem. Dos três modelos de comunicação remota
+apresentados pelo capítulo, qual deles NÃO permite a transferência de dados
+usando arquivos em formato XML?
+
+- A) RMI, porque a troca de dados entre cliente e servidor usa objetos Java
+  diretamente, e não arquivos XML.
+- B) SOAP, porque suas mensagens usam sempre arquivos em formato JSON, e não
+  XML.
+- C) REST, porque seus recursos nunca podem ser representados em formato
+  XML.
+- D) Nenhum dos três, porque todos usam XML de forma obrigatória.
+
+**Correta:** A.
+
+**Justificativa.** O capítulo descreve o RMI como comunicação por troca de
+mensagens que carregam objetos Java, sem qualquer menção a XML: a JVM
+serializa os próprios objetos, não um envelope de metadados. A alternativa B
+está errada porque o capítulo é explícito ao dizer que as mensagens SOAP "são
+formatadas de acordo com o padrão XML", não JSON. A C está errada porque o
+capítulo apresenta o REST como flexível quanto à representação do recurso, o
+que a Aula 09 já demonstrou na prática ao responder a mesma `Remessa` em JSON
+ou em XML. A D erra ao generalizar para os três, quando o próprio capítulo
+descreve o RMI sem nenhuma menção a arquivos XML.
+
+### Ciclo 3, 20h50 às 21h25
+
+Laboratório de integração. A Rota Sul não tem um parceiro real para a turma
+acessar, então o laboratório simula o parceiro legado dentro do próprio fork:
+um endpoint SOAP simples, no pacote `br.uni9.rotasul.parceiro`, representando
+o sistema que a transportadora parceira expõe. O cliente que a turma escreve
+na sequência é o mesmo tipo de código que se escreveria para consumir um
+parceiro de verdade; só o endereço muda.
+
+1. **Criar o pacote parceiro.** `br.uni9.rotasul.parceiro`, com os
+   subpacotes `endpoint`, o parceiro simulado, e `client`, quem consome, do
+   lado da Rota Sul. É o primeiro contexto que se soma aos três da Aula 05, o
+   que a convenção do semestre já previa: acrescentar contexto novo ao lado
+   dos existentes, nunca renomear os já fixados.
+2. **Adicionar as dependências.** No `pom.xml`, `spring-boot-starter-web-services`
+   e `wsdl4j`, já fixados no contrato técnico da disciplina desde a Aula 01.
+3. **Escrever o contrato XSD.** `src/main/resources/parceiro.xsd`, definindo
+   os elementos `consultaEntregaRequest`, com `codigoRastreio`, e
+   `consultaEntregaResponse`, com `situacao` e `previsaoEntrega`. O XSD faz
+   aqui o papel que o capítulo chamou de Descrição de Serviço na Aula 07: diz
+   o que o Provedor espera receber e o que ele devolve.
+
+   ```xml
+   <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+              xmlns:tns="http://rotasul.uni9.br/parceiro"
+              targetNamespace="http://rotasul.uni9.br/parceiro"
+              elementFormDefault="qualified">
+
+     <xs:element name="consultaEntregaRequest">
+       <xs:complexType>
+         <xs:sequence>
+           <xs:element name="codigoRastreio" type="xs:string"/>
+         </xs:sequence>
+       </xs:complexType>
+     </xs:element>
+
+     <xs:element name="consultaEntregaResponse">
+       <xs:complexType>
+         <xs:sequence>
+           <xs:element name="situacao" type="xs:string"/>
+           <xs:element name="previsaoEntrega" type="xs:date"/>
+         </xs:sequence>
+       </xs:complexType>
+     </xs:element>
+   </xs:schema>
+   ```
+
+4. **Gerar as classes Java do XSD.** Configurar o `jaxb2-maven-plugin` no
+   `pom.xml`, apontando para `parceiro.xsd`, e rodar `./mvnw generate-sources`.
+   Conferir em `target/generated-sources` as classes `ConsultaEntregaRequest`
+   e `ConsultaEntregaResponse`, geradas automaticamente, sem uma linha
+   escrita à mão.
+5. **Escrever o endpoint que simula o parceiro.** Em `parceiro/endpoint`,
+   `ParceiroEndpoint`, anotado `@Endpoint`, com um método anotado
+   `@PayloadRoot(namespace = "http://rotasul.uni9.br/parceiro", localPart =
+   "consultaEntregaRequest")`, recebendo `@RequestPayload
+   ConsultaEntregaRequest` e devolvendo `@ResponsePayload
+   ConsultaEntregaResponse`. Regra simples para simular o parceiro: se o
+   `codigoRastreio` começar com "RS", devolve situação `EM_TRANSITO`; caso
+   contrário, `DESCONHECIDO`.
+6. **Publicar o WSDL.** Classe `WebServiceConfig`, anotada `@EnableWs`, com um
+   bean `MessageDispatcherServlet` mapeado em `/ws/*` e um bean
+   `DefaultWsdl11Definition` publicando o contrato a partir de
+   `parceiro.xsd`, disponível em `/ws/parceiro.wsdl`.
+
+### Ciclo 4, 21h25 às 21h50
+
+7. **Escrever o cliente.** Em `parceiro/client`, `ParceiroClient`, estendendo
+   `WebServiceGatewaySupport`, com o método `consultarEntrega(String
+   codigoRastreio)`, que monta um `ConsultaEntregaRequest` e chama
+   `getWebServiceTemplate().marshalSendAndReceive(...)` contra a URI local do
+   endpoint, `http://localhost:PORTA/ws`, devolvendo o
+   `ConsultaEntregaResponse`.
+8. **Configurar o marshaller.** Um bean `Jaxb2Marshaller`, apontando para o
+   pacote das classes geradas no passo 4, injetado no `ParceiroClient`.
+9. **Testar o cliente.** `ParceiroClientTest`, anotado `@SpringBootTest`,
+   chamando `consultarEntrega("RS12345")` e conferindo que a situação
+   devolvida é `EM_TRANSITO`. Rodar `./mvnw test`.
+10. **Fechar a integração pelo lado REST.** Acrescentar ao `RemessaController`
+    da Aula 09 o método `GET /remessas/{id}/situacao-parceiro`, que busca a
+    `Remessa`, chama `ParceiroClient.consultarEntrega` com o seu
+    `codigoRastreio` e devolve o resultado em JSON. É o ponto em que a
+    integração se fecha: o dado que chegou por SOAP sai por REST, para
+    qualquer consumidor da Rota Sul.
+11. **Adicionar o springdoc-openapi.** No `pom.xml`,
+    `springdoc-openapi-starter-webmvc-ui`. Subir a aplicação e abrir
+    `http://localhost:PORTA/swagger-ui/index.html`, conferindo que os
+    endpoints de `/remessas` aparecem listados, com o schema de `Remessa`
+    gerado a partir das anotações Jackson da Aula 09.
+12. **Registrar a decisão.** Em `docs/decisoes.md`, uma linha explicando a
+    escolha de simular o parceiro legado dentro do próprio fork, e por quê:
+    a Rota Sul não tem um parceiro real disponível para a turma, e o
+    contrato XSD mais o endpoint reproduzem o mesmo tipo de código que se
+    escreveria contra um parceiro de verdade.
+
+**Entregável do dia:** o cliente SOAP em `br.uni9.rotasul.parceiro`,
+consumindo o endpoint simulado, com `ParceiroClientTest` passando, mais a API
+REST de `/remessas` documentada pelo springdoc-openapi. Critério de
+aceitação: `consultarEntrega("RS12345")` devolvendo `EM_TRANSITO`, a Swagger
+UI listando os endpoints de `/remessas` em `/swagger-ui/index.html`, e
+`./mvnw test` passando.
+
+### Fechamento, 21h50 às 22h00
+
+- `git add src pom.xml docs`
+- `git commit -m "feat(parceiro): consome o parceiro legado por SOAP e documenta a API REST com springdoc"`
+- `git push`
+- Fechar o Módulo 2 em uma frase por aula: contrato separado de implementação
+  na Aula 07, empacotamento comparado na Aula 08, metadados em JSON e XML na
+  Aula 09, e hoje SOAP e REST juntos, fechando a integração da Rota Sul com o
+  mundo fora dela.
+- **Prévia da Aula 11.** Hoje a turma usou vários padrões sem nomeá-los: a
+  interface `PedidoService` da Aula 07 separando contrato de implementação, e
+  a suíte de teste abstrata que roda contra as duas implementações, que é uma
+  aplicação do padrão Template Method. A próxima aula abre o catálogo formal
+  de Design Patterns e dá nome a cada um deles.
+
+### Referências
+
+1. MESQUITA, Paulo Ricardo Batista. **Capítulo 09: RMI, SOAP (Web Services) e
+   REST.** Arquitetura de Software. AVA, Uninove. Fonte primária desta aula,
+   `pdf/009.pdf`.
+2. W3C. **SOAP Specification.** Referência indicada pelo capítulo, no corpo
+   do texto. <https://www.w3.org/TR/soap/>
+3. Spring. **Documentação do Spring Web Services.**
+   <https://docs.spring.io/spring-ws/docs/current/reference/html/>
+4. springdoc-openapi. **Documentação.** <https://springdoc.org/>
+5. `docs/arquitetura/componentes.puml` do fork do aluno, entregável da Aula
+   05, componente "Integração com parceiros" que ganha implementação real
+   nesta aula.
