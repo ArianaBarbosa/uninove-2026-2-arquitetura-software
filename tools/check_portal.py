@@ -113,8 +113,12 @@ def checar_links_dos_botoes_habilitados(navegador, porta, nome_do_arquivo, erros
             "a.btn:not(.disabled)",
             "els => els.map(el => ({ href: el.getAttribute('href'), texto: el.textContent.trim() }))",
         )
-        if not botoes:
-            erros.append("checagem 2: nenhum botão habilitado encontrado no portal")
+        # Nenhum botão habilitado é o estado legítimo de um acervo em
+        # produção: o portal nasce com os 20 cards desabilitados e cada um
+        # é habilitado conforme a aula fica pronta (SKILL.md, seção 9).
+        # Ausência de link para conferir não é erro, é nada para conferir;
+        # só informamos a contagem, sem afetar o código de saída.
+        print("checagem 2: %d botão(ões) habilitado(s) encontrado(s) no portal" % len(botoes))
 
         for botao in botoes:
             href = botao["href"]
