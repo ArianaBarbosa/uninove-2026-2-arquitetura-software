@@ -10,9 +10,17 @@ validadores não entram na suíte de fixtures estáticas da Task 8; aqui o
 teste é apenas de fumaça, garantindo que o script roda no ambiente, aprova
 um deck válido e reprova um deck que estoura.
 """
+import re
+
 import pytest
 
 from helpers import FIXTURES_DECKS, rodar_validador
+
+# Casa com a mensagem real de estouro do check_slides.py, por exemplo
+# "ESTOURO: 5407px abaixo do limite". Casar com o nome do arquivo da fixture
+# faria a asserção passar mesmo que o validador reprovasse por outro motivo
+# qualquer; ver o comentário equivalente em tests/test_check_decks.py.
+PADRAO_MENSAGEM_DE_ESTOURO = re.compile(r"ESTOURO: \d+px")
 
 
 def test_check_slides_aprova_deck_valido():
@@ -25,7 +33,9 @@ def test_check_slides_reprova_deck_que_estoura():
         "check_slides.py", FIXTURES_DECKS / "deck_estoura_altura.html"
     )
     assert codigo != 0, "o deck que estoura 720px passou"
-    assert "720" in saida or "altura" in saida.lower()
+    assert PADRAO_MENSAGEM_DE_ESTOURO.search(saida), (
+        f"a saída não contém uma mensagem de ESTOURO em pixels:\n{saida}"
+    )
 
 
 def test_check_canto_coral_aprova_deck_valido():

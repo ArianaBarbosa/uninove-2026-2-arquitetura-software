@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 """
-Valida os decks Reveal.js procurando conteudo que estoura o slide.
+Valida os decks Reveal.js procurando conteúdo que estoura o slide.
 
-Tres checagens, porque sao tres defeitos diferentes:
+Três checagens, porque são três defeitos diferentes:
 
 1. ESTOURO. O tema fixa cada <section> em 1280x720. Qualquer elemento que
-   ultrapasse essa caixa aparece cortado na projecao. Medir `scrollHeight` da
-   section NAO detecta isso de forma confiavel, entao percorremos os
-   descendentes e comparamos o retangulo de cada um com a area util do slide
-   (ja descontado o padding).
+   ultrapasse essa caixa aparece cortado na projeção. Medir `scrollHeight` da
+   section NÃO detecta isso de forma confiável, então percorremos os
+   descendentes e comparamos o retângulo de cada um com a área útil do slide
+   (já descontado o padding).
 
-2. SOBREPOSICAO. Um bloco posicionado em absoluto cabe dentro dos 720px e ainda
-   assim cobre o bloco de cima, deixando texto ilegivel. Isso passa inteiro pela
+2. SOBREPOSIÇÃO. Um bloco posicionado em absoluto cabe dentro dos 720px e ainda
+   assim cobre o bloco de cima, deixando texto ilegível. Isso passa inteiro pela
    checagem de estouro. Aqui comparamos os filhos diretos da section entre si:
-   como o layout deles e empilhado, qualquer intersecao real e defeito.
+   como o layout deles é empilhado, qualquer interseção real é defeito.
 
-3. TITULO NO LOGO. O logo da FIAP fica fora da checagem 2 de proposito, senao
+3. TÍTULO NO LOGO. O logo da Uninove fica fora da checagem 2 de propósito, senão
    todo slide daria falso positivo. O efeito colateral era um ponto cego: um
-   titulo longo quebra a segunda linha por baixo do logo sem estourar os 720px
+   título longo quebra a segunda linha por baixo do logo sem estourar os 720px
    e sem sobrepor filho direto da section. Apareceu nas Aulas 10 e 11 em
-   31/07/2026, e so foi visto porque alguem abriu o slide no navegador.
-   Comparamos as caixas de LINHA do titulo (nao a caixa do h2, que costuma ser
-   larga e vazia a direita) com o retangulo do logo.
+   31/07/2026, e só foi visto porque alguém abriu o slide no navegador.
+   Comparamos as caixas de LINHA do título (não a caixa do h2, que costuma ser
+   larga e vazia à direita) com o retângulo do logo.
 
 Uso:
     python3 tools/check_slides.py                      # todos os decks
@@ -67,7 +67,7 @@ JS_MEDIR = """
 () => {
   const secoes = [...document.querySelectorAll('.reveal .slides > section')];
   return secoes.map((sec, i) => {
-    // Torna o slide mensuravel mesmo sem estar ativo
+    // Torna o slide mensurável mesmo sem estar ativo
     const estiloAnterior = sec.getAttribute('style') || '';
     sec.style.display = 'block';
     sec.style.visibility = 'visible';
@@ -87,7 +87,7 @@ JS_MEDIR = """
     for (const el of sec.querySelectorAll('*')) {
       const ecs = getComputedStyle(el);
       if (ecs.display === 'none' || ecs.visibility === 'hidden') continue;
-      // Rodape e barras sao posicionados de proposito na borda
+      // Rodapé e barras são posicionados de propósito na borda
       if (el.closest('.slide-footer, .top-bar, [class*="logo-header"]')) continue;
       const r = el.getBoundingClientRect();
       if (r.width === 0 && r.height === 0) continue;
@@ -106,9 +106,9 @@ JS_MEDIR = """
       }
     }
 
-    // --- Sobreposicao entre os blocos empilhados do slide --------------
-    // So os filhos diretos: comparar descendentes daria falso positivo, ja
-    // que todo filho intersecta o proprio pai.
+    // --- Sobreposição entre os blocos empilhados do slide --------------
+    // Só os filhos diretos: comparar descendentes daria falso positivo, já
+    // que todo filho intersecta o próprio pai.
     const rotulo = (el) => {
       const c = (el.className && el.className.baseVal !== undefined
                   ? el.className.baseVal : el.className || '').toString().trim();
@@ -118,7 +118,7 @@ JS_MEDIR = """
     const blocos = [...sec.children].filter((el) => {
       const ecs = getComputedStyle(el);
       if (ecs.display === 'none' || ecs.visibility === 'hidden') return false;
-      // Decoracao de borda: sobrepoe de proposito
+      // Decoração de borda: sobrepõe de propósito
       if (el.matches('.slide-footer, .top-bar, [class*="logo-header"]')) return false;
       const r = el.getBoundingClientRect();
       return r.width > 0 && r.height > 0;
@@ -142,14 +142,14 @@ JS_MEDIR = """
       }
     }
 
-    // COLISAO COM O LOGO. O logo fica de proposito fora da checagem acima, senao
-    // todo slide daria falso positivo. O efeito colateral e um ponto cego: um
-    // titulo longo quebra a segunda linha por baixo do logo sem estourar os
+    // COLISÃO COM O LOGO. O logo fica de propósito fora da checagem acima, senão
+    // todo slide daria falso positivo. O efeito colateral é um ponto cego: um
+    // título longo quebra a segunda linha por baixo do logo sem estourar os
     // 720px e sem sobrepor filho direto da section. Aconteceu nas Aulas 10 e 11,
-    // e so apareceu porque alguem olhou o slide no navegador.
+    // e só apareceu porque alguém olhou o slide no navegador.
     //
-    // Medimos as caixas de LINHA do titulo, nao a caixa do h2: o h2 costuma ser
-    // largo e vazio a direita, entao a caixa dele encosta no logo em todo slide.
+    // Medimos as caixas de LINHA do título, não a caixa do h2: o h2 costuma ser
+    // largo e vazio à direita, então a caixa dele encosta no logo em todo slide.
     const MARGEM_LOGO = 15;
     const colisoes = [];
     const logo = sec.querySelector('[class*="logo-header"]');
@@ -183,7 +183,7 @@ JS_MEDIR = """
     return {
       indice: i,
       titulo: titulo ? titulo.textContent.trim().slice(0, 55) : '(' + sec.className + ')',
-      // so o vazamento mais grave por slide, para o relatorio nao explodir
+      // só o vazamento mais grave por slide, para o relatório não explodir
       pior: vazamentos.sort((a, b) =>
         (b.abaixo + b.direita) - (a.abaixo + a.direita))[0] || null,
       total: vazamentos.length,
@@ -204,7 +204,7 @@ def checar(page, url, nome, shots_dir=None):
                  if s["pior"] or s.get("sobreposicoes") or s.get("colisoes")]
     print("\n%s  (%d slides)" % (nome, len(slides)))
     if not problemas:
-        print("  OK: nada estourando 1280x720, sem bloco sobreposto nem titulo no logo")
+        print("  OK: nada estourando 1280x720, sem bloco sobreposto nem título no logo")
         return 0
 
     for s in problemas:
@@ -222,12 +222,12 @@ def checar(page, url, nome, shots_dir=None):
             print("           texto: %s" % p["texto"])
 
         for sob in s.get("sobreposicoes", []):
-            print("           SOBREPOSICAO: %s cobre %s em %dpx"
+            print("           SOBREPOSIÇÃO: %s cobre %s em %dpx"
                   % (sob["a"], sob["b"], sob["px"]))
             print("           texto coberto: %s" % sob["texto"])
 
         for col in s.get("colisoes", []):
-            print("           TITULO NO LOGO: <%s> a %dpx do logo da FIAP"
+            print("           TÍTULO NO LOGO: <%s> a %dpx do logo da Uninove"
                   % (col["alvo"], col["folga"]))
             print("           texto: %s" % col["texto"])
 
@@ -289,7 +289,7 @@ def main():
 
     print("\n" + "=" * 62)
     if total:
-        print("%d slide(s) com problema de layout, entre estouro e sobreposicao." % total)
+        print("%d slide(s) com problema de layout, entre estouro e sobreposição." % total)
         return 1
     print("Todos os slides cabem em 1280x720, sem bloco sobreposto.")
     return 0

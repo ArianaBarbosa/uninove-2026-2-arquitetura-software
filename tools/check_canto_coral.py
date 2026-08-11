@@ -1,39 +1,39 @@
 #!/usr/bin/env python3
 """
-Verifica, pixel a pixel, se o triangulo coral do canto superior direito de cada
+Verifica, pixel a pixel, se o triângulo coral do canto superior direito de cada
 slide chegou inteiro na tela.
 
 POR QUE ESTE SCRIPT EXISTE
 --------------------------
-`tools/check_slides.py` NAO enxerga este defeito. O `.decor-coral` tem caixa
-zerada no proprio <div> (quem desenha o triangulo e o pseudo-elemento ::after),
+`tools/check_slides.py` NÃO enxerga este defeito. O `.decor-coral` tem caixa
+zerada no próprio <div> (quem desenha o triângulo é o pseudo-elemento ::after),
 e o validador descarta do conjunto comparado qualquer elemento de caixa nula.
-Um "OK" dele nao prova nada sobre este canto.
+Um "OK" dele não prova nada sobre este canto.
 
-Na revisao da Aula 01, a `.uninove-logo-header` (fundo branco opaco do PNG,
-z-index 1 contra z-index 0 do triangulo) abria um retangulo palido dentro do
-triangulo em 17 dos 21 slides. A checagem geometrica de caixas nao pegou o
-defeito porque so elementos de texto tinham sido comparados; e mesmo comparando
-todas as caixas, a interseccao de caixa continua existindo depois da correcao
-(a logo transparente segue por cima do triangulo, so que agora deixa o coral
-passar). Por isso a verificacao correta e por PIXEL, no resultado renderizado, e
-nao por retangulo do DOM.
+Na revisão da Aula 01, a `.uninove-logo-header` (fundo branco opaco do PNG,
+z-index 1 contra z-index 0 do triângulo) abria um retângulo pálido dentro do
+triângulo em 17 dos 21 slides. A checagem geométrica de caixas não pegou o
+defeito porque só elementos de texto tinham sido comparados; e mesmo comparando
+todas as caixas, a interseção de caixa continua existindo depois da correção
+(a logo transparente segue por cima do triângulo, só que agora deixa o coral
+passar). Por isso a verificação correta é por PIXEL, no resultado renderizado, e
+não por retângulo do DOM.
 
-O QUE E VERIFICADO
+O QUE É VERIFICADO
 ------------------
-Para cada `section` que tem `.decor-coral`, todo pixel do interior do triangulo
+Para cada `section` que tem `.decor-coral`, todo pixel do interior do triângulo
 precisa ter a cor do coral da marca aplicada com a opacidade do tema
-(#C84B31 a 75% sobre o branco do slide). Sao ignorados:
+(#C84B31 a 75% sobre o branco do slide). São ignorados:
 
-  - a faixa da `.top-bar`, decoracao de borda que o template desenha de
-    proposito sobre o topo do slide inteiro;
+  - a faixa da `.top-bar`, decoração de borda que o template desenha de
+    propósito sobre o topo do slide inteiro;
   - uma folga de 2px na hipotenusa, por causa do antialiasing da borda.
 
-NUMERACAO DOS SLIDES
+NUMERAÇÃO DOS SLIDES
 --------------------
-Os slides sao reportados em BASE 0, o mesmo indice usado por `Reveal.slide(i)` e
-pelo `tools/check_slides.py`. O primeiro slide do deck e o slide 0. Manter a
-mesma base nos dois validadores evita que um relatorio aponte para o slide
+Os slides são reportados em BASE 0, o mesmo índice usado por `Reveal.slide(i)` e
+pelo `tools/check_slides.py`. O primeiro slide do deck é o slide 0. Manter a
+mesma base nos dois validadores evita que um relatório aponte para o slide
 errado quando os dois rodam sobre o mesmo deck.
 
 Uso:
@@ -55,8 +55,8 @@ from playwright.sync_api import sync_playwright
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LARGURA, ALTURA = 1280, 720
-LADO = 80          # o triangulo do ::after ocupa um quadrado de 80x80
-ALTURA_TOP_BAR = 6  # faixa superior do template, desenhada por cima de proposito
+LADO = 80          # o triângulo do ::after ocupa um quadrado de 80x80
+ALTURA_TOP_BAR = 6  # faixa superior do template, desenhada por cima de propósito
 FOLGA = 2          # antialiasing da hipotenusa
 TOLERANCIA = 12    # por canal
 
@@ -83,13 +83,13 @@ def servir(porta):
 
 
 def pixels_corrompidos(caminho_png):
-    """Pixels do interior do triangulo que nao estao na cor esperada."""
+    """Pixels do interior do triângulo que não estão na cor esperada."""
     img = Image.open(caminho_png).convert("RGB")
     px = img.load()
     ruins = []
     for y in range(ALTURA_TOP_BAR, LADO):
         for x in range(LARGURA - LADO, LARGURA):
-            # dentro do triangulo (vertices em 1200,0 / 1280,0 / 1280,80)
+            # dentro do triângulo (vértices em 1200,0 / 1280,0 / 1280,80)
             if x < (LARGURA - LADO) + y + FOLGA:
                 continue
             if x > LARGURA - FOLGA or y > LADO - FOLGA:
@@ -103,7 +103,7 @@ def pixels_corrompidos(caminho_png):
 def checar(page, url, nome, tmp_dir):
     page.goto(url, wait_until="networkidle")
     page.wait_for_timeout(900)
-    # Sem transicao: screenshot no meio da animacao mede o slide errado.
+    # Sem transição: screenshot no meio da animação mede o slide errado.
     page.evaluate("() => Reveal.configure({transition: 'none'})")
     total = page.evaluate(
         "() => document.querySelectorAll('.reveal .slides > section').length"
@@ -123,7 +123,7 @@ def checar(page, url, nome, tmp_dir):
             }"""
         )
         if [round(v) for v in dados["rect"]] != [0, 0, LARGURA, ALTURA]:
-            print("  slide %-2d  ainda em transicao, medida descartada" % i)
+            print("  slide %-2d  ainda em transição, medida descartada" % i)
             problemas += 1
             continue
         if not dados["decor"]:
@@ -137,13 +137,13 @@ def checar(page, url, nome, tmp_dir):
         if ruins:
             problemas += 1
             print(
-                "  slide %-2d  %d pixels do triangulo coral cobertos, ex.: %s"
+                "  slide %-2d  %d pixels do triângulo coral cobertos, ex.: %s"
                 % (i, len(ruins), ruins[:3])
             )
 
     print("\n%s  (%d slides, %d com decor-coral)" % (nome, total, conferidos))
     if not problemas:
-        print("  OK: triangulo coral inteiro em todos os slides")
+        print("  OK: triângulo coral inteiro em todos os slides")
     return problemas
 
 
@@ -181,9 +181,9 @@ def main():
 
     print("\n" + "=" * 62)
     if total:
-        print("%d slide(s) com o triangulo coral coberto." % total)
+        print("%d slide(s) com o triângulo coral coberto." % total)
         return 1
-    print("Triangulo coral inteiro em todos os decks conferidos.")
+    print("Triângulo coral inteiro em todos os decks conferidos.")
     return 0
 
 
