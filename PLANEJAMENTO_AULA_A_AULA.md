@@ -4344,3 +4344,1699 @@ reinício da aplicação, `./mvnw test` passando, e as duas linhas de
    <https://docs.oracle.com/javase/8/docs/technotes/guides/jdbc/>
 7. JUnit. **JUnit 5 User Guide.** <https://junit.org/junit5/docs/current/user-guide/>
 
+---
+
+## Aula 15, API de persistência Java, JPA
+
+**Módulo:** M4, Persistência e componentes
+**Capítulo do AVA:** `pdf/014.pdf`, API de Persistência Java
+**Entregável:** CRUD completo de `Pedido` (criar, listar, buscar por id, atualizar,
+excluir) persistindo no MySQL através de `PedidoRepository` migrado para Spring
+Data JPA, com a migration da Aula 14 permanecendo a única fonte de verdade do
+schema. Critério de aceitação: os cinco verbos do CRUD respondendo em
+`/pedidos`, `PedidoRepository` sem nenhuma linha de implementação escrita à
+mão, `PedidoRepositoryTest` passando com `./mvnw test` usando Testcontainers, e
+a contagem de linhas das três versões do repositório (memória, JDBC, JPA)
+fechada em `docs/decisoes.md`.
+
+### Retomada, 5 minutos
+
+Projetar `docs/decisoes.md` da Aula 14, na linha que registrou a contagem de
+linhas: `PedidoRepositoryEmMemoria`, algo como 24 linhas, contra
+`PedidoRepositoryJdbc`, algo como 58 linhas, mais a segunda linha explicando de
+onde vinha a diferença, abertura e fechamento de conexão, `PreparedStatement`,
+tratamento de `SQLException` e montagem manual de cada `Pedido` a partir do
+`ResultSet`. Perguntar à turma: e se existisse uma terceira versão, que não
+escreve nenhuma dessas quatro coisas? A aula de hoje escreve essa terceira
+versão, e a régua de comparação é a mesma planilha de linhas que a turma já
+tem na mão.
+
+### Ciclo 1, 19h30 às 20h05
+
+- **Conceito.** Os problemas do JDBC, na lista do próprio capítulo [1], e a
+  resposta que a JPA propõe.
+
+  **Os cinco problemas do JDBC, segundo o capítulo.** Apesar de simples, o
+  capítulo lista o JDBC como tendo os seguintes problemas: mau gerenciamento
+  das conexões de banco de dados, já que elas devem ser abertas e fechadas
+  manualmente, e se uma falhar, há mau uso de recursos; necessidade de
+  escrever comandos SQL no meio do código Java, que precisam ser configurados
+  e enviados manualmente, com o resultado também tratado manualmente; bastante
+  código repetido nas interações com o banco; segurança, porque o envio manual
+  de comandos pode dar brecha para interceptação ou para um invasor inserir
+  seus próprios comandos SQL; e o descompasso entre Java, orientado a objetos,
+  e os bancos relacionais, que dificulta o mapeamento de tabelas em classes, e
+  tende a exigir uma classe de entidade e uma classe DAO para cada tabela, além
+  de jogar manualmente cada linha lida num objeto. Ler essa lista de frente
+  para `PedidoRepositoryJdbc`, escrito ontem, e marcar cada problema com um
+  visto: os cinco estão lá.
+
+  **Por que a JPA se chama API de persistência.** O capítulo explica a origem
+  do nome: enquanto os objetos são enviados e recebidos do banco, a JPA os
+  mantém ativos na memória do servidor de aplicações, enquanto as transações
+  SQL são executadas, em vez de usar intensivamente o servidor de dados. Ela
+  resolve os problemas do JDBC delegando ao servidor o gerenciamento das
+  conexões, a instalação do driver e o controle da execução dos comandos SQL.
+
+  **O Mapa O/R, com o exemplo do capítulo.** A JPA possui um mecanismo chamado
+  Mapa O/R (Objetos/Relacionamentos), que joga o resultado das interações com
+  o banco diretamente em objetos que representam as tabelas, respeitando o
+  relacionamento entre elas. O capítulo ilustra com duas tabelas, Aluno e
+  Disciplina, numa relação "um aluno cursa várias disciplinas": ao consultar
+  os dados de um aluno chamado "Manuelo", já se sabe as disciplinas que ele
+  cursa, sem uma nova consulta nem um `inner join` escrito à mão. É exatamente
+  o problema cinco da lista de cima, resolvido.
+
+- **Demonstração no projetor.** Abrir `PedidoRepositoryJdbc` e
+  `PedidoRepositoryEmMemoria` lado a lado, e contar em voz alta, sobre o
+  código de ontem, quantas linhas resolvem cada um dos cinco problemas do
+  JDBC: abertura e fechamento de `Connection`, escrita do `INSERT` e do
+  `SELECT` como `String`, `try/catch` de `SQLException`, e o `while
+  (resultado.next())` que monta cada `Pedido` campo a campo. Prometer à turma:
+  a versão de hoje não vai ter nenhuma dessas quatro coisas escrita à mão.
+
+- **Exercício curto.** Cinco minutos, individual. Para cada um dos cinco
+  problemas do JDBC listados pelo capítulo, escrever se `PedidoRepositoryJdbc`
+  da Aula 14 sofre dele (sim ou não) e por quê. Gabarito: sofre dos cinco,
+  porque é exatamente o que o laboratório de ontem pediu, JDBC puro, sem
+  `JdbcTemplate` e sem ORM; a JPA de hoje ataca os cinco ao mesmo tempo,
+  delegando ao provedor de persistência o que ontem era escrito à mão.
+
+### Ciclo 2, 20h05 às 20h40
+
+- **Conceito.** Entidades, o gerenciador de entidades e o vocabulário que a
+  turma vai usar em `Pedido` daqui a pouco.
+
+  **Entidades e suas três características, segundo o capítulo.** Uma entidade
+  continua tendo a mesma definição usada em bancos de dados: um nome ou
+  agrupamento de estados associados a uma única unidade. Para a JPA, uma
+  classe de entidade precisa ter três características: **persistibilidade**,
+  o estado do objeto pode ser armazenado sob a forma de dados e recuperado a
+  qualquer momento; **identidade**, uma característica única que distingue um
+  objeto dos demais, de modo equivalente à chave primária; e
+  **transacionalidade**, a entidade permite `insert`, `update` e `delete`
+  dentro de um contexto de transação, para serem confirmados ou desfeitos sem
+  causar dano aos dados. O capítulo mostra essas três características ganhando
+  vida através de anotações do pacote `javax.persistence` (hoje,
+  `jakarta.persistence`, o pacote foi renomeado depois da doação do Java EE à
+  Eclipse Foundation), como `@Entity` na classe e `@Column` em cada atributo.
+
+  **O gerenciador de entidades, `EntityManager`.** É a interface que conecta o
+  aplicativo à JPA, e quem efetivamente executa `insert`, `delete`, `update` e
+  `select` na base. Um gerenciador de entidades administra um conjunto de
+  entidades chamado contexto de persistência, dentro do qual cada classe de
+  entidade é instanciada uma única vez. O provedor de persistência (no caso da
+  Rota Sul, o Hibernate, que a Aula 18 aprofunda) implementa esse mecanismo, e
+  mantém o contexto de persistência através de um `EntityManagerFactory`. O
+  capítulo mostra a criação manual desses dois objetos:
+
+  ```java
+  EntityManagerFactory emf =
+      Persistence.createEntityManagerFactory("ServicoDeUsuarios");
+  EntityManager em = emf.createEntityManager();
+  ```
+
+  > **Nota para o professor.** Spring Data JPA, que a turma usa a partir de
+  > hoje, cria e gerencia o `EntityManager` por baixo dos panos: nenhuma linha
+  > de `Persistence.createEntityManagerFactory` entra no código da Rota Sul. O
+  > capítulo ensina o mecanismo cru para a turma entender o que o Spring está
+  > escondendo, não para reproduzir manualmente.
+
+  **Persistir, buscar, atualizar e excluir, no vocabulário do capítulo.** Uma
+  entidade é persistida com `em.persist(objeto)`; buscada pelo atributo
+  anotado `@Id` com `em.find(Classe.class, id)`; atualizada lendo o objeto
+  gerenciado, alterando seus campos com os métodos `set`, e confirmando com
+  `em.merge(objeto)`; excluída buscando primeiro e depois chamando
+  `em.remove(objeto)`. Consultas mais amplas usam JPQL, a linguagem de
+  consulta da JPA, através de `TypedQuery`, como no exemplo do capítulo,
+  `em.createQuery("SELECT u FROM Usuario u", Usuario.class)`.
+
+- **Demonstração no projetor.** Ler a Listagem 1 do capítulo, a classe
+  `Usuario` com `@Entity`, `@Table(name="Usuario")`, `@Id`,
+  `@GeneratedValue(strategy = GenerationType.AUTO)` sobre o atributo `id`.
+  Projetar ao lado a classe `Pedido` da Rota Sul, ainda sem anotação nenhuma,
+  e perguntar à turma: o que falta para `Pedido` virar uma entidade JPA, na
+  mesma lógica do exemplo? A resposta guia o passo 3 do Ciclo 3.
+
+- **Exercício curto.** Cinco minutos, em duplas. Para cada verbo do CRUD que a
+  Aula 06 já expõe em `PedidoController`, `POST`, `GET`, escrever qual método
+  do `EntityManager` o capítulo usaria por baixo: `POST /pedidos` chama
+  `em.persist`; `GET /pedidos/{id}` chama `em.find`. Gabarito: exatamente
+  esses dois, e a dupla que também escrever `em.merge` para um futuro `PUT` e
+  `em.remove` para um futuro `DELETE` já adiantou o Ciclo 4 de hoje.
+
+### Quiz, 20h40 às 20h50
+
+**Pergunta.** O capítulo lista o mau gerenciamento de conexões, a escrita
+manual de SQL no meio do código Java, o código repetido e o risco de
+segurança como problemas do JDBC. Entre as alternativas abaixo, qual descreve
+uma característica da JPA, e não um problema do JDBC que ela resolve?
+
+- A) Controle manual das conexões abertas com o banco de dados.
+- B) Gerenciador de Entidades, que executa `insert`, `delete`, `update` e
+  `select` sem o desenvolvedor escrever SQL a cada operação.
+- C) Necessidade de escrever comandos SQL no meio do código Java.
+- D) Mau gerenciamento das conexões de banco de dados.
+
+**Correta:** B.
+
+**Justificativa.** O Gerenciador de Entidades, implementado pela interface
+`EntityManager`, é exatamente o mecanismo que a JPA introduz para resolver os
+problemas do JDBC: ele conecta o aplicativo à JPA e executa as operações de
+persistência sem exigir SQL manual a cada chamada, e é a peça que
+`PedidoRepositoryJpa`, hoje sem uma linha de implementação, delega ao Spring
+Data para instanciar. As alternativas A, C e D são, ao contrário, os próprios
+problemas do JDBC listados pelo capítulo, o ponto de partida que a JPA existe
+para resolver, não uma característica dela.
+
+### Ciclo 3, 20h50 às 21h25
+
+Laboratório de troca de implementação, terceira e última rodada. O contrato
+`PedidoRepository` muda de forma pela primeira vez desde a Aula 06: hoje ele
+deixa de ser uma interface escrita à mão para se tornar uma extensão de
+`JpaRepository`.
+
+1. **Acrescentar a dependência.** No `pom.xml`, `spring-boot-starter-data-jpa`,
+   fixada no contrato técnico desde a Aula 01. Ela traz o Hibernate como
+   provedor de JPA (o assunto da Aula 18) e o Spring Data JPA por cima dele.
+   `mysql-connector-j` e `flyway-core`, já presentes desde a Aula 14,
+   continuam.
+2. **Anotar `Pedido` como entidade.** Em `pedido/domain`, acrescentar
+   `@Entity`, `@Table(name = "pedido")` na classe, `@Id` e `@GeneratedValue(strategy
+   = GenerationType.IDENTITY)` no atributo `id`, e `@Column(nullable = false)`
+   em `cliente` e `situacao`. **Isso é a segunda exceção explícita à regra de
+   "domínio sem anotação de framework"** fixada na Aula 06, a primeira foi
+   `@JacksonXmlRootElement` em `Remessa`, na Aula 09. A diferença é que aquela
+   era uma exceção pontual, e esta é estrutural: toda entidade JPA da Rota Sul
+   vai carregar anotação de mapeamento a partir de hoje, porque é assim que o
+   Spring Data localiza e mapeia a classe. Registrar essa decisão em
+   `docs/decisoes.md`.
+3. **Reescrever `PedidoRepository`.** Em `pedido/repository`, a interface
+   deixa de declarar `salvar` e `listarTodos` e passa a ser:
+
+   ```java
+   public interface PedidoRepository extends JpaRepository<Pedido, Long> {
+   }
+   ```
+
+   Zero linhas de corpo. `save`, `findById`, `findAll` e `deleteById` chegam
+   de graça, herdados de `JpaRepository`, implementados pelo Spring Data em
+   tempo de execução, sem uma classe `Impl` em lugar nenhum do código-fonte.
+4. **Remover as duas implementações anteriores.** `git rm` em
+   `PedidoRepositoryEmMemoria.java` e `PedidoRepositoryJdbc.java`. As duas
+   já cumpriram seu papel pedagógico, e a contagem de linhas de ambas já está
+   registrada em `docs/decisoes.md` desde a Aula 06 e a Aula 14; mantê-las no
+   código faria a compilação falhar, porque nenhuma das duas implementa mais
+   a nova assinatura de `PedidoRepository`.
+5. **Ajustar as duas implementações de `PedidoService`.** Da Aula 07,
+   `PedidoServiceComAnaliseDeRisco` e a implementação padrão trocam
+   `pedidoRepository.salvar(pedido)` por `pedidoRepository.save(pedido)`, e
+   `pedidoRepository.listarTodos()` por `pedidoRepository.findAll()`. Nenhuma
+   regra de negócio muda, só o nome do método chamado, porque
+   `PedidoService.registrar` continua sendo o único ponto de entrada que os
+   controladores conhecem.
+6. **Configurar a coexistência com o Flyway.** Em `application.properties`,
+   `spring.jpa.hibernate.ddl-auto=validate`. Essa propriedade impede o
+   Hibernate de gerar ou alterar tabelas sozinho: ele só confere se o
+   mapeamento de `Pedido` bate com o schema que o Flyway já criou na Aula 14.
+   O Flyway continua sendo a única fonte de verdade do schema, e a migration
+   `V1__cria_tabela_pedido.sql` não muda uma linha, porque as colunas que ela
+   já criou, `id`, `cliente`, `descricao`, `situacao`, `regiao`, já batem com
+   o mapeamento de hoje. "Criar a migration inicial" que o entregável do dia
+   promete é, na prática, esse encontro: a migration já existia desde ontem,
+   e hoje ela ganha um segundo papel, validar o mapeamento JPA, não mais ser
+   o único ponto de contato do time com o schema.
+
+### Ciclo 4, 21h25 às 21h50
+
+7. **Completar o CRUD em `PedidoController`.** `POST /pedidos` e `GET
+   /pedidos` já existem desde a Aula 06. Acrescentar `GET /pedidos/{id}`
+   (`pedidoRepository.findById(id)`, devolvendo 404 se vazio), `PUT
+   /pedidos/{id}` (buscar por `findById`, aplicar as mudanças recebidas no
+   corpo, chamar `save` de novo, o mesmo método cobre `insert` e `update`) e
+   `DELETE /pedidos/{id}` (`pedidoRepository.deleteById(id)`). Os cinco verbos
+   do CRUD completo, todos delegando ao repositório sem SQL escrito à mão.
+8. **Subir e testar manualmente.** `./mvnw spring-boot:run`, e usar `curl` ou
+   o navegador para exercitar os cinco verbos na porta que o terminal
+   imprimiu, conferindo que um `Pedido` criado aparece no `GET`, sobrevive a
+   um `PUT` e desaparece depois do `DELETE`.
+9. **Testar com Testcontainers.** `PedidoRepositoryTest`, em
+   `src/test/java/br/uni9/rotasul/pedido/repository/`, anotado
+   `@DataJpaTest` com `@Testcontainers`, subindo um `MySQLContainer<?>` como
+   nas Aulas 14 e (quando aplicável) posteriores. Um caso: salvar um `Pedido`
+   com `pedidoRepository.save(...)` e conferir que `findAll()` devolve uma
+   lista de tamanho um, sem uma linha de SQL escrita no teste. Rodar `./mvnw
+   test`.
+10. **Fechar a contagem de linhas, o entregável central de hoje.** Em
+    `docs/decisoes.md`, uma terceira linha ao lado das duas que a Aula 14 já
+    registrou: `PedidoRepository` (JPA): uma linha de assinatura, zero linhas
+    de corpo. A tabela completa fica, por exemplo, `PedidoRepositoryEmMemoria`:
+    24 linhas; `PedidoRepositoryJdbc`: 58 linhas; `PedidoRepository` sobre
+    Spring Data JPA: 0 linhas de implementação. Escrever a frase que fecha o
+    arco: o preço do JDBC (verbosidade) e o preço do mapa objeto-relacional
+    (mágica que esconde o SQL) são dois lados da mesma balança que o capítulo
+    [1] descreve, e hoje a turma sentiu os dois extremos na própria mão.
+11. **Registrar a decisão da segunda exceção de anotação no domínio.** Uma
+    linha adicional em `docs/decisoes.md`, nomeando `@Entity` em `Pedido`
+    como a segunda exceção à regra "domínio sem anotação de framework", ao
+    lado de `@JacksonXmlRootElement` em `Remessa`.
+
+**Entregável do dia:** `Pedido` anotado como entidade JPA, `PedidoRepository`
+estendendo `JpaRepository<Pedido, Long>` sem corpo, os cinco verbos do CRUD em
+`PedidoController`, `PedidoRepositoryTest` com Testcontainers passando, e a
+contagem de linhas das três implementações fechada em `docs/decisoes.md`.
+Critério de aceitação: `./mvnw test` verde, os cinco verbos do CRUD
+respondendo pela porta que o terminal imprimiu, e a migration
+`V1__cria_tabela_pedido.sql` inalterada desde a Aula 14, validada pelo
+Hibernate na subida.
+
+### Fechamento, 21h50 às 22h00
+
+- `git add src docs pom.xml`
+- `git commit -m "feat(pedido): migra PedidoRepository para Spring Data JPA e completa o CRUD"`
+- `git push`
+- Reler em voz alta a tabela de três linhas de `docs/decisoes.md`: memória,
+  JDBC, JPA. É a mesma lição da Aula 06 sobre interface e implementação, vista
+  três vezes, com o mesmo contrato `PedidoRepository` (hoje reescrito, mas com
+  o mesmo papel) sobrevivendo às três trocas sem que `PedidoService` mudasse
+  de comportamento.
+- **Prévia da Aula 16.** O provedor por trás do que o Spring Data acabou de
+  esconder tem nome, Hibernate, e a Aula 18 abre essa caixa. Antes disso, a
+  Aula 16 muda de assunto por um encontro: transações. Hoje `save` e
+  `deleteById` já rodam dentro de uma transação implícita que o Spring abre e
+  fecha sozinho; amanhã a turma aprende a controlar isso explicitamente com
+  `@Transactional`, no momento em que uma operação da Rota Sul precisa fazer
+  duas escritas como uma coisa só, ou nenhuma das duas.
+
+### Referências
+
+1. MESQUITA, Paulo Ricardo Batista. **Capítulo 14: API de Persistência
+   Java.** Arquitetura de Software. AVA, Uninove. Fonte primária desta aula,
+   `pdf/014.pdf`.
+2. SCHINCARIOL, M.; KEITH, M. **Pro JPA 2: Mastering the Java Persistence
+   API.** Apress, 2009. Referência indicada pelo capítulo.
+3. Spring. **Documentação do Spring Data JPA.**
+   <https://docs.spring.io/spring-data/jpa/reference/>
+4. Hibernate. **Hibernate ORM Documentation.**
+   <https://hibernate.org/orm/documentation/>
+5. Flyway. **Documentação**, seção de migrations.
+   <https://documentation.red-gate.com/fd/migrations-184127470.html>
+6. Testcontainers. **Documentação do módulo MySQL.**
+   <https://java.testcontainers.org/modules/databases/mysql/>
+7. JUnit. **JUnit 5 User Guide.** <https://junit.org/junit5/docs/current/user-guide/>
+
+---
+
+## Aula 16, Enterprise Java Beans
+
+**Módulo:** M4, Persistência e componentes
+**Capítulo do AVA:** `pdf/015.pdf`, Enterprise Java Beans
+**Entregável:** baixa de remessa transacional. Um método `RemessaService.baixarRemessa(Long
+id)`, anotado `@Transactional`, que atualiza a situação da `Remessa` e cria uma
+`Ocorrencia` de entrega como uma única unidade atômica, mais
+`RemessaServiceTest`, que comprova o rollback: quando a criação da ocorrência
+falha, a situação da remessa não muda no banco. Critério de aceitação:
+`./mvnw test` verde com os dois casos, sucesso e rollback, e a explicação de
+propagação e de qual tipo de exceção dispara o rollback registrada em
+`docs/decisoes.md`.
+
+> **Nota para o professor.** EJB e JSF (na Aula 18) entram como conteúdo
+> conceitual e histórico, comparado lado a lado com o equivalente Spring. O
+> laboratório de hoje constrói apenas o equivalente Spring; nenhuma linha de
+> `@Stateless`, `@Remote` ou `@Local` é escrita pela turma. A leitura do
+> capítulo continua sendo necessária, porque é o texto que o aluno acessa no
+> AVA, e o roteiro de hoje explica com honestidade por que a indústria migrou
+> de um modelo para o outro, sem depreciar o que o capítulo ensina.
+
+### Retomada, 5 minutos
+
+Na Aula 15 cada aluno entregou o CRUD completo de `Pedido` sobre
+`PedidoRepository extends JpaRepository<Pedido, Long>`, sem uma linha de
+implementação escrita à mão. Abrir `docs/decisoes.md` na linha da contagem
+final: `PedidoRepositoryEmMemoria`, `PedidoRepositoryJdbc` e o `JpaRepository`
+de ontem. A régua de hoje é diferente: não é mais sobre quantas linhas o
+repositório custa, é sobre o que garante que duas operações de escrita
+aconteçam juntas, ou nenhuma delas aconteça.
+
+### Ciclo 1, 19h30 às 20h05
+
+- **Conceito.** Componentes de aplicação corporativa e o modelo dos EJBs, na
+  descrição do capítulo [1].
+
+  **Componente e o modelo EJB.** O capítulo repete a definição já conhecida
+  desde a Aula 06 e a Aula 07, unidade de software reutilizável, auto
+  contida, integrável a uma aplicação, com contratos bem definidos para quem a
+  usa. Em Java, a forma mais simples de implementar um componente é através de
+  um JavaBean, cujo contrato é dado pelo padrão de nomenclatura dos métodos.
+  Nas aplicações corporativas, o foco dos componentes é resolver problemas de
+  regra de negócio, e o modelo padrão do Java EE para isso é o EJB, que define
+  métodos para empacotar, instalar e interagir com serviços de regra de
+  negócio auto contidos. O tipo de EJB determina o contrato que os clientes
+  usam para interagir com ele. O capítulo é explícito: usar ou não um modelo
+  de componentes depende do desenvolvedor, porque a maioria dos serviços de um
+  servidor Java EE também pode ser acessada diretamente por Servlets.
+
+  **As cinco vantagens do EJB, segundo o capítulo.** Baixo acoplamento, a
+  implementação de um componente muda sem impacto em quem depende dele;
+  gerenciamento de dependência, declarada em metadados e resolvida
+  automaticamente pelo container; gerenciamento do ciclo de vida, o servidor
+  decide criar, manter e remover instâncias, e o componente participa dessas
+  operações para obter e liberar recursos; **serviços declarativos de
+  conteiner**, métodos de negócio incorporados pelo servidor para aplicar
+  concorrência, **gerenciamento de transações**, segurança e ações remotas; e
+  portabilidade, escalabilidade e eficiência entre servidores padronizados. A
+  terceira vantagem grifada acima é o gancho do dia: gerenciamento de
+  transações como serviço declarativo do container, aplicado sem o
+  desenvolvedor escrever o controle manualmente.
+
+  **Beans de sessão sem estado, lidos, não escritos.** O capítulo mostra a
+  interface de negócios `InterfaceHello`, anotada `@Local`, e a classe que a
+  implementa, `BeanHello`, anotada `@Stateless`. O `@Local` indica que a
+  interface é acessível por clientes no mesmo servidor; a existência de uma
+  interface remota, anotada `@Remote`, do pacote `java.rmi.Remote`, atende
+  clientes fora do servidor, seguindo o modelo RMI já apresentado na Aula 10.
+  Um bean de sessão sem estado assume que nenhum de seus métodos foi chamado
+  antes, o que permite atender muitos clientes com o mínimo de impacto sobre
+  os recursos do servidor.
+
+- **Demonstração no projetor.** Ler em voz alta, sem digitar, `InterfaceHello`
+  e `BeanHello` do capítulo. Ao lado, projetar o esqueleto de
+  `RemessaService` que a turma vai escrever hoje, um `@Service` do Spring,
+  sem interface de negócios separada nem anotação `@Stateless`. Nomear a
+  primeira diferença honesta: o EJB precisa de um servidor Java EE completo
+  rodando por baixo para interpretar `@Stateless`; o `@Service` do Spring roda
+  dentro do próprio processo do `java -jar`, no Tomcat embarcado que a
+  Aula 08 já mostrou.
+
+  > **Nota para o professor.** Por que a indústria migrou. O modelo de EJB
+  > amarra a aplicação a um servidor de aplicações Java EE pesado (WebLogic,
+  > JBoss, GlassFish), com ciclos de deploy mais lentos e um modelo de objetos
+  > distribuídos (interfaces remotas via RMI) desenhado para um problema que a
+  > maioria das aplicações não tem, transações distribuídas entre várias
+  > instâncias de servidor. O Spring manteve as mesmas ideias, dependência
+  > gerenciada, ciclo de vida gerenciado, transação declarativa, mas entregou
+  > isso como biblioteca, dentro de qualquer processo Java, sem exigir um
+  > servidor de aplicações dedicado. Isso não invalida o que o capítulo
+  > ensina: os conceitos são os mesmos, e um desenvolvedor que entende EJB
+  > entende `@Service` e `@Transactional` rapidamente, porque o vocabulário
+  > (gerenciamento de ciclo de vida, injeção de dependência, serviço
+  > declarativo) é o mesmo vocabulário, com um motor diferente por baixo.
+
+- **Exercício curto.** Cinco minutos, em duplas. Classificar três operações da
+  Rota Sul como candidatas a bean de sessão **sem estado** ou **com estado**,
+  segundo a distinção do capítulo (sem estado: cada método assume que nenhum
+  outro foi chamado antes; com estado: uma instância é mantida enquanto o
+  cliente usa vários métodos em sequência, como o carrinho de compras do
+  exemplo do capítulo): (a) calcular o frete de um pedido, como a Aula 11 já
+  faz; (b) montar um pedido em várias etapas de formulário, mantendo os dados
+  parciais entre uma tela e outra; (c) dar baixa numa remessa. Gabarito: (a) e
+  (c) são sem estado, cada chamada é independente e autocontida; (b) é com
+  estado, porque depende de dados acumulados entre chamadas, o mesmo padrão
+  do carrinho de compras do capítulo.
+
+### Ciclo 2, 20h05 às 20h40
+
+- **Conceito.** Transações declarativas, do jeito do EJB ao jeito do Spring.
+
+  **O que o capítulo não mostra, e por que hoje precisa disso.** O capítulo
+  lista "gerenciamento de transações" entre os serviços declarativos de
+  conteiner, mas não demonstra o código de uma anotação de transação do EJB
+  (`@TransactionAttribute`, fora do capítulo). O que ele mostra, ao descrever
+  o serviço, é o suficiente para o gancho de hoje: o container aplica a
+  transação em volta do método de negócio, sem o desenvolvedor escrever
+  `begin`, `commit` e `rollback` à mão, o mesmo mecanismo que a Aula 15
+  mostrou existir de forma implícita em cada `save` do Spring Data.
+
+  **`@Transactional`, o equivalente Spring do serviço declarativo de
+  transação.** Uma anotação em cima de um método de um `@Service` faz o
+  Spring embrulhar a chamada num proxy: antes do método, abre uma transação;
+  se o método terminar normalmente, confirma (`commit`); se o método lançar
+  uma exceção **não verificada** (uma `RuntimeException` ou subclasse), o
+  proxy desfaz tudo o que o método fez no banco (`rollback`), como se nada
+  tivesse acontecido. Exceções verificadas (subclasses de `Exception` que não
+  são `RuntimeException`) **não** disparam rollback por padrão, uma armadilha
+  comum: se o método de hoje lançasse uma exceção verificada, a remessa
+  ficaria com o estado mudado e a ocorrência não criada, meio caminho andado,
+  exatamente o problema que a transação existe para evitar.
+
+  **Duas escritas, uma unidade.** A baixa de uma remessa muda dois registros:
+  a situação da própria `Remessa` e a criação de uma nova `Ocorrencia` de
+  entrega, usando o `OcorrenciaCreator` da Aula 11. Sem transação, um erro no
+  meio do caminho deixaria a remessa marcada como entregue sem nenhuma
+  ocorrência registrada, ou uma ocorrência órfã sem a remessa correspondente.
+  Com `@Transactional`, as duas escritas são uma coisa só.
+
+- **Demonstração no projetor.** Escrever ao vivo o esqueleto:
+
+  ```java
+  @Service
+  public class RemessaService {
+
+      private final RemessaRepository remessaRepository;
+      private final OcorrenciaRepository ocorrenciaRepository;
+
+      @Transactional
+      public Remessa baixarRemessa(Long id) {
+          Remessa remessa = remessaRepository.findById(id)
+              .orElseThrow(() -> new IllegalArgumentException("remessa nao encontrada"));
+          remessa.setSituacao("ENTREGUE");
+          remessaRepository.save(remessa);
+
+          Ocorrencia ocorrencia = new OcorrenciaDeEntregaCreator().criarOcorrencia(remessa);
+          ocorrenciaRepository.save(ocorrencia);
+
+          return remessa;
+      }
+  }
+  ```
+
+  Apontar: as duas chamadas de `save` estão dentro do mesmo método anotado,
+  então participam da mesma transação, aberta e fechada pelo proxy do Spring,
+  sem um `begin` ou `commit` visível no código, a mesma promessa que o
+  capítulo faz para o EJB, cumprida aqui por um mecanismo diferente.
+
+- **Exercício curto.** Cinco minutos, individual. Se `ocorrenciaRepository.save(ocorrencia)`
+  lançar uma `RuntimeException` no meio do método acima, o que acontece com a
+  mudança de situação da `Remessa`, já enviada ao `EntityManager` pela linha
+  anterior? Gabarito: ela é desfeita também, porque as duas chamadas
+  pertencem à mesma transação, e o rollback desfaz tudo que a transação fez,
+  não só a última linha executada.
+
+### Quiz, 20h40 às 20h50
+
+**Pergunta.** O EJB possui características que o tornam popular entre os
+desenvolvedores. Entre as alternativas abaixo, uma delas **não** é uma
+característica de EJB, segundo o capítulo:
+
+- A) Baixo acoplamento.
+- B) Executado do lado do cliente.
+- C) Portabilidade entre servidores.
+- D) Gerenciado pelo servidor Java EE.
+
+**Correta:** B.
+
+**Justificativa.** O capítulo é explícito: os beans de sessão são gerenciados
+pelo servidor, que decide criar, manter em execução e remover as instâncias,
+e a interação começa quando um cliente pede a execução de um método e
+termina quando o método finaliza. Um EJB é sempre executado do **lado do
+servidor**, nunca do lado do cliente, o mesmo motivo pelo qual
+`RemessaService`, hoje, roda dentro do processo do servidor Spring Boot da
+Rota Sul e nunca no navegador de quem opera o painel. As alternativas A, C e
+D são, ao contrário, vantagens do EJB citadas literalmente pelo capítulo:
+baixo acoplamento, portabilidade entre servidores padronizados, e
+gerenciamento do ciclo de vida pelo servidor Java EE.
+
+### Ciclo 3, 20h50 às 21h25
+
+Laboratório de transação. `Remessa`, existente desde a Aula 09, e `Ocorrencia`,
+existente desde a Aula 11 apenas como objeto do Factory Method, ganham hoje
+seu primeiro mapeamento JPA, migrando direto para `JpaRepository`, sem passar
+pela etapa JDBC que `Pedido` cumpriu nas Aulas 14 e 15: o aprendizado já
+aconteceu uma vez, e não precisa se repetir.
+
+1. **Migration para as duas tabelas novas.** Em
+   `src/main/resources/db/migration/V2__cria_tabelas_remessa_e_ocorrencia.sql`,
+   criar `remessa` (`id` autoincremento, `pedido_id`, `situacao`) e
+   `ocorrencia` (`id` autoincremento, `tipo`, `descricao`, `registrada_em`),
+   sem nenhuma coluna de relacionamento entre as duas ainda, isso é assunto da
+   Aula 18.
+2. **Anotar `Remessa` e `Ocorrencia` como entidades.** `@Entity`, `@Table`,
+   `@Id`, `@GeneratedValue(strategy = GenerationType.IDENTITY)`, seguindo
+   exatamente o padrão que `Pedido` fixou ontem.
+3. **Escrever `RemessaRepository` e `OcorrenciaRepository`.** Duas
+   interfaces, `extends JpaRepository<Remessa, Long>` e `extends
+   JpaRepository<Ocorrencia, Long>`, ambas sem corpo, herdando `save` e
+   `findById` de graça, a mesma economia de linhas que a Aula 15 mediu para
+   `Pedido`.
+4. **Escrever `RemessaService.baixarRemessa`.** Exatamente o esqueleto
+   demonstrado no Ciclo 2, usando `OcorrenciaCreator` da Aula 11 para
+   construir a `Ocorrencia` de entrega, e `@Transactional` no método.
+5. **Escrever o caso de sucesso.** `RemessaServiceTest`, com
+   `@SpringBootTest` e `@Testcontainers`, subindo um `MySQLContainer<?>`.
+   Salvar uma `Remessa` de teste, chamar `remessaService.baixarRemessa(id)`, e
+   conferir que a situação mudou para `"ENTREGUE"` e que existe uma
+   `Ocorrencia` nova associada à baixa.
+6. **Escrever o caso de rollback, o entregável central de hoje.** No mesmo
+   arquivo de teste, usar `@MockBean` para substituir `OcorrenciaRepository`
+   por um dublê configurado para lançar `RuntimeException` ao chamar `save`.
+   Chamar `remessaService.baixarRemessa(id)` dentro de um
+   `assertThrows(RuntimeException.class, () -> ...)`, e depois buscar a
+   `Remessa` de novo, **por fora** da transação que falhou, usando o
+   `remessaRepository` real (não mockado). Conferir que a situação continua a
+   original, não `"ENTREGUE"`: a prova de que o rollback desfez a primeira
+   escrita mesmo ela tendo acontecido antes da falha.
+
+### Ciclo 4, 21h25 às 21h50
+
+7. **Rodar os dois casos.** `./mvnw test`, conferindo que tanto o caso de
+   sucesso quanto o caso de rollback passam.
+8. **Provar visualmente, com o banco aberto.** Opcional, mas recomendado:
+   com um cliente MySQL (`docker exec -it rotasul-mysql mysql -u root -p`),
+   consultar a tabela `remessa` antes e depois de rodar o teste de rollback, e
+   ver que nenhuma linha ficou com situação inconsistente.
+9. **Registrar a explicação de propagação e de exceção.** Em
+   `docs/decisoes.md`, uma linha explicando que `@Transactional`, sem
+   parâmetro de propagação, usa `REQUIRED` (participa de uma transação
+   existente, ou cria uma nova se não houver), e que o rollback automático só
+   acontece para exceções não verificadas, `RuntimeException` e suas
+   subclasses, nunca para exceções verificadas, a menos que
+   `@Transactional(rollbackFor = ...)` diga o contrário.
+10. **Registrar o comparativo com EJB.** Uma segunda linha em
+    `docs/decisoes.md`, nomeando `@Transactional` como o equivalente direto do
+    "gerenciamento de transações" que o capítulo lista entre os serviços
+    declarativos de conteiner do EJB, e citando a diferença operacional: o
+    EJB precisa de um servidor Java EE completo, o Spring roda no mesmo
+    processo do `java -jar`.
+
+**Entregável do dia:** `RemessaService.baixarRemessa`, anotado
+`@Transactional`, `Remessa` e `Ocorrencia` mapeadas como entidades JPA,
+`RemessaRepository` e `OcorrenciaRepository` sem corpo, e
+`RemessaServiceTest` com os dois casos, sucesso e rollback. Critério de
+aceitação: `./mvnw test` verde, o caso de rollback provando que a `Remessa`
+não mudou de situação quando a criação da `Ocorrencia` falhou, e as duas
+linhas de `docs/decisoes.md` presentes.
+
+### Fechamento, 21h50 às 22h00
+
+- `git add src docs`
+- `git commit -m "feat(expedicao): adiciona baixa de remessa transacional com @Transactional"`
+- `git push`
+- Reler em voz alta a nota do professor do Ciclo 1: o vocabulário do EJB,
+  gerenciamento de ciclo de vida, injeção de dependência, serviço
+  declarativo, é o mesmo vocabulário de `@Service` e `@Transactional`, com um
+  motor diferente. Quem entende um, entende o outro rápido.
+- **Prévia da Aula 17.** A Rota Sul agora tem três camadas completas em três
+  contextos, `pedido`, `expedicao` e `rastreamento`, cada uma com sua própria
+  suíte de teste isolada. A próxima aula não escreve regra de negócio nova:
+  ela consolida as três camadas com um teste de integração único, que sobe
+  tudo de uma vez, o `MySQLContainer`, os `@Service`, os `@Controller`, e
+  bate numa URL real de ponta a ponta.
+
+### Referências
+
+1. MESQUITA, Paulo Ricardo Batista. **Capítulo 15: Enterprise Java Beans.**
+   Arquitetura de Software. AVA, Uninove. Fonte primária desta aula,
+   `pdf/015.pdf`.
+2. SRIGANESH, R. P.; BROSE, G.; SILVERMAN, M. **Mastering EJB.** 4. ed.
+   Wiley Publishing, 2006. Referência indicada pelo capítulo.
+3. Spring. **Documentação do Spring Framework**, seção de gerenciamento
+   declarativo de transações.
+   <https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative.html>
+4. Testcontainers. **Documentação do módulo MySQL.**
+   <https://java.testcontainers.org/modules/databases/mysql/>
+5. JUnit. **JUnit 5 User Guide.** <https://junit.org/junit5/docs/current/user-guide/>
+
+---
+
+## Aula 17, Frameworks para software em 3 camadas
+
+**Módulo:** M4, Persistência e componentes
+**Capítulo do AVA:** `pdf/016.pdf`, Frameworks usados para implementar
+software em 3 camadas
+**Entregável:** uma suíte de integração de ponta a ponta,
+`PedidoIntegrationTest`, subindo a aplicação inteira num `MySQLContainer` e
+exercitando `POST /pedidos` seguido de `GET /pedidos/{id}` por HTTP real, mais
+um checklist de consolidação das três camadas em `docs/decisoes.md`. Critério
+de aceitação: `./mvnw test` verde com a nova suíte, o `MySQLContainer` sobe e
+morre sozinho a cada execução, e o checklist confirmando que `pedido`,
+`expedicao` e `rastreamento` têm as quatro camadas (`web`, `service`,
+`repository`, `domain`) completas.
+
+### Retomada, 5 minutos
+
+Na Aula 16 cada aluno entregou `RemessaService.baixarRemessa`, transacional,
+com `RemessaServiceTest` provando o rollback quando a criação da `Ocorrencia`
+falha. Contar: até aqui, cada teste da Rota Sul olha uma fatia isolada, um
+repositório aqui, um serviço ali, um controlador em outro arquivo. Nenhum
+teste, até hoje, sobe a aplicação inteira e bate numa URL real de ponta a
+ponta. É exatamente essa lacuna que a aula de hoje fecha.
+
+### Ciclo 1, 19h30 às 20h05
+
+- **Conceito.** Frameworks, frozen spots e hot spots, na descrição do
+  capítulo [1].
+
+  **Por que frameworks existem, segundo o capítulo.** Frameworks agilizam o
+  desenvolvimento porque já resolvem requisitos não funcionais, o que o
+  software precisa **para ser executado**, não o que ele precisa **fazer**,
+  direcionando o desenvolvedor para as regras de negócio. Um framework sempre
+  atende um domínio específico de problemas, e o capítulo lista dez exemplos:
+  modelagem de aplicações do mercado financeiro, modelagem de processos
+  corporativos, sistemas de suporte a decisão, sistemas de informação
+  geográfica, autoração e reprodução multimídia, sincronização entre cliente e
+  servidor, sincronização entre sistemas remotos, middleware em geral,
+  desenvolvimento rápido de interfaces gráficas, e gerenciamento de bases de
+  dados. O Spring, usado pela Rota Sul desde a Aula 06, cobre pelo menos três
+  desses dez ao mesmo tempo: sincronização cliente-servidor (REST, desde a
+  Aula 09), middleware (o cliente SOAP da Aula 10) e gerenciamento de bases de
+  dados (JPA, desde a Aula 15).
+
+  **Frozen spots e hot spots, o vocabulário do capítulo.** Um framework tem
+  componentes que raramente precisam ser modificados, estruturados de acordo
+  com um modelo de arquitetura, chamados **frozen spots**; e componentes que
+  permitem a conexão com o software do desenvolvedor, usados para implementar
+  as regras de negócio, chamados **hot spots**, conectados via classes
+  abstratas, interfaces, agregação e composição. Traduzindo para a Rota Sul:
+  o `DispatcherServlet` do Spring, o proxy de `@Transactional` da Aula 16, o
+  mecanismo de injeção de dependência da Aula 12, são frozen spots, a turma
+  nunca escreveu uma linha deles. `PedidoController`, `RemessaService`,
+  `PedidoRepository`, são hot spots, o código que a turma escreve toda
+  semana, plugado nos pontos de extensão que o framework oferece.
+
+  **Vantagens e desvantagens, preservadas as duas.** O capítulo lista
+  vantagens (menos erro por reaproveitamento errado de código antigo, menos
+  tempo em rotinas de verificação de relacionamento e tratamento de erro,
+  menos tempo integrando componentes distribuídos em várias camadas, redução
+  de recursos humanos, técnicos e financeiros) e uma desvantagem central: o
+  tempo para aprender o framework pode, num primeiro momento, ser maior do
+  que construir do zero, e o framework cria automaticamente componentes que
+  assume necessários, mas que às vezes são desnecessários, gerando sobrecarga
+  de código que o desenvolvedor nem sempre verifica.
+
+- **Demonstração no projetor.** Abrir o projeto da Rota Sul no editor e
+  apontar, um a um, cinco arquivos ou mecanismos, pedindo à turma para
+  classificar cada um como frozen ou hot spot antes de revelar a resposta:
+  `application.properties` (frozen, configura o frozen spot), `PedidoController`
+  (hot), o Tomcat embarcado (frozen), `CalculoDeFreteService` (hot), o
+  Flyway rodando sozinho na subida (frozen).
+
+- **Exercício curto.** Cinco minutos, em duplas. Listar dois hot spots e dois
+  frozen spots do próprio código que a dupla já escreveu, com uma frase
+  justificando cada classificação segundo a definição do capítulo. Sem
+  gabarito único, correção é feita circulando pela sala.
+
+### Ciclo 2, 20h05 às 20h40
+
+- **Conceito.** O panorama de frameworks do capítulo, com Spring no centro.
+
+  **Os quatro frameworks do capítulo, e onde a Rota Sul se encaixa.** O
+  capítulo compara quatro: **Spring**, framework de aplicação open source
+  para Java EE, com núcleo central (Core Container) que usa reflexão de
+  objetos para gerenciar o ciclo de vida dos "objetos gerenciados",
+  configurável por XML ou, desde a versão 3.0, por anotação (o caminho que a
+  Aula 12 já usou), com módulos para banco (JDBC ou JPA), transações remotas,
+  regras de negócio, comunicação remota e interface de usuário; **ASP.NET**,
+  da Microsoft, sobre o Framework .Net, dependente de runtime Windows e
+  servidor IIS, com dois padrões de arquitetura, Web Forms e MVC, que podem
+  conviver; **Ruby on Rails**, em Ruby, MVC no servidor, com uso "abusivo" de
+  serviços web RESTful sempre acionados por Ajax, páginas como templates
+  `.erb` convertidos em HTML em tempo de execução, alta modularização às
+  custas de desempenho, porque as respostas são sempre montadas na hora; e
+  **Laravel**, em PHP, MVC, com um componente a mais que os outros três, um
+  roteador que identifica o controle certo para cada requisição.
+
+  > **Nota para o professor.** O capítulo também registra uma crítica ao
+  > Spring, preservada aqui porque é do próprio texto: os modelos de
+  > programação do Spring não são totalmente compatíveis com os padrões de
+  > Java EE, o que pode gerar dificuldade de uso, e a reflexão de objetos
+  > combinada ao uso extensivo de XML pode sobrecarregar os recursos de
+  > processamento. O capítulo pondera que, mesmo assim, a relação
+  > custo-benefício explica a popularidade do framework, e isso é o que a
+  > Rota Sul vem confirmando desde a Aula 06.
+
+  **Todos os quatro seguem o MVC.** É o ponto de convergência do capítulo:
+  apesar das diferenças de linguagem e de infraestrutura, os quatro
+  frameworks orientam o desenvolvedor a organizar o código segundo o padrão
+  MVC, o mesmo padrão que a Aula 06 apresentou e que estrutura a Rota Sul
+  inteira, `web`, `service` mais `domain`, e `repository`.
+
+- **Demonstração no projetor.** Montar uma tabela na lousa ou no editor,
+  cruzando os módulos do Spring citados pelo capítulo com o código real da
+  Rota Sul: módulo de banco (JDBC ou JPA) = `PedidoRepository` desde a
+  Aula 15; módulo de regras de negócio = `PedidoService` e `RemessaService`;
+  módulo de comunicação remota = o cliente SOAP da Aula 10 e o `RestTemplate`
+  implícito no `GET /remessas/{id}`; módulo de interface de usuário = as
+  telas Thymeleaf da Aula 13. Todo módulo que o capítulo cita para o Spring
+  já está presente e nomeado no código da turma.
+
+- **Exercício curto.** Cinco minutos, individual. Para cada um dos quatro
+  frameworks do capítulo, escrever uma palavra que resume seu diferencial
+  central: Spring (módulos), ASP.NET (dois padrões coexistentes), Ruby on
+  Rails (convenção e RESTful), Laravel (roteador). Correção coletiva, sem
+  gabarito fechado.
+
+### Quiz, 20h40 às 20h50
+
+**Pergunta.** O capítulo descreve um framework de aplicação que encoraja seus
+usuários a explorarem o uso "abusivo" de serviços web do tipo RESTful,
+sempre acionados por Ajax, para atender e processar as requisições dos
+usuários. Qual framework, entre os quatro apresentados, é esse?
+
+- A) Spring.
+- B) ASP.NET.
+- C) Ruby on Rails.
+- D) Laravel.
+
+**Correta:** C.
+
+**Justificativa.** É a descrição literal do capítulo para o Ruby on Rails: as
+conexões entre os componentes são feitas por arquivos de configuração,
+arquivos de indexação e um uso "abusivo" de serviços web do tipo RESTful,
+sempre acionados por Ajax. É o mesmo vocabulário, REST e comunicação remota,
+que a Rota Sul já pratica desde a Aula 09, só que aqui aplicado ao
+funcionamento interno do próprio framework. A alternativa A descreve o
+Spring, cujo diferencial no capítulo é a organização em módulos configuráveis
+por XML ou anotação, não o uso de web services internos. A B descreve o
+ASP.NET, cujo diferencial é ter dois padrões de arquitetura coexistentes,
+Web Forms e MVC. A D descreve o Laravel, cujo diferencial é o componente
+roteador, não o uso de web services RESTful.
+
+### Ciclo 3, 20h50 às 21h25
+
+Laboratório de consolidação. Nenhuma regra de negócio nova entra hoje. O
+trabalho é auditar as três camadas já construídas e cobri-las com um teste
+que sobe a aplicação inteira, HTTP incluído, contra um banco real e
+descartável.
+
+1. **Checklist de consolidação, primeiro passo.** Em `docs/decisoes.md`,
+   abrir uma tabela nova conferindo, para cada contexto (`pedido`,
+   `expedicao`, `rastreamento`), se as quatro camadas existem:
+   `web` (um `@Controller` ou `@RestController`), `service` (um `@Service`),
+   `repository` (uma interface `JpaRepository`) e `domain` (a entidade). Marcar
+   cada célula como presente ou ausente, e completar o que estiver faltando
+   antes de seguir (por exemplo, se `rastreamento` ainda não tiver um
+   `@RestController` para `Ocorrencia`, este é o momento de escrever um
+   mínimo, `GET /ocorrencias/{id}`, sem inventar regra de negócio nova).
+2. **Escolher a estratégia de container compartilhado.** Subir um novo
+   `MySQLContainer` a cada classe de teste, como as Aulas 14, 15 e 16 fizeram
+   isoladamente, é lento quando a suíte cresce. Criar uma classe base,
+   `IntegrationTestBase`, com um `@Container static MySQLContainer<?> mysql`
+   e um `@DynamicPropertySource` compartilhado, que as classes de integração
+   estendem, subindo o container **uma única vez** para toda a suíte.
+3. **Escrever `PedidoIntegrationTest`.** Estendendo `IntegrationTestBase`,
+   anotado `@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)`,
+   injetando um `TestRestTemplate`. Diferente de `@WebMvcTest` (Aula 13, só a
+   camada web, com dependências mockadas) e de `@DataJpaTest` (Aula 15, só o
+   repositório), `@SpringBootTest` sobe o contexto Spring completo: todas as
+   três camadas, reais, ligadas ao `MySQLContainer` real.
+4. **Escrever o caso de ponta a ponta.** Um `POST` em
+   `http://localhost:" + port + "/pedidos"` com um `Pedido` no corpo, via
+   `testRestTemplate.postForEntity(...)`, conferindo status `201`. Em seguida,
+   um `GET` no `Location` devolvido, ou em `/pedidos/{id}` usando o `id` do
+   corpo de resposta, conferindo que os dados batem com o que foi enviado.
+   Diferente dos testes anteriores, esta chamada atravessa `PedidoController`,
+   `PedidoService` e `PedidoRepository` numa única execução, exatamente como
+   um cliente real faria.
+
+### Ciclo 4, 21h25 às 21h50
+
+5. **Rodar a suíte inteira.** `./mvnw test`, conferindo que o
+   `MySQLContainer` sobe uma vez só (visível no log, um único bloco de
+   inicialização do Testcontainers) e que todas as suítes anteriores, Aulas
+   14, 15 e 16, continuam passando ao lado da nova suíte de integração.
+6. **Medir o tempo.** Anotar quanto tempo `./mvnw test` leva com o container
+   compartilhado, contra o que levaria se cada classe de teste subisse o seu
+   próprio (estimativa, não é preciso medir de fato): a base compartilhada é
+   a diferença entre uma suíte de segundos e uma de minutos, à medida que o
+   projeto cresce.
+7. **Fechar o checklist do passo 1.** Confirmar, na tabela de
+   `docs/decisoes.md`, que as três linhas (`pedido`, `expedicao`,
+   `rastreamento`) têm as quatro colunas marcadas como presentes, e assinar a
+   linha de baixo com a data da consolidação (sem escrever a data por
+   extenso no documento, só no commit, que já carrega timestamp).
+8. **Registrar a decisão de container compartilhado.** Uma linha em
+   `docs/decisoes.md` nomeando `IntegrationTestBase` como o padrão que os
+   testes de integração seguintes devem estender, para não repetir o custo
+   de um `MySQLContainer` por classe.
+
+**Entregável do dia:** `IntegrationTestBase` com o `MySQLContainer`
+compartilhado, `PedidoIntegrationTest` exercitando `POST` seguido de `GET`
+por HTTP real, e o checklist de consolidação das três camadas fechado em
+`docs/decisoes.md`. Critério de aceitação: `./mvnw test` verde, com o
+container subindo uma única vez para toda a suíte, e nenhuma célula do
+checklist marcada como ausente.
+
+### Fechamento, 21h50 às 22h00
+
+- `git add src docs`
+- `git commit -m "test(pedido): adiciona suite de integracao de ponta a ponta com container compartilhado"`
+- `git push`
+- Fechar o Módulo 4 relendo as quatro aulas em uma frase cada: a Aula 15
+  trocou verbosidade por mágica, a Aula 16 deu nome a uma unidade atômica de
+  escrita, a Aula 17 provou que as três camadas conversam de ponta a ponta, e
+  a próxima aula vai abrir o motor que faz a mágica funcionar.
+- **Prévia da Aula 18.** Toda vez que `RemessaRepository.findAll()` rodou até
+  hoje, cada `Remessa` veio sozinha, sem suas ocorrências. A próxima aula
+  cria esse relacionamento, e mostra o problema que ele traz de graça se
+  ninguém prestar atenção: uma consulta que sozinha vira dezenas.
+
+### Referências
+
+1. MESQUITA, Paulo Ricardo Batista. **Capítulo 16: Frameworks Usados para
+   Implementar Software em 3 Camadas.** Arquitetura de Software. AVA,
+   Uninove. Fonte primária desta aula, `pdf/016.pdf`.
+2. SPRING. **Página do grupo de desenvolvimento do Spring Framework.**
+   <https://docs.spring.io/spring-framework/reference/> Referência indicada
+   pelo capítulo.
+3. Testcontainers. **Documentação**, seção de reutilização de containers
+   entre testes. <https://java.testcontainers.org/features/reuse/>
+4. Spring. **Documentação do Spring Boot**, seção de testes de integração
+   com `@SpringBootTest` e `TestRestTemplate`.
+   <https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html>
+5. JUnit. **JUnit 5 User Guide.** <https://junit.org/junit5/docs/current/user-guide/>
+
+---
+
+## Aula 18, Hibernate e JavaServer Faces
+
+**Módulo:** M4, Persistência e componentes
+**Capítulo do AVA:** `pdf/017.pdf`, Hibernate ou JavaServer Faces
+**Entregável:** o relacionamento `Remessa` para `Ocorrencia` mapeado com
+`@OneToMany`/`@ManyToOne`, uma consulta com `JOIN FETCH` em
+`RemessaRepository`, e a evidência numérica do problema N+1 antes e depois,
+capturada por um teste que conta as consultas SQL executadas pelo Hibernate.
+Critério de aceitação: `./mvnw test` verde, com um caso provando N+1 consultas
+na versão ingênua e exatamente uma consulta na versão com `JOIN FETCH`, e a
+comparação registrada em `docs/decisoes.md`.
+
+> **Nota para o professor.** Como na Aula 16, JSF entra hoje só como leitura e
+> comparação lado a lado com o equivalente Spring que a Rota Sul já usa desde
+> a Aula 13 (Thymeleaf). Nenhuma linha de Facelets, `@ManagedBean` ou
+> `AbstractFacade` é escrita pela turma. O laboratório de hoje constrói
+> apenas o relacionamento JPA e a correção do N+1, sobre o que já existe.
+
+### Retomada, 5 minutos
+
+Na Aula 17 cada aluno entregou `PedidoIntegrationTest`, subindo a aplicação
+inteira contra um `MySQLContainer` compartilhado e batendo em `/pedidos` por
+HTTP real. Abrir `Remessa` e `Ocorrencia`, mapeadas desde a Aula 16, e
+perguntar à turma: essas duas classes têm alguma ligação hoje? A resposta é
+não, `Ocorrencia` não sabe a que `Remessa` pertence, e `Remessa` não sabe
+quais ocorrências tem. A aula de hoje cria esse laço, e mostra o preço que
+ele cobra se ninguém prestar atenção.
+
+### Ciclo 1, 19h30 às 20h05
+
+- **Conceito.** Hibernate, o provedor de JPA por trás do Spring Data desde a
+  Aula 15, na descrição do capítulo [1].
+
+  **De onde o Hibernate vem.** O capítulo situa o Hibernate entre as
+  ferramentas que ajudam no desenvolvimento de aplicativos de grande porte na
+  plataforma Java EE, junto de ferramentas RAD que geram software a partir de
+  modelos UML (Together, IBM Rational Rose, Enterprise Architect) ou de regras
+  de negócio (Genexus). O Hibernate nasceu como solução livre para resolver
+  um problema já conhecido da turma desde a Aula 14, mapear efetivamente as
+  entidades de dados e seus relacionamentos para o modelo de objetos da
+  orientação a objetos, técnicas que, segundo o capítulo, "são bem
+  divergentes entre si". Começou em Java, ganhou uma versão para .Net chamada
+  NHibernate, e hoje é coordenado pela RedHat, a mesma empresa por trás do
+  JBoss, um servidor de aplicações Java EE.
+
+  **O que o Hibernate faz, na descrição literal do capítulo.** Ele transforma
+  classes Java em tabelas, e atributos em dados SQL; a partir do modelo de
+  classes, cria as chamadas SQL que o software precisa para consultar e
+  atualizar dados; e livra o desenvolvedor de escrever código de criação e
+  execução de comandos SQL, de verificar o resultado das transações, e de
+  converter tipos de dados Java para tipos de dados do banco, mantendo
+  portabilidade entre bancos diferentes. O mapeamento é feito por arquivos XML
+  ou por anotações Java, e o capítulo mostra os dois: a Listagem 3 do
+  capítulo é um `hibernate-mapping` em XML, com `<class name="Usuario"
+  table="USUARIO">`, `<id name="idUsuario" ...>` e `<property name="nome"
+  column="NOME" .../>` para cada atributo.
+
+  **A dívida que fecha desde a Aula 15.** `@Entity`, `@Table`, `@Id` e
+  `@Column`, que a turma já escreveu em `Pedido`, `Remessa` e `Ocorrencia`,
+  são exatamente o que o XML da Listagem 3 faz, só que declarado dentro da
+  própria classe Java, em vez de um arquivo separado. "Spring Data JPA sobre
+  Hibernate", fixado no contrato técnico desde a Aula 01, se fecha hoje: o
+  Hibernate é o motor que lê essas anotações e gera o SQL que
+  `PedidoRepository.save` executa por baixo, desde sempre, sem que a turma
+  precisasse saber o nome dele até agora.
+
+- **Demonstração no projetor.** Projetar a Listagem 3 do capítulo (o XML de
+  mapeamento) ao lado da classe `Pedido` anotada, escrita na Aula 15. Ligar
+  cada linha: `<class name="Usuario" table="USUARIO">` corresponde a
+  `@Entity` mais `@Table(name = "pedido")`; `<id name="idUsuario"
+  type="int" column="IDUSUARIO">` corresponde a `@Id` mais `@GeneratedValue`;
+  cada `<property name="..." column="..." type="..."/>` corresponde a cada
+  `@Column`. O capítulo também cita a **HQL**, Hibernate Query Language, que
+  permite escrever consultas usando herança, polimorfismo e encapsulamento; a
+  JPQL que a Aula 14 e a Aula 15 usaram é, na prática, o dialeto padronizado
+  dessa mesma ideia.
+
+  > **Nota para o professor.** O capítulo qualifica uma desvantagem, e a
+  > qualificação vale preservar: as facilidades do Hibernate não estão livres
+  > de efeitos colaterais, e o mais imediato é o aumento do tempo necessário
+  > para executar os processos SQL, porque o mapeamento das classes depende
+  > de reflexão de objetos. É essa mesma reflexão, e a facilidade de navegar
+  > de um objeto para outro sem escrever `JOIN` manualmente, que abre a porta
+  > para o problema do Ciclo 2 de hoje.
+
+- **Exercício curto.** Cinco minutos, em duplas. Traduzir três linhas do XML
+  de mapeamento do capítulo (`<id>`, `<property name="senha"
+  column="SENHA"/>`, `<class name="Usuario" table="USUARIO">`) para a
+  anotação JPA equivalente, sem olhar o código já escrito. Gabarito: `@Id`;
+  `@Column(name = "SENHA") private String senha;`; `@Entity @Table(name =
+  "USUARIO") public class Usuario`.
+
+### Ciclo 2, 20h05 às 20h40
+
+- **Conceito.** Relacionamentos, carregamento preguiçoso e o problema N+1.
+
+  > **Nota para o professor.** O capítulo não usa os termos "lazy loading"
+  > nem "N+1": ele descreve o Hibernate no nível de mapeamento
+  > objeto-relacional geral, sem entrar no comportamento de carregamento de
+  > coleções relacionadas. O conteúdo desta seção é aprofundamento necessário
+  > para o laboratório de hoje, ancorado na própria documentação oficial do
+  > Hibernate, referência [3] desta aula, e em FOWLER, **Patterns of
+  > Enterprise Application Architecture**, que descreve o problema de
+  > consultas N+1 sob o nome "Select N+1 problem". Dizer isso à turma antes de
+  > seguir: o texto do AVA continua sendo a fonte do mapeamento
+  > objeto-relacional em si, só o problema de desempenho de hoje vem de fora
+  > dele.
+
+  **O relacionamento de hoje.** `Remessa` ganha uma lista de `Ocorrencia`
+  (`@OneToMany`), e cada `Ocorrencia` ganha uma referência de volta para sua
+  `Remessa` (`@ManyToOne`, o lado dono do relacionamento, que carrega a chave
+  estrangeira). Por padrão, o JPA carrega coleções (`@OneToMany`) de forma
+  **preguiçosa** (`FetchType.LAZY`): a lista de ocorrências só é buscada no
+  banco no momento em que o código chama `remessa.getOcorrencias()`, não no
+  momento em que a `Remessa` é carregada.
+
+  **O problema N+1.** Se o código busca todas as remessas com `findAll()` (1
+  consulta) e depois, para cada uma, acessa `getOcorrencias()` dentro de um
+  laço, o Hibernate dispara **uma consulta adicional por remessa**, porque
+  cada acesso preguiçoso é resolvido individualmente. Para `N` remessas, isso
+  é 1 consulta inicial mais `N` consultas de coleção, N+1 no total, em vez de
+  uma única consulta bem escrita. O problema é silencioso: o código compila,
+  os testes anteriores passam, e a lentidão só aparece quando o volume de
+  dados cresce, exatamente o tipo de defeito que a diretiva de testes do
+  professor pede para tornar visível antes que aconteça em produção.
+
+  **A correção com `JOIN FETCH`.** Uma consulta JPQL explícita, com `JOIN
+  FETCH`, instrui o Hibernate a trazer a `Remessa` e suas `Ocorrencia`s numa
+  única consulta SQL, com um `JOIN` de verdade, em vez de uma consulta por
+  remessa:
+
+  ```java
+  @Query("SELECT DISTINCT r FROM Remessa r LEFT JOIN FETCH r.ocorrencias")
+  List<Remessa> buscarTodasComOcorrencias();
+  ```
+
+  O `DISTINCT` evita linhas repetidas de `Remessa` quando ela tem mais de uma
+  `Ocorrencia`, um efeito colateral comum do `JOIN` que o time precisa saber
+  explicar, não só copiar.
+
+- **Demonstração no projetor.** Projetar o `AbstractFacade<T>` do capítulo
+  (Listagem 7), a classe genérica que encapsula `create`, `edit`, `remove`,
+  `find`, `findAll`, `findRange` e `count`, todos delegando a um
+  `EntityManager` injetado por `@PersistenceContext`. Ao lado, projetar
+  `JpaRepository<Remessa, Long>`, escrito pela turma como uma interface vazia
+  desde a Aula 16. Apontar: o `AbstractFacade` do capítulo reimplementa à mão
+  o que `JpaRepository` já entrega pronto, com os mesmos métodos, `create`
+  contra `save`, `find` contra `findById`, `findAll` contra `findAll`. É o
+  mesmo Spring Data JPA sobre Hibernate de sempre, só que hoje a turma vê o
+  código que ele evita escrever.
+
+- **Exercício curto.** Cinco minutos, individual. Dado o método
+  `remessaRepository.findAll()` seguido de um laço que chama
+  `remessa.getOcorrencias().size()` para cada remessa, quantas consultas SQL
+  o Hibernate dispara para 10 remessas? Gabarito: 11, uma para o `findAll` e
+  uma para cada acesso preguiçoso à coleção de ocorrências, o N+1 do nome.
+
+### Quiz, 20h40 às 20h50
+
+**Pergunta.** Segundo a descrição do capítulo, qual das alternativas resume
+corretamente o que o Hibernate faz pelo desenvolvedor, ao transformar classes
+Java em tabelas de um banco de dados?
+
+- A) Elimina a necessidade de um banco de dados relacional, substituindo-o
+  por armazenamento em memória.
+- B) Cria as chamadas SQL necessárias a partir do modelo de classes, e livra
+  o desenvolvedor de escrever e verificar manualmente os comandos SQL e as
+  conversões de tipo entre Java e o banco, mantendo a portabilidade do
+  aplicativo entre bancos diferentes.
+- C) Garante desempenho superior ao SQL escrito manualmente, em qualquer
+  cenário, sem custo adicional de processamento.
+- D) Substitui a linguagem SQL nas bases de dados por HQL, exigindo que o
+  banco de dados a interprete diretamente.
+
+**Correta:** B.
+
+**Justificativa.** É a descrição literal do capítulo: o Hibernate cria as
+chamadas SQL que o software precisa, a partir do modelo de classes, e livra o
+desenvolvedor de escrever código de criação e execução de SQL, de verificar
+o resultado das transações e de converter tipos de dados, mantendo a
+portabilidade entre bancos. A alternativa A está errada porque o Hibernate
+mapeia para um banco relacional, não o substitui. A C contradiz o próprio
+capítulo, que qualifica o aumento do tempo de processamento SQL como efeito
+colateral da reflexão de objetos usada pelo Hibernate, o exato oposto de
+"sem custo adicional". A D está errada porque a HQL é traduzida pelo
+Hibernate em SQL de verdade, executado pelo banco; o banco nunca interpreta
+HQL diretamente.
+
+### Ciclo 3, 20h50 às 21h25
+
+Laboratório do relacionamento e da evidência de desempenho.
+
+1. **Migration do relacionamento.** Em
+   `src/main/resources/db/migration/V3__adiciona_relacionamento_remessa_ocorrencia.sql`,
+   `ALTER TABLE ocorrencia ADD COLUMN remessa_id BIGINT`, com um índice, mas
+   **sem `CONSTRAINT` de chave estrangeira formal**. É uma decisão
+   deliberada: a integridade do relacionamento é garantida pelo código Java
+   hoje, via Hibernate, e essa mesma decisão facilita a divisão em serviços
+   independentes que a Aula 19 vai fazer, quando o dono da tabela `remessa`
+   e o dono da tabela `ocorrencia` passam a ser dois processos diferentes.
+2. **Mapear o relacionamento nas duas entidades.** Em `Ocorrencia`, o lado
+   dono: `@ManyToOne @JoinColumn(name = "remessa_id") private Remessa
+   remessa;`. Em `Remessa`, o lado inverso, só leitura:
+   `@OneToMany(mappedBy = "remessa", fetch = FetchType.LAZY) private
+   List<Ocorrencia> ocorrencias = new ArrayList<>();`.
+3. **Ajustar `RemessaService.baixarRemessa`.** Da Aula 16, ao criar a nova
+   `Ocorrencia`, associar `ocorrencia.setRemessa(remessa)` antes de salvar,
+   preenchendo a chave estrangeira nova.
+4. **Habilitar as estatísticas do Hibernate.** Em `application.properties`,
+   `spring.jpa.properties.hibernate.generate_statistics=true`. Essa
+   propriedade liga um contador interno de consultas executadas, acessível
+   via `EntityManagerFactory.unwrap(SessionFactory.class).getStatistics()`,
+   usado no teste de hoje para medir, não só observar no log, quantas
+   consultas cada estratégia dispara.
+5. **Escrever o teste do "antes", provando o N+1.** Em
+   `RemessaRepositoryTest`, salvar 3 remessas com 2 ocorrências cada. Zerar as
+   estatísticas (`getStatistics().clear()`), chamar `remessaRepository.findAll()`,
+   percorrer o resultado chamando `remessa.getOcorrencias().size()` para
+   cada uma, e então ler `getStatistics().getQueryExecutionCount()`. Afirmar
+   que o valor é exatamente 4 (1 consulta do `findAll` mais 3 consultas de
+   coleção, uma por remessa), a evidência numérica do N+1 antes da correção.
+6. **Escrever o teste do "depois", provando o `JOIN FETCH`.** No mesmo
+   arquivo, zerar as estatísticas de novo, chamar
+   `remessaRepository.buscarTodasComOcorrencias()`, e afirmar que
+   `getQueryExecutionCount()` é exatamente 1. As mesmas 3 remessas e 6
+   ocorrências, uma única consulta.
+
+### Ciclo 4, 21h25 às 21h50
+
+7. **Rodar os dois casos.** `./mvnw test`, conferindo que as duas afirmações
+   de contagem passam, a evidência do "antes" e do "depois" pedida pelo
+   entregável do dia, comprovada por asserção, não por leitura visual de log.
+8. **Trocar o uso em produção.** Localizar onde `RemessaService` ou qualquer
+   outro ponto do código chama `remessaRepository.findAll()` para listar
+   remessas com suas ocorrências, e trocar pela versão com `JOIN FETCH`,
+   `buscarTodasComOcorrencias()`, aplicando a correção onde ela importa, não
+   só no teste.
+9. **Registrar a evidência numérica, o entregável central de hoje.** Em
+   `docs/decisoes.md`, uma linha com os dois números: "3 remessas com 2
+   ocorrências cada: 4 consultas sem `JOIN FETCH`, 1 consulta com `JOIN
+   FETCH`", mais uma frase explicando a causa, carregamento preguiçoso
+   resolvido individualmente por linha, em vez de um `JOIN` só.
+10. **Registrar a decisão da chave estrangeira sem `CONSTRAINT`.** Uma
+    segunda linha em `docs/decisoes.md`, explicando que `remessa_id` existe
+    como coluna simples, sem `FOREIGN KEY` formal no banco, de propósito,
+    para não travar a divisão de serviços da próxima aula.
+
+**Entregável do dia:** `Ocorrencia` com `@ManyToOne` para `Remessa`,
+`Remessa` com `@OneToMany` preguiçoso para `Ocorrencia`,
+`buscarTodasComOcorrencias()` com `JOIN FETCH` em `RemessaRepository`, e
+`RemessaRepositoryTest` com os dois casos de contagem de consultas. Critério
+de aceitação: `./mvnw test` verde, com N+1 consultas comprovadas na versão
+ingênua e exatamente uma na versão com `JOIN FETCH`, e as duas linhas de
+`docs/decisoes.md` presentes.
+
+### Fechamento, 21h50 às 22h00
+
+- `git add src docs`
+- `git commit -m "fix(expedicao): corrige N+1 com join fetch no relacionamento remessa-ocorrencia"`
+- `git push`
+- Fechar o Módulo 4 relendo a régua que ele usou o semestre inteiro: memória
+  contra JDBC contra JPA (linhas de código), EJB contra `@Transactional`
+  (onde a transação é declarada), JSF contra Thymeleaf (PUSH contra PULL,
+  fixado na Aula 13), Hibernate por trás de tudo desde a Aula 01. Quatro
+  aulas, quatro comparações honestas, nenhuma delas depreciando o que os
+  capítulos ensinam.
+- **Prévia da Aula 19.** Tudo o que a Rota Sul construiu até hoje roda num
+  processo só, uma JVM, um `java -jar`. A próxima aula quebra esse processo
+  em quatro, e a chamada que `RemessaService` faz para `OcorrenciaRepository`
+  hoje, dentro do mesmo processo, vira uma chamada de rede entre dois
+  serviços separados. A relação sem `CONSTRAINT` formal que a turma acabou de
+  registrar é exatamente o que torna essa quebra possível sem reescrever o
+  banco.
+
+### Referências
+
+1. MESQUITA, Paulo Ricardo Batista. **Capítulo 17: Hibernate ou JavaServer
+   Faces.** Arquitetura de Software. AVA, Uninove. Fonte primária desta aula,
+   `pdf/017.pdf`.
+2. Oracle / Eclipse Foundation. **JavaServer Faces**, documentação
+   histórica citada pelo capítulo.
+   <https://javaserverfaces.java.net/users.html>
+3. Hibernate. **Hibernate ORM Documentation**, seção de estratégias de
+   `fetch` e o problema de consultas N+1.
+   <https://hibernate.org/orm/documentation/>
+4. FOWLER, Martin. **Patterns of Enterprise Application Architecture.**
+   Addison-Wesley, 2002.
+5. Spring. **Documentação do Spring Data JPA**, seção de `@Query` e `JOIN
+   FETCH`. <https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html>
+6. JUnit. **JUnit 5 User Guide.** <https://junit.org/junit5/docs/current/user-guide/>
+
+---
+
+## Aula 19, Montagem da aplicação distribuída
+
+**Módulo:** M5, Projeto final
+**Capítulo do AVA:** `pdf/018.pdf`, Projeto Final
+**Entregável:** o monólito quebrado em quatro processos,
+`pedidos-service`, `expedicao-service`, `rastreamento-service` e
+`portal-web`, subindo juntos com um único `compose.yaml`, publicados em
+GitHub Codespaces com a porta do `portal-web` marcada como pública. Critério
+de aceitação: `docker compose up` sobe os quatro serviços mais o banco sem
+erro, a URL pública do Codespaces responde ao portal, um pedido cadastrado
+pelo `portal-web` aparece no `pedidos-service` e uma baixa de remessa gera uma
+ocorrência visível pelo `rastreamento-service`, tudo através de chamadas de
+rede reais entre os quatro processos.
+
+### Retomada, 5 minutos
+
+Na Aula 18 cada aluno entregou o relacionamento `Remessa` para `Ocorrencia`
+corrigido do problema N+1 com `JOIN FETCH`, e uma decisão registrada em
+`docs/decisoes.md`: a coluna `remessa_id` existe sem `CONSTRAINT` formal de
+chave estrangeira, de propósito, para não travar o que viria a seguir. Hoje é
+o dia em que essa decisão paga o dividendo. Perguntar à turma: até agora,
+`RemessaService.baixarRemessa` chama `OcorrenciaRepository.save` dentro do
+mesmo método, no mesmo processo. Depois de hoje, esses dois pedaços de código
+moram em dois processos diferentes, em dois containers diferentes. O que
+precisa mudar para essa chamada continuar funcionando?
+
+### Ciclo 1, 19h30 às 20h05
+
+- **Conceito.** O capítulo de hoje é o mais curto dos dezoito, e ele mesmo diz
+  por quê: "todos os outros tópicos apresentaram conceitos que permitem o
+  desenvolvimento rápido de aplicações distribuídas" [1]. O papel deste
+  capítulo não é ensinar algo novo, é montar o que já foi ensinado.
+
+  **O exemplo do capítulo, e a tradução para a Rota Sul.** O capítulo
+  descreve uma agenda de contatos construída sobre um banco já estruturado,
+  usando JPA para a conexão com o banco, o modelo de programação EJB para as
+  regras de negócio, e JSP com Servlets para a interface de usuário,
+  "estruturados de acordo com o modelo de arquitetura MVC". Ler essa frase em
+  voz alta e traduzir, peça por peça, para o que a Rota Sul já tem: JPA sobre
+  Hibernate para a conexão com o banco, é a Aula 15 e a Aula 18; o modelo de
+  programação para as regras de negócio, é `@Service` com `@Transactional`,
+  o equivalente Spring do EJB, é a Aula 16; a interface de usuário, é
+  Thymeleaf sobre Spring MVC, o equivalente do JSP com Servlets, é a Aula 13.
+  A Rota Sul já é, desde a Aula 18, exatamente o que o capítulo descreve
+  como "aplicação distribuída": três tecnologias combinadas num único
+  aplicativo MVC.
+
+  > **Nota para o professor.** Uma distinção honesta que vale explicitar. O
+  > "distribuída" do capítulo, no vocabulário do Java EE clássico, significa
+  > um aplicativo cujos componentes **podem** rodar em hardware diferente
+  > (via RMI, EJB remoto, apresentado na Aula 16), mas que normalmente é
+  > empacotado e implantado como uma unidade só, um único WAR ou EAR num
+  > único servidor. O "distribuída" de hoje é mais radical: quatro processos
+  > independentes, cada um com seu próprio ciclo de vida, sua própria
+  > imagem de container, capazes de subir, cair e escalar separadamente. O
+  > capítulo não cobre Docker nem orquestração de containers, porque esse
+  > vocabulário é posterior ao material. O Ciclo 2 de hoje entra nesse
+  > território com a documentação oficial do Docker Compose e do GitHub
+  > Codespaces como fonte, referências [3] e [4] desta aula.
+
+- **Demonstração no projetor.** Abrir `docs/arquitetura/componentes.puml`, da
+  Aula 04, e reler os componentes que ele já desenhava como esboço:
+  "Pedidos", "Expedição e roteirização", "Rastreamento e ocorrências",
+  "Integração com parceiros". Apontar: os nomes que a turma escolheu para os
+  quatro serviços de hoje, `pedidos-service`, `expedicao-service`,
+  `rastreamento-service` e `portal-web`, não são novos, eles só dão
+  materialidade de processo a componentes que já estavam desenhados desde a
+  quarta semana de aula.
+
+- **Exercício curto.** Cinco minutos, individual. Para cada um dos quatro
+  serviços de hoje, escrever de qual pacote do monólito atual ele herda
+  código: `pedidos-service` recebe `pedido.*`; `rastreamento-service` recebe
+  `rastreamento.*`; `portal-web` recebe os templates Thymeleaf e os
+  controladores de tela da Aula 13; e `expedicao-service` recebe
+  `expedicao.*` mais um quinto pacote que ainda não foi encaixado em nenhum
+  serviço até agora. Gabarito: o quinto pacote é `parceiro`, da Aula 10, com
+  seus subpacotes `endpoint` e `client`. **Decisão de hoje:** ele entra em
+  `expedicao-service`, porque é a expedição quem faz o handoff da última
+  milha para a transportadora parceira simulada, o mesmo ator que a Aula 05
+  já descrevia no case.
+
+### Ciclo 2, 20h05 às 20h40
+
+- **Conceito.** Três armadilhas de container, e a publicação em GitHub
+  Codespaces.
+
+  **O host do banco dentro do compose não é `localhost`.** Desde a Aula 14,
+  `application.properties` aponta para `jdbc:mysql://localhost:3306/rotasul`,
+  porque o MySQL rodava com `docker run -p 3306:3306`, na mesma máquina que a
+  aplicação. Dentro de um `compose.yaml`, cada serviço tem seu próprio nome
+  como hostname de rede, e a aplicação e o banco não compartilham mais
+  `localhost`: o banco passa a se chamar `db`, o nome do serviço no
+  `compose.yaml`, e a URL vira `jdbc:mysql://db:3306/rotasul`. Esquecer essa
+  troca é o erro mais comum de quem containeriza pela primeira vez, e a
+  aplicação falha na subida com "connection refused", porque está tentando
+  falar com ela mesma em vez de falar com o banco.
+
+  **Configuração por variável de ambiente, a convenção do duplo
+  sublinhado.** O Spring Boot lê variáveis de ambiente e as converte em
+  propriedades, sem editar `application.properties`, sem reconstruir a
+  imagem. A regra: cada ponto (`.`) do nome canônico da propriedade vira um
+  sublinhado simples (`_`); cada hífen (`-`) que já existir dentro de um
+  trecho do nome vira **sublinhado duplo** (`__`). Por isso,
+  `spring.datasource.url` vira `SPRING_DATASOURCE_URL` (sem hífen no nome
+  original, um sublinhado por ponto), mas `spring.jpa.hibernate.ddl-auto`,
+  que a Aula 15 fixou em `application.properties`, vira
+  `SPRING_JPA_HIBERNATE_DDL__AUTO` (o hífen de `ddl-auto` virou sublinhado
+  duplo). Quem escreve `SPRING_JPA_HIBERNATE_DDL_AUTO`, com um sublinhado só,
+  erra silenciosamente: a variável não é reconhecida, e o valor de
+  `application.properties` continua valendo sem aviso nenhum.
+
+  **`healthcheck` e `depends_on: condition: service_healthy`.** Um MySQL
+  leva alguns segundos para aceitar conexões depois que o container sobe,
+  mesmo que o processo já esteja rodando. Sem um `healthcheck`, o
+  `pedidos-service` tenta conectar assim que o `db` inicia, não quando ele
+  está pronto, e falha na primeira tentativa. A correção: o serviço `db`
+  declara um `healthcheck` que testa a conexão de verdade, e cada serviço
+  que depende dele usa `depends_on: db: condition: service_healthy`, em vez
+  de um `depends_on` simples, que só espera o container **existir**, não
+  espera ele **responder**.
+
+  **A URL do Codespaces existe enquanto o codespace está rodando.** Isso
+  precisa ficar dito com todas as letras: o GitHub Codespaces **hiberna por
+  inatividade**, e quando isso acontece, a URL pública para de responder. O
+  ambiente publicado hoje não é permanente como um deploy em produção. **Cada
+  equipe precisa iniciar o próprio codespace antes da apresentação da Aula
+  20**, porque uma URL que respondeu perfeitamente durante o laboratório de
+  hoje pode estar hibernada no dia da apresentação se ninguém a acordar
+  antes.
+
+  **O checklist de publicação, com a linha que mais gera 401.** Ao
+  encaminhar a porta do `portal-web` no Codespaces, ela nasce **privada** por
+  padrão. Uma porta privada devolve `401 Unauthorized` para qualquer pessoa
+  que não seja o dono do codespace, incluindo o professor avaliando de fora.
+  O checklist de publicação de hoje tem uma linha que resolve exatamente
+  isso: **a porta está marcada como pública, e não privada**. É o
+  esquecimento mais comum desta aula, e o único capaz de fazer um projeto
+  funcionar perfeitamente para quem o construiu e não abrir para mais
+  ninguém.
+
+- **Demonstração no projetor.** Projetar o trecho do `compose.yaml` que
+  resolve as três primeiras armadilhas de uma vez:
+
+  ```yaml
+  services:
+    db:
+      image: mysql:8.4
+      environment:
+        MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+        MYSQL_DATABASE: rotasul
+      healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_PASSWORD}"]
+        interval: 5s
+        timeout: 5s
+        retries: 10
+
+    pedidos-service:
+      build: ./pedidos-service
+      environment:
+        SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/rotasul
+        SPRING_DATASOURCE_USERNAME: root
+        SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+        SPRING_JPA_HIBERNATE_DDL__AUTO: validate
+      depends_on:
+        db:
+          condition: service_healthy
+      ports:
+        - "8081:8080"
+  ```
+
+  Apontar as quatro linhas que resolvem as três armadilhas: `db` como host,
+  não `localhost`; `SPRING_JPA_HIBERNATE_DDL__AUTO` com sublinhado duplo,
+  não simples; `healthcheck` no serviço `db`; e `condition: service_healthy`
+  no `depends_on` de quem depende dele.
+
+- **Exercício curto.** Cinco minutos, em duplas. Três trechos quebrados de
+  `compose.yaml` são projetados, um de cada vez, e cada dupla identifica qual
+  das três armadilhas cada um representa: (a) `SPRING_DATASOURCE_URL:
+  jdbc:mysql://localhost:3306/rotasul` dentro de um serviço do compose; (b)
+  `SPRING_JPA_HIBERNATE_DDL_AUTO: validate`, com um sublinhado só; (c)
+  `depends_on: - db`, sem `condition`. Gabarito: (a) host errado, devia ser
+  `db`; (b) falta o segundo sublinhado do hífen de `ddl-auto`; (c) falta
+  `condition: service_healthy`, o compose só espera o container existir, não
+  esperar o banco responder.
+
+### Quiz, 20h40 às 20h50
+
+**Pergunta.** Segundo a ATIVIDADE FINAL do capítulo, para configurar um
+componente de software que responde às requisições de vários tipos de
+clientes, a solução indicada é representada pela alternativa:
+
+- A) um EJB configurado com `@Stateful`, sem interfaces.
+- B) um EJB configurado com `@Stateless`, sem interfaces.
+- C) um EJB configurado apenas como `@Remote`.
+- D) um EJB configurado com interfaces de acesso remota e local.
+
+**Correta:** D.
+
+**Justificativa.** É o gabarito do capítulo, e ele conecta diretamente ao
+laboratório de hoje: um componente pensado para atender clientes variados
+precisa do contrato certo para cada tipo de acesso, local (mesmo servidor,
+mais barato) e remoto (rede, mais caro), a mesma distinção que a Aula 16
+apresentou. Hoje, cada serviço da Rota Sul expõe um contrato REST único, que
+qualquer cliente consegue chamar, seja o `portal-web` de dentro da rede do
+`compose.yaml`, seja um `curl` de fora para depuração: o desenho de "servir
+vários tipos de clientes" que a alternativa D descreve para o EJB é o mesmo
+desenho que uma API REST bem definida cumpre para os serviços de hoje. As
+alternativas A e B estão erradas porque nenhum EJB existe sem ao menos uma
+interface de negócios, é ela quem define o contrato que os clientes usam. A
+C atende só clientes remotos, deixando de fora quem está no mesmo servidor,
+o oposto de "vários tipos de clientes".
+
+### Ciclo 3, 20h50 às 21h25
+
+Laboratório de quebra do monólito. O padrão é demonstrado por completo em
+`pedidos-service`; os outros três serviços seguem a mesma sequência de
+passos, aplicada ao próprio pacote.
+
+1. **Criar o projeto multi-módulo.** Um `pom.xml` pai na raiz do fork, tipo
+   `pom`, listando os quatro módulos:
+   `<modules><module>pedidos-service</module><module>expedicao-service</module><module>rastreamento-service</module><module>portal-web</module></modules>`.
+   Cada módulo é um projeto Spring Boot completo, com seu próprio `pom.xml`
+   filho e sua própria classe `Application`.
+2. **Mover `pedido.*` para `pedidos-service`.** Copiar `pedido/web`,
+   `pedido/service`, `pedido/repository` e `pedido/domain` para dentro do
+   novo módulo, junto com `V1__cria_tabela_pedido.sql`. `pedidos-service`
+   sobe sozinho, com seu próprio `application.properties`, sem mais nada do
+   monólito.
+3. **Mover `expedicao.*` e `parceiro.*` para `expedicao-service`.** Junto,
+   as migrations `V2` e `V3` que criaram e relacionaram `remessa` e
+   `ocorrencia`... exceto a parte de `ocorrencia`, que muda no próximo passo.
+4. **Quebrar o relacionamento de objeto entre `Remessa` e `Ocorrencia`.**
+   Este é o ponto central do dia. `Ocorrencia` não mora mais no mesmo
+   classpath de `Remessa`: `expedicao-service` não tem mais a classe
+   `Ocorrencia`, e `rastreamento-service` não tem mais a classe `Remessa`.
+   O `@ManyToOne`/`@OneToMany` da Aula 18 deixa de compilar dos dois lados.
+   A correção: em `Ocorrencia` (agora só em `rastreamento-service`), o
+   campo `private Remessa remessa;` vira `private Long remessaId;`, uma
+   referência por valor, não mais um objeto. Em `Remessa` (agora só em
+   `expedicao-service`), a lista `ocorrencias` é removida por completo. A
+   coluna `remessa_id`, sem `CONSTRAINT` formal desde a Aula 18, não precisa
+   de nenhuma migration nova para essa mudança, só o código Java muda.
+5. **Trocar a chamada em processo por uma chamada de rede.**
+   `RemessaService.baixarRemessa`, que chamava `ocorrenciaRepository.save`
+   diretamente, passa a chamar um cliente HTTP,
+   `RastreamentoServiceClient`, apontando para
+   `http://rastreamento-service:8080/ocorrencias` (o nome do serviço no
+   compose, não `localhost`), enviando `remessaId` no corpo da requisição.
+   `rastreamento-service` ganha um `OcorrenciaController` novo, com `POST
+   /ocorrencias`, para receber essa chamada.
+6. **Mover `rastreamento.*` para `rastreamento-service`**, com seu próprio
+   recorte das migrations, contendo só a tabela `ocorrencia`.
+7. **Mover a apresentação para `portal-web`.** Os templates Thymeleaf e
+   `PedidoFormController`, da Aula 13, migram para `portal-web`, que **não
+   tem banco próprio, nenhuma dependência de JPA nem de MySQL**: ele consome
+   os três outros serviços por REST, via `RestTemplate` ou `WebClient`,
+   apontando para `http://pedidos-service:8080` e os demais, sempre pelo
+   nome do serviço no compose.
+
+### Ciclo 4, 21h25 às 21h50
+
+8. **Escrever o `Dockerfile` de cada serviço.** Um `Dockerfile` simples de
+   duas etapas por módulo (build com Maven, execução com uma imagem JRE
+   enxuta), o mesmo `.jar` executável que a Aula 08 já mostrou rodando com
+   `java -jar`, agora empacotado numa imagem.
+9. **Escrever o `compose.yaml` completo**, na raiz do fork, com os cinco
+   serviços (`db` mais os quatro), cada aplicação com seu `SPRING_DATASOURCE_URL`
+   apontando para `db`, sua variável de `ddl-auto` com o sublinhado duplo, e
+   `depends_on: db: condition: service_healthy`.
+10. **Subir tudo localmente no Codespace.** `docker compose up --build`,
+    conferindo que os cinco containers sobem sem erro e que `portal-web`
+    responde na porta que o Codespaces encaminhou.
+11. **Atualizar o diagrama de implantação.** Editar
+    `docs/arquitetura/implantacao.puml`, esboçado na Aula 04, para
+    representar os quatro `node` reais mais o `database`, exatamente como o
+    `compose.yaml` de hoje os sobe. O esboço da quarta semana vira o retrato
+    fiel do sistema na décima nona.
+12. **Publicar a porta como pública, o passo que mais gera 401.** No painel
+    de portas do Codespaces, clicar com o botão direito na porta do
+    `portal-web` e trocar a visibilidade de "Private" para "Public".
+    Confirmar abrindo a URL numa aba anônima do navegador, sem estar
+    autenticado como dono do codespace: se a tela do portal aparecer sem
+    pedir login, a porta está pública de verdade.
+13. **Testar a jornada completa pela URL pública.** Cadastrar um pedido pelo
+    `portal-web`, conferir que ele aparece em `pedidos-service`, dar baixa
+    numa remessa correspondente, e conferir que uma nova ocorrência aparece
+    em `rastreamento-service`, tudo através da URL pública, não de
+    `localhost`.
+14. **Registrar as decisões do dia.** Em `docs/decisoes.md`: onde o contexto
+    `parceiro` foi encaixado (`expedicao-service`, pela relação com a última
+    milha); a quebra do relacionamento de objeto entre `Remessa` e
+    `Ocorrencia` em referência por `remessaId`; e o lembrete, escrito em
+    letras maiúsculas no próprio arquivo, de iniciar o codespace antes da
+    Aula 20.
+
+**Entregável do dia:** quatro módulos Maven (`pedidos-service`,
+`expedicao-service`, `rastreamento-service`, `portal-web`), cada um com seu
+`Dockerfile`, subindo juntos por `compose.yaml`, com a URL pública do
+Codespaces respondendo e a porta do `portal-web` marcada como pública.
+Critério de aceitação: a jornada completa, cadastro de pedido pelo portal,
+baixa de remessa, ocorrência visível em rastreamento, funcionando pela URL
+pública, e as três decisões do passo 14 registradas em `docs/decisoes.md`.
+
+### Fechamento, 21h50 às 22h00
+
+- `git add pedidos-service expedicao-service rastreamento-service portal-web compose.yaml docs pom.xml`
+- `git commit -m "feat(rotasul): quebra o monolito em quatro servicos distribuidos com compose.yaml"`
+- `git push`
+- Repetir em voz alta, para a turma sair da sala com isso guardado: o
+  codespace hiberna por inatividade, e a URL de hoje pode não responder
+  amanhã sem ninguém tocar em nada. **Cada equipe precisa reabrir e iniciar o
+  próprio codespace antes de chegar para a apresentação da Aula 20.**
+- O trabalho de ajuste fino, documentação e polimento do repositório
+  continua até a apresentação; nenhum código novo é obrigatório entre hoje e
+  a Aula 20, mas o fork inteiro, incluindo `docs/decisoes.md`, é o que será
+  avaliado como projeto final.
+- **Prévia da Aula 20.** Não há laboratório na próxima aula. Cada equipe
+  apresenta o que a Rota Sul se tornou, em dez minutos, com o codespace já
+  rodando, e a turma avalia as apresentações umas das outras, com a rubrica
+  que a Aula 20 detalha.
+
+### Referências
+
+1. MESQUITA, Paulo Ricardo Batista. **Capítulo 18: Projeto Final.**
+   Arquitetura de Software. AVA, Uninove. Fonte primária desta aula,
+   `pdf/018.pdf`.
+2. SCHINCARIOL, M.; KEITH, M. **Pro JPA 2: Mastering the Java Persistence
+   API.** Apress, 2009. Referência indicada pelo capítulo.
+3. Docker. **Documentação do Docker Compose**, seções de `healthcheck` e
+   `depends_on`. <https://docs.docker.com/compose/how-tos/startup-order/>
+4. GitHub. **Documentação do GitHub Codespaces**, seção de encaminhamento e
+   visibilidade de portas.
+   <https://docs.github.com/en/codespaces/developing-in-a-codespace/forwarding-ports-in-your-codespace>
+5. Spring. **Documentação do Spring Boot**, seção de configuração externa
+   por variáveis de ambiente.
+   <https://docs.spring.io/spring-boot/reference/features/external-config.html>
+6. Docker. **Documentação de referência do `Dockerfile`.**
+   <https://docs.docker.com/reference/dockerfile/>
+
+---
+
+## Aula 20, Apresentação do projeto final
+
+**Módulo:** M5, Projeto final
+**Capítulo do AVA:** sem capítulo correspondente.
+**Entregável:** a apresentação de dez minutos por equipe, feita ao vivo pela
+URL pública do Codespaces, mais o repositório final entregue, o fork inteiro
+com o histórico de commits do próprio aluno, avaliado pelos critérios da
+seção 7.1 do `PLANO_DE_ENSINO.md`. Critério de aceitação: os quatro serviços
+respondendo pela URL pública durante a apresentação da própria equipe, a
+ficha de avaliação por pares preenchida pela turma para cada equipe
+apresentada, e o fork publicado no estado em que foi apresentado.
+
+Esta é a última aula do semestre, e a única, além da Aula 01, sem capítulo do
+AVA correspondente. Seguindo a regra fixada no cabeçalho deste documento, a
+posição [1] das referências é ocupada pelo documento que faz as vezes de
+fonte primária de hoje: o `PLANO_DE_ENSINO.md`, seções 7 e 7.1, que definem a
+composição da nota e os critérios do projeto final. É a mesma solução que a
+Aula 01 já usou para o mesmo problema, na abertura do semestre.
+
+> **Nota para o professor.** Os quatro ciclos de hoje não seguem a tríade
+> conceito, demonstração, exercício curto das demais aulas: são ciclos de
+> **apresentação**, não de laboratório, como o brief desta passagem
+> instrui explicitamente. A estrutura de oito subseções permanece intacta,
+> só o conteúdo interno dos Ciclos 1 a 4 muda de natureza.
+
+### Retomada, 5 minutos
+
+Na Aula 19 cada equipe entregou os quatro serviços da Rota Sul,
+`pedidos-service`, `expedicao-service`, `rastreamento-service` e
+`portal-web`, publicados por `compose.yaml` em GitHub Codespaces, com a porta
+do `portal-web` marcada como pública. Antes de qualquer outra coisa, uma
+pergunta de chamada, equipe por equipe: "o codespace de vocês está rodando
+agora?" Codespace hibernado é resolvido nos primeiros minutos, não durante o
+tempo de apresentação de ninguém.
+
+### Ciclo 1, 19h30 às 20h05
+
+**Logística e rubrica, antes da primeira equipe subir.** O professor
+apresenta, em até cinco minutos, a mecânica do dia: cada equipe tem dez
+minutos de apresentação, seguidos de até três minutos de perguntas e
+pontuação pela plateia, antes da próxima equipe começar. A grade dos quatro
+ciclos, 130 minutos de tempo útil descontados o quiz e o fechamento, comporta
+essa sequência se repetindo até o fim da lista de equipes.
+
+**O que cada apresentação precisa mostrar, em dez minutos.** Uma demonstração
+ao vivo pela URL pública (não por `localhost`, não por captura de tela): um
+pedido sendo cadastrado pelo `portal-web`, uma baixa de remessa gerando uma
+ocorrência visível em `rastreamento-service`, e uma frase da equipe
+explicando por que os quatro serviços foram divididos daquele jeito,
+incluindo onde o contexto `parceiro` foi encaixado. Nenhum slide é
+obrigatório; o sistema rodando é a evidência.
+
+**A ordem de apresentação.** Sorteada no início do Ciclo 1, não por ordem
+alfabética nem por ordem de chegada, para que nenhuma equipe tenha vantagem
+ou desvantagem sistemática de horário. A ordem sorteada é lida em voz alta e
+escrita na lousa, para a plateia acompanhar quantas apresentações faltam.
+
+**Se a URL pública de uma equipe não responder.** Antes de qualquer coisa,
+conferir se o codespace está apenas hibernado (o painel do GitHub mostra o
+status e reinicia em cerca de um minuto); se reiniciar a tempo, a
+apresentação segue normalmente, só com um atraso curto absorvido pelo tempo
+de perguntas. Se não reiniciar dentro de um tempo razoável, a equipe
+apresenta com o que conseguir mostrar, `localhost` dentro do próprio
+codespace via terminal integrado incluído, e a professor registra a falha
+de publicação como uma perda de pontos no critério de funcionalidade (30% da
+nota do projeto final, seção 7.1 do `PLANO_DE_ENSINO.md`), não como
+desculpa para pontuação cheia.
+
+**Primeiro bloco de apresentações.** As primeiras equipes da lista apresentam
+dentro deste ciclo, cada uma seguida da rodada de perguntas e pontuação da
+plateia descrita acima.
+
+### Ciclo 2, 20h05 às 20h40
+
+**Continuação das apresentações.** O mesmo formato do Ciclo 1, dez minutos
+por equipe mais até três de perguntas, para as próximas equipes da lista.
+
+**Papel do professor durante as apresentações.** Cronometrar cada
+apresentação, garantindo que nenhuma equipe avance sobre o tempo da
+seguinte, e preencher a própria ficha de avaliação, com os critérios da
+seção 7.1 do `PLANO_DE_ENSINO.md`, em paralelo à ficha de avaliação por
+pares que a turma preenche.
+
+**Perguntas sugeridas para a rodada de Q&A, um roteiro para quem não sabe o
+que perguntar.** Nem toda plateia chega com perguntas prontas, e o professor
+pode usar este roteiro como reserva, sem obrigação de usá-lo se a turma já
+estiver perguntando por conta própria: "por que o contexto `parceiro` ficou
+nesse serviço, e não em outro?"; "o que acontece se `rastreamento-service`
+estiver fora do ar no momento em que `expedicao-service` tenta registrar uma
+ocorrência?"; "qual foi a decisão mais difícil de justificar em
+`docs/decisoes.md`?". As três perguntas miram exatamente os pontos que a
+ficha de pares avalia, arquitetura distribuída e domínio da equipe sobre o
+próprio código.
+
+### Quiz, 20h40 às 20h50
+
+**Pergunta.** Segundo a tabela de critérios do projeto final na seção 7.1 do
+`PLANO_DE_ENSINO.md`, qual dos cinco critérios abaixo tem o **maior** peso na
+nota do projeto final?
+
+- A) Documentação do fork, incluindo `docs/decisoes.md`.
+- B) Modelagem e persistência de dados.
+- C) Funcionalidade dos quatro serviços.
+- D) Apresentação na Aula 20.
+
+**Correta:** C.
+
+**Justificativa.** A tabela da seção 7.1 do plano de ensino atribui 30% à
+funcionalidade dos quatro serviços, o maior peso entre os cinco critérios,
+seguido por 25% de qualidade do código e da arquitetura em camadas, 20% de
+modelagem e persistência de dados, 15% de documentação do fork e 10% de
+apresentação na Aula 20. A alternativa A vale 15%, a B vale 20%, e a D, a
+própria apresentação de hoje, vale apenas 10%: o peso maior está em o
+sistema **funcionar de ponta a ponta**, exatamente o que a demonstração ao
+vivo de cada equipe precisa provar, mais do que em qualquer slide ou
+narrativa sobre o sistema.
+
+### Ciclo 3, 20h50 às 21h25
+
+**Continuação das apresentações**, mesmo formato, até o fim da lista de
+equipes. Se a lista terminar antes do tempo do ciclo, o tempo restante é
+usado para perguntas adicionais e para a plateia revisar suas fichas de
+avaliação por pares enquanto a memória da apresentação ainda está fresca.
+
+**A rubrica de avaliação por pares.** Cada equipe da plateia preenche, para
+cada equipe apresentada (exceto a própria), uma ficha curta com quatro
+critérios, pontuados de 1 a 5, deliberadamente restritos ao que é observável
+em dez minutos de apresentação ao vivo, e não ao código que só o professor
+revisa com profundidade:
+
+| Critério da ficha de pares | O que observa |
+|---|---|
+| Demonstração funcionando ao vivo | O pedido foi cadastrado, a baixa de remessa gerou ocorrência, tudo pela URL pública, sem falha nem improviso |
+| Clareza da arquitetura distribuída | A equipe explicou com clareza por que os quatro serviços existem e como eles conversam entre si |
+| Domínio da equipe sobre o próprio código | As respostas às perguntas da plateia mostraram que a equipe entende as próprias decisões, não só as executou |
+| Organização e tempo da apresentação | A equipe usou os dez minutos com objetividade, sem estourar o tempo nem deixar de mostrar o essencial |
+
+**Por que avaliação por pares, e não só nota do professor.** A turma passou
+o semestre inteiro assistindo demonstrações umas das outras, nos exercícios
+curtos dos Ciclos 1 e 2 de cada aula, desde a Aula 02. Pedir que a mesma
+turma avalie a apresentação final de cada equipe aproveita esse hábito já
+formado, e dá a cada aluno prática em julgar criticamente uma arquitetura
+que não é a sua, uma habilidade tão relevante quanto construir a própria.
+
+**Como a ficha de pares se conecta aos pesos do plano de ensino.** A média
+das notas de pares, por equipe, alimenta especificamente o critério
+"Apresentação na Aula 20", os 10% da tabela da seção 7.1. Os outros quatro
+critérios da tabela, funcionalidade (30%), qualidade do código (25%),
+modelagem e persistência (20%) e documentação (15%), continuam sendo
+avaliados pelo professor diretamente sobre o repositório de cada equipe, não
+pela votação da plateia, porque só o professor revisa o código com
+profundidade suficiente para julgar esses quatro critérios com justiça. A
+avaliação por pares participa apenas da fatia que ela está em posição de
+julgar de verdade, o que a própria apresentação demonstra.
+
+### Ciclo 4, 21h25 às 21h50
+
+**Consolidação da avaliação por pares.** O professor recolhe as fichas
+preenchidas por cada equipe da plateia, tabula a média por equipe
+apresentada, e converte essa média na fatia de 10% de "Apresentação na Aula
+20" da tabela de critérios.
+
+**Confirmação do estado final do repositório.** Cada equipe confirma, com o
+professor, que o fork está no estado que foi apresentado: `git log
+--oneline` mostrando o histórico completo desde a Aula 01, e o `compose.yaml`
+da Aula 19 subindo sem alteração de última hora não commitada.
+
+**O que "repositório final entregue" significa, na prática.** Não é um
+arquivo novo nem um pacote separado: é o próprio fork, no estado do commit
+apresentado, com o histórico de vinte aulas visível em `git log`, cada
+commit correspondendo a um entregável do dia, do `docs/ambiente.md` da Aula
+01 até o `compose.yaml` da Aula 19. O critério "documentação do fork,
+incluindo `docs/decisoes.md`" (15% da nota, seção 7.1 do
+`PLANO_DE_ENSINO.md`) é avaliado sobre esse mesmo histórico: um
+`docs/decisoes.md` que só ganhou linhas nas últimas duas aulas conta uma
+história diferente de um que foi alimentado desde a Aula 02, e o professor
+consegue ver a diferença direto no `git log`.
+
+**Entregável do dia:** a apresentação de dez minutos feita ao vivo pela URL
+pública, a ficha de avaliação por pares preenchida pela turma para cada
+equipe, e o repositório final confirmado no estado apresentado. Critério de
+aceitação: os quatro serviços respondendo durante a janela de apresentação da
+própria equipe, e a ficha de pares recolhida ao final do Ciclo 4.
+
+### Fechamento, 21h50 às 22h00
+
+- Para a equipe que fez algum ajuste de última hora antes de subir ao
+  "palco": `git add`, `git commit` em Conventional Commits, e `git push`, do
+  mesmo jeito de todas as dezenove aulas anteriores.
+- Como fechamento simbólico do fork inteiro, cada equipe marca o commit
+  apresentado com uma tag: `git tag entrega-final -m "Entrega do projeto
+  final, Rota Sul"`, seguido de `git push --tags`, um marco permanente no
+  histórico, distinto de qualquer commit de aula.
+- Não há prévia de próxima aula: este é o último encontro do semestre. A
+  nota final segue a fórmula da seção 7 do `PLANO_DE_ENSINO.md`, checkpoints
+  de laboratório (40%), prova (30%) e projeto final (30%), com aprovação a
+  partir de 6,0.
+
+### Referências
+
+1. Prof. José Romualdo. **`PLANO_DE_ENSINO.md`**, seções 7 (Avaliação) e 7.1
+   (Critérios do projeto final). Fonte primária desta aula, na ausência de
+   capítulo do AVA correspondente, a mesma solução adotada pela Aula 01.
+2. GitHub. **Documentação do GitHub Codespaces**, seção de ciclo de vida e
+   hibernação por inatividade.
+   <https://docs.github.com/en/codespaces/getting-started/the-codespace-lifecycle>
+3. Docker. **Documentação do Docker Compose.**
+   <https://docs.docker.com/compose/>
+
