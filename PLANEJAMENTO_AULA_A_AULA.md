@@ -1857,14 +1857,15 @@ nomes de convenção do framework em inglês, nomes de domínio em português.
    **interface** `PedidoRepository` com dois métodos, `salvar(Pedido)` e
    `listarTodos()`. Interface primeiro, implementação depois: é a interface que
    permite trocar a implementação sem tocar no serviço, e é isso que vai
-   acontecer quando o banco real entrar no Módulo 4.
+   acontecer quando o banco real entrar na Aula 14, ainda no Módulo 3.
 4. **Escrever a implementação em memória.** Ainda em `pedido/repository`, criar
    `PedidoRepositoryEmMemoria`, anotada com `@Repository`, guardando os pedidos
    numa `List` e gerando o `id` com um contador. Dizer em voz alta por que
    memória e não banco: o capítulo de hoje trata de camadas, não de
    persistência, e trocar essa classe por uma implementação com banco é
-   exatamente o exercício da Aula 15. A separação de hoje é o que torna aquela
-   troca barata.
+   exatamente o exercício da Aula 14, que usa JDBC puro, e depois da Aula 15,
+   que troca o JDBC por JPA. A separação de hoje é o que torna as duas trocas
+   baratas.
 5. **Compilar.** `./mvnw compile`. Erro de compilação aqui é quase sempre
    pacote errado ou `import` faltando, e é melhor descobrir agora do que no
    Ciclo 4.
@@ -2936,18 +2937,28 @@ o sistema que a transportadora parceira expõe. O cliente que a turma escreve
 na sequência é o mesmo tipo de código que se escreveria para consumir um
 parceiro de verdade; só o endereço muda.
 
-1. **Criar o pacote parceiro.** `br.uni9.rotasul.parceiro`, com os
-   subpacotes `endpoint`, o parceiro simulado, e `client`, quem consome, do
-   lado da Rota Sul. É o primeiro contexto que se soma aos três da Aula 05, o
-   que a convenção do semestre já previa: acrescentar contexto novo ao lado
-   dos existentes, nunca renomear os já fixados.
-2. **Adicionar as dependências.** No `pom.xml`, `spring-boot-starter-web-services`
-   e `wsdl4j`, já fixados no contrato técnico da disciplina desde a Aula 01.
-3. **Escrever o contrato XSD.** `src/main/resources/parceiro.xsd`, definindo
-   os elementos `consultaEntregaRequest`, com `codigoRastreio`, e
-   `consultaEntregaResponse`, com `situacao` e `previsaoEntrega`. O XSD faz
-   aqui o papel que o capítulo chamou de Descrição de Serviço na Aula 07: diz
-   o que o Provedor espera receber e o que ele devolve.
+> **O que chega pronto no kit `aulas-1sem/labs/aula10-lab/`.** Dois arquivos,
+> e os dois são andaime, não conteúdo da aula:
+> `src/main/resources/parceiro.xsd`, o contrato do serviço, e
+> `src/main/java/br/uni9/rotasul/parceiro/WebServiceConfig.java`, a classe de
+> configuração que publica o `MessageDispatcherServlet` em `/ws/*` e expõe o
+> WSDL a partir do XSD. Escrever um XSD à mão e acertar os três beans de
+> configuração do Spring Web Services consome o laboratório inteiro e não
+> ensina nada sobre objetos remotos. O que ensina, e o que o aluno escreve
+> hoje, são três peças: o `@Endpoint` que atende, o cliente que chama e o
+> teste que prova.
+
+1. **Instalar o kit e ler o contrato.** Copiar os dois arquivos do kit para as
+   posições correspondentes no fork e criar o pacote `br.uni9.rotasul.parceiro`
+   com os subpacotes `endpoint`, o parceiro simulado, e `client`, quem consome,
+   do lado da Rota Sul. É o primeiro contexto que se soma aos três da Aula 05,
+   o que a convenção do semestre já previa: acrescentar contexto novo ao lado
+   dos existentes, nunca renomear os já fixados. Projetar o `parceiro.xsd` e
+   ler os dois elementos em voz alta, `consultaEntregaRequest`, com
+   `codigoRastreio`, e `consultaEntregaResponse`, com `situacao` e
+   `previsaoEntrega`. O XSD faz aqui o papel que o capítulo chamou de
+   Descrição de Serviço na Aula 07: diz o que o Provedor espera receber e o
+   que ele devolve.
 
    ```xml
    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -2974,12 +2985,43 @@ parceiro de verdade; só o endereço muda.
    </xs:schema>
    ```
 
-4. **Gerar as classes Java do XSD.** Configurar o `jaxb2-maven-plugin` no
-   `pom.xml`, apontando para `parceiro.xsd`, e rodar `./mvnw generate-sources`.
-   Conferir em `target/generated-sources` as classes `ConsultaEntregaRequest`
-   e `ConsultaEntregaResponse`, geradas automaticamente, sem uma linha
-   escrita à mão.
-5. **Escrever o endpoint que simula o parceiro.** Em `parceiro/endpoint`,
+2. **Adicionar as dependências e o gerador de classes.** No `pom.xml`,
+   `spring-boot-starter-web-services` e `wsdl4j`, já fixados no contrato
+   técnico da disciplina desde a Aula 01, mais o `jaxb2-maven-plugin`
+   apontando para o `parceiro.xsd`, **com a versão presa na linha 3.x**:
+
+   ```xml
+   <plugin>
+     <groupId>org.codehaus.mojo</groupId>
+     <artifactId>jaxb2-maven-plugin</artifactId>
+     <version>3.2.0</version>
+     <executions>
+       <execution>
+         <id>xjc</id>
+         <goals><goal>xjc</goal></goals>
+       </execution>
+     </executions>
+     <configuration>
+       <sources><source>src/main/resources/parceiro.xsd</source></sources>
+       <packageName>br.uni9.rotasul.parceiro.gerado</packageName>
+     </configuration>
+   </plugin>
+   ```
+
+   **A versão precisa ser dita em voz alta, não só copiada.** A linha 2.x do
+   plugin gera classes anotadas com `javax.xml.bind`, o pacote antigo; o
+   Spring Boot 3.x sobre Java 21 usa `jakarta.xml.bind`, e o
+   `Jaxb2Marshaller` do passo 6 simplesmente não reconhece as classes geradas
+   pela linha antiga. O sintoma é um erro de contexto JAXB que não menciona
+   versão nenhuma, e é o tipo de armadilha que trava um aluno por quarenta
+   minutos. Sem `<version>` explícito, o Maven pode resolver a linha 2.x.
+3. **Gerar as classes Java do XSD.** `./mvnw generate-sources`. Conferir em
+   `target/generated-sources` as classes `ConsultaEntregaRequest` e
+   `ConsultaEntregaResponse`, geradas automaticamente, sem uma linha escrita à
+   mão. Abrir uma das duas e conferir que os `import` são de
+   `jakarta.xml.bind.annotation`, e não de `javax`: é a confirmação, em cinco
+   segundos, de que a versão do passo 2 pegou.
+4. **Escrever o endpoint que simula o parceiro.** Em `parceiro/endpoint`,
    `ParceiroEndpoint`, anotado `@Endpoint`, com um método anotado
    `@PayloadRoot(namespace = "http://rotasul.uni9.br/parceiro", localPart =
    "consultaEntregaRequest")`, recebendo `@RequestPayload
@@ -2987,47 +3029,84 @@ parceiro de verdade; só o endereço muda.
    ConsultaEntregaResponse`. Regra simples para simular o parceiro: se o
    `codigoRastreio` começar com "RS", devolve situação `EM_TRANSITO`; caso
    contrário, `DESCONHECIDO`.
-6. **Publicar o WSDL.** Classe `WebServiceConfig`, anotada `@EnableWs`, com um
-   bean `MessageDispatcherServlet` mapeado em `/ws/*` e um bean
-   `DefaultWsdl11Definition` publicando o contrato a partir de
-   `parceiro.xsd`, disponível em `/ws/parceiro.wsdl`.
 
 ### Ciclo 4, 21h25 às 21h50
 
-7. **Escrever o cliente.** Em `parceiro/client`, `ParceiroClient`, estendendo
+5. **Subir e conferir o WSDL.** `./mvnw spring-boot:run` e abrir
+   `/ws/parceiro.wsdl` na porta que o terminal imprimiu. O WSDL não foi
+   escrito por ninguém: o `WebServiceConfig` do kit o gera a partir do
+   `parceiro.xsd`, e é esse documento que um parceiro real publicaria para a
+   Rota Sul consumir. Apontar na tela onde aparecem a operação
+   `consultaEntrega`, o tipo da requisição e o tipo da resposta.
+6. **Escrever o cliente.** Em `parceiro/client`, `ParceiroClient`, estendendo
    `WebServiceGatewaySupport`, com o método `consultarEntrega(String
-   codigoRastreio)`, que monta um `ConsultaEntregaRequest` e chama
-   `getWebServiceTemplate().marshalSendAndReceive(...)` contra a URI local do
-   endpoint, `http://localhost:PORTA/ws`, devolvendo o
-   `ConsultaEntregaResponse`.
-8. **Configurar o marshaller.** Um bean `Jaxb2Marshaller`, apontando para o
-   pacote das classes geradas no passo 4, injetado no `ParceiroClient`.
-9. **Testar o cliente.** `ParceiroClientTest`, anotado `@SpringBootTest`,
-   chamando `consultarEntrega("RS12345")` e conferindo que a situação
-   devolvida é `EM_TRANSITO`. Rodar `./mvnw test`.
-10. **Fechar a integração pelo lado REST.** Acrescentar ao `RemessaController`
-    da Aula 09 o método `GET /remessas/{id}/situacao-parceiro`, que busca a
-    `Remessa`, chama `ParceiroClient.consultarEntrega` com o seu
-    `codigoRastreio` e devolve o resultado em JSON. É o ponto em que a
-    integração se fecha: o dado que chegou por SOAP sai por REST, para
-    qualquer consumidor da Rota Sul.
-11. **Adicionar o springdoc-openapi.** No `pom.xml`,
-    `springdoc-openapi-starter-webmvc-ui`. Subir a aplicação e abrir
-    `http://localhost:PORTA/swagger-ui/index.html`, conferindo que os
-    endpoints de `/remessas` aparecem listados, com o schema de `Remessa`
-    gerado a partir das anotações Jackson da Aula 09.
-12. **Registrar a decisão.** Em `docs/decisoes.md`, uma linha explicando a
-    escolha de simular o parceiro legado dentro do próprio fork, e por quê:
-    a Rota Sul não tem um parceiro real disponível para a turma, e o
-    contrato XSD mais o endpoint reproduzem o mesmo tipo de código que se
-    escreveria contra um parceiro de verdade.
+   codigoRastreio)`, que monta um `ConsultaEntregaRequest`, chama
+   `getWebServiceTemplate().marshalSendAndReceive(request)` e devolve o
+   `ConsultaEntregaResponse`. Junto, um bean `Jaxb2Marshaller` apontando para
+   o pacote das classes geradas no passo 3, injetado no cliente. **A URI do
+   parceiro não fica escrita dentro da classe**: o bean lê a propriedade
+   `rotasul.parceiro.uri`, que em `application.properties` vale
+   `http://localhost:${server.port:8080}/ws`, e o cliente expõe
+   `apontarPara(String uri)`, que chama
+   `getWebServiceTemplate().setDefaultUri(uri)`, para quem precisar trocar o
+   endereço em tempo de execução. É exatamente o que o teste do passo 7 vai
+   precisar fazer, e é também o que mudaria no dia em que o parceiro deixasse
+   de ser simulado.
+7. **Testar o cliente.** `ParceiroClientTest`, anotado
+   `@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)`,
+   com a porta injetada por `@LocalServerPort` e o cliente apontado para ela
+   antes da chamada:
+
+   ```java
+   @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+   class ParceiroClientTest {
+
+       @LocalServerPort
+       int porta;
+
+       @Autowired
+       ParceiroClient parceiroClient;
+
+       @Test
+       void devolveEmTransitoParaCodigoDaRotaSul() {
+           parceiroClient.apontarPara("http://localhost:" + porta + "/ws");
+           var resposta = parceiroClient.consultarEntrega("RS12345");
+           assertEquals("EM_TRANSITO", resposta.getSituacao());
+       }
+   }
+   ```
+
+   **O `webEnvironment` não é detalhe de configuração.** No modo padrão de
+   `@SpringBootTest`, que é `MOCK`, nenhum container servlet sobe, não existe
+   porta aberta e a chamada SOAP não tem para onde ir: o teste falha com erro
+   de conexão. `RANDOM_PORT` sobe o Tomcat embarcado numa porta livre, e
+   `@LocalServerPort` diz qual foi. É a mesma forma que a Aula 17 usa no teste
+   de integração ponta a ponta, e vale dizer isso à turma: o cliente e o
+   endpoint estão no mesmo processo, mas a chamada entre eles atravessa HTTP
+   de verdade, como atravessaria contra um parceiro externo. Rodar
+   `./mvnw test`.
+8. **Fechar a integração pelo lado REST.** Acrescentar ao `RemessaController`
+   da Aula 09 o método `GET /remessas/{id}/situacao-parceiro`, que busca a
+   `Remessa`, chama `ParceiroClient.consultarEntrega` com o seu
+   `codigoRastreio` e devolve o resultado em JSON. É o ponto em que a
+   integração se fecha: o dado que chegou por SOAP sai por REST, para
+   qualquer consumidor da Rota Sul.
+9. **Documentar a API e registrar a decisão.** No `pom.xml`,
+   `springdoc-openapi-starter-webmvc-ui`. Subir a aplicação e abrir
+   `/swagger-ui/index.html` na porta que o terminal imprimiu, conferindo que
+   os endpoints de `/remessas` aparecem listados, com o schema de `Remessa`
+   gerado a partir das anotações Jackson da Aula 09. Em seguida, uma linha em
+   `docs/decisoes.md` explicando a escolha de simular o parceiro legado dentro
+   do próprio fork, e por quê: a Rota Sul não tem um parceiro real disponível
+   para a turma, e o contrato XSD mais o endpoint reproduzem o mesmo tipo de
+   código que se escreveria contra um parceiro de verdade.
 
 **Entregável do dia:** o cliente SOAP em `br.uni9.rotasul.parceiro`,
 consumindo o endpoint simulado, com `ParceiroClientTest` passando, mais a API
 REST de `/remessas` documentada pelo springdoc-openapi. Critério de
-aceitação: `consultarEntrega("RS12345")` devolvendo `EM_TRANSITO`, a Swagger
-UI listando os endpoints de `/remessas` em `/swagger-ui/index.html`, e
-`./mvnw test` passando.
+aceitação: `consultarEntrega("RS12345")` devolvendo `EM_TRANSITO` no teste com
+`RANDOM_PORT`, a Swagger UI listando os endpoints de `/remessas` em
+`/swagger-ui/index.html`, e `./mvnw test` passando.
 
 ### Fechamento, 21h50 às 22h00
 
@@ -3609,7 +3688,7 @@ acopladas ao aplicativo por interfaces, e não dois processos independentes.
 ### Ciclo 3, 20h50 às 21h25
 
 Laboratório de configuração explícita. O código de hoje mora no contexto
-`rastreamento`, aberto ontem, e acrescenta a camada `service`, ainda sem
+`rastreamento`, aberto na aula passada, e acrescenta a camada `service`, ainda sem
 nenhuma classe.
 
 1. **Criar o contrato de notificação.** Em `rastreamento/service`, criar a
@@ -3692,7 +3771,7 @@ classes diferentes na mesma linha de saída, e `NotificacaoConfigDevTest` e
 - `git add src docs`
 - `git commit -m "feat(rastreamento): configura NotificadorDeOcorrencia por perfil dev e prod, com injecao explicita"`
 - `git push`
-- Fechar o ciclo comparando as duas aulas: ontem a Rota Sul decidiu, dentro
+- Fechar o ciclo comparando as duas aulas: na aula passada a Rota Sul decidiu, dentro
   do próprio código, qual estratégia de frete usar; hoje foi o container do
   Spring que decidiu, fora do código de negócio, qual notificador injetar.
   As duas são formas legítimas de trocar comportamento, e a diferença entre
@@ -4040,15 +4119,13 @@ aplicação subindo com `PedidoRepositoryJdbc` como único bean de
 `PedidoRepositoryJdbcTest` passando com `./mvnw test` usando Testcontainers, e
 a contagem de linhas antes e depois registrada.
 
-> **Nota para o professor.** Na Aula 06, a troca do repositório em memória por
-> um banco real foi anunciada como "o exercício da Aula 15", dentro do
-> Módulo 4. O detalhamento do Módulo 3 refinou esse plano em dois passos: a
-> Aula 14 troca a memória por JDBC puro, sentindo a verbosidade na mão; a
-> Aula 15 troca o JDBC por JPA, sentindo o alívio. Nada do que a Aula 06 disse
-> está errado, só ficou mais fino: o banco real continua entrando na segunda
-> metade do semestre, só que em duas etapas em vez de uma. Vale mencionar isso
-> à turma se algum aluno notar a diferença entre o que a Aula 06 prometeu e o
-> que acontece hoje.
+> **Nota para o professor.** A troca do repositório em memória por um banco
+> real, anunciada lá atrás no passo 4 do Ciclo 3 da Aula 06, acontece em duas
+> etapas, e hoje é a primeira: a Aula 14 troca a memória por JDBC puro,
+> sentindo a verbosidade na mão; a Aula 15 troca o JDBC por JPA, sentindo o
+> alívio. Vale dizer isso à turma na abertura do laboratório, para ninguém
+> esperar o ORM já hoje: a verbosidade de hoje é proposital, e é ela a régua
+> que a próxima aula vai usar.
 
 ### Retomada, 5 minutos
 
@@ -4325,7 +4402,7 @@ reinício da aplicação, `./mvnw test` passando, e as duas linhas de
   que a próxima aula usa. A Aula 15 troca `PedidoRepositoryJdbc` por uma
   versão sobre a API de Persistência Java, e a turma mede de novo quantas
   linhas isso custa, desta vez para menos. O nome dessa API já apareceu hoje,
-  de relance, na classe `Banda` do capítulo: é o assunto de amanhã.
+  de relance, na classe `Banda` do capítulo: é o assunto da próxima aula.
 
 ### Referências
 
@@ -4388,7 +4465,7 @@ tem na mão.
   e os bancos relacionais, que dificulta o mapeamento de tabelas em classes, e
   tende a exigir uma classe de entidade e uma classe DAO para cada tabela, além
   de jogar manualmente cada linha lida num objeto. Ler essa lista de frente
-  para `PedidoRepositoryJdbc`, escrito ontem, e marcar cada problema com um
+  para `PedidoRepositoryJdbc`, escrito na aula passada, e marcar cada problema com um
   visto: os cinco estão lá.
 
   **Por que a JPA se chama API de persistência.** O capítulo explica a origem
@@ -4409,7 +4486,7 @@ tem na mão.
 
 - **Demonstração no projetor.** Abrir `PedidoRepositoryJdbc` e
   `PedidoRepositoryEmMemoria` lado a lado, e contar em voz alta, sobre o
-  código de ontem, quantas linhas resolvem cada um dos cinco problemas do
+  código da aula passada, quantas linhas resolvem cada um dos cinco problemas do
   JDBC: abertura e fechamento de `Connection`, escrita do `INSERT` e do
   `SELECT` como `String`, `try/catch` de `SQLException`, e o `while
   (resultado.next())` que monta cada `Pedido` campo a campo. Prometer à turma:
@@ -4418,9 +4495,10 @@ tem na mão.
 - **Exercício curto.** Cinco minutos, individual. Para cada um dos cinco
   problemas do JDBC listados pelo capítulo, escrever se `PedidoRepositoryJdbc`
   da Aula 14 sofre dele (sim ou não) e por quê. Gabarito: sofre dos cinco,
-  porque é exatamente o que o laboratório de ontem pediu, JDBC puro, sem
+  porque é exatamente o que o laboratório da aula passada pediu, JDBC puro, sem
   `JdbcTemplate` e sem ORM; a JPA de hoje ataca os cinco ao mesmo tempo,
-  delegando ao provedor de persistência o que ontem era escrito à mão.
+  delegando ao provedor de persistência o que na semana passada era escrito à
+  mão.
 
 ### Ciclo 2, 20h05 às 20h40
 
@@ -4504,8 +4582,9 @@ uma característica da JPA, e não um problema do JDBC que ela resolve?
 `EntityManager`, é exatamente o mecanismo que a JPA introduz para resolver os
 problemas do JDBC: ele conecta o aplicativo à JPA e executa as operações de
 persistência sem exigir SQL manual a cada chamada, e é a peça que
-`PedidoRepositoryJpa`, hoje sem uma linha de implementação, delega ao Spring
-Data para instanciar. As alternativas A, C e D são, ao contrário, os próprios
+`PedidoRepository`, hoje estendendo `JpaRepository` sem uma linha de
+implementação, delega ao Spring Data para instanciar. As alternativas A, C e D
+são, ao contrário, os próprios
 problemas do JDBC listados pelo capítulo, o ponto de partida que a JPA existe
 para resolver, não uma característica dela.
 
@@ -4545,7 +4624,7 @@ deixa de ser uma interface escrita à mão para se tornar uma extensão de
 4. **Remover as duas implementações anteriores.** `git rm` em
    `PedidoRepositoryEmMemoria.java` e `PedidoRepositoryJdbc.java`. As duas
    já cumpriram seu papel pedagógico, e a contagem de linhas de ambas já está
-   registrada em `docs/decisoes.md` desde a Aula 06 e a Aula 14; mantê-las no
+   registrada em `docs/decisoes.md` desde o passo 10 da Aula 14; mantê-las no
    código faria a compilação falhar, porque nenhuma das duas implementa mais
    a nova assinatura de `PedidoRepository`.
 5. **Ajustar as duas implementações de `PedidoService`.** Da Aula 07,
@@ -4562,10 +4641,9 @@ deixa de ser uma interface escrita à mão para se tornar uma extensão de
    O Flyway continua sendo a única fonte de verdade do schema, e a migration
    `V1__cria_tabela_pedido.sql` não muda uma linha, porque as colunas que ela
    já criou, `id`, `cliente`, `descricao`, `situacao`, `regiao`, já batem com
-   o mapeamento de hoje. "Criar a migration inicial" que o entregável do dia
-   promete é, na prática, esse encontro: a migration já existia desde ontem,
-   e hoje ela ganha um segundo papel, validar o mapeamento JPA, não mais ser
-   o único ponto de contato do time com o schema.
+   o mapeamento de hoje. A migration escrita na Aula 14 ganha hoje um segundo
+   papel: além de criar o schema, ela passa a ser o contrato contra o qual o
+   Hibernate valida o mapeamento da entidade na subida.
 
 ### Ciclo 4, 21h25 às 21h50
 
@@ -4582,11 +4660,30 @@ deixa de ser uma interface escrita à mão para se tornar uma extensão de
    um `PUT` e desaparece depois do `DELETE`.
 9. **Testar com Testcontainers.** `PedidoRepositoryTest`, em
    `src/test/java/br/uni9/rotasul/pedido/repository/`, anotado
-   `@DataJpaTest` com `@Testcontainers`, subindo um `MySQLContainer<?>` como
-   nas Aulas 14 e (quando aplicável) posteriores. Um caso: salvar um `Pedido`
-   com `pedidoRepository.save(...)` e conferir que `findAll()` devolve uma
-   lista de tamanho um, sem uma linha de SQL escrita no teste. Rodar `./mvnw
-   test`.
+   `@DataJpaTest`, `@AutoConfigureTestDatabase(replace = Replace.NONE)` e
+   `@Testcontainers`, subindo um `@Container static MySQLContainer<?>` e
+   apontando o `DataSource` para ele com `@DynamicPropertySource`, exatamente
+   como a Aula 14 fez. Um caso: salvar um `Pedido` com
+   `pedidoRepository.save(...)` e conferir que `findAll()` devolve uma lista de
+   tamanho um, sem uma linha de SQL escrita no teste. Rodar `./mvnw test`.
+
+   ```java
+   @DataJpaTest
+   @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+   @Testcontainers
+   class PedidoRepositoryTest { }
+   ```
+
+   **A segunda anotação não é decoração.** Por padrão, `@DataJpaTest`
+   substitui o `DataSource` da aplicação por um banco embarcado em memória,
+   justamente para o teste rodar sem infraestrutura. Se ela ficar de fora, o
+   `MySQLContainer` sobe, gasta os segundos de inicialização e é ignorado: o
+   teste passa contra o banco embarcado, e o aluno acredita ter validado o
+   mapeamento contra o MySQL quando validou contra outra coisa.
+   `replace = Replace.NONE` manda o Spring manter o `DataSource` que o
+   `@DynamicPropertySource` apontou para o container. Vale dizer isso em voz
+   alta: é um erro que não dá mensagem nenhuma, o teste fica verde do mesmo
+   jeito.
 10. **Fechar a contagem de linhas, o entregável central de hoje.** Em
     `docs/decisoes.md`, uma terceira linha ao lado das duas que a Aula 14 já
     registrou: `PedidoRepository` (JPA): uma linha de assinatura, zero linhas
@@ -4624,7 +4721,7 @@ Hibernate na subida.
   esconder tem nome, Hibernate, e a Aula 18 abre essa caixa. Antes disso, a
   Aula 16 muda de assunto por um encontro: transações. Hoje `save` e
   `deleteById` já rodam dentro de uma transação implícita que o Spring abre e
-  fecha sozinho; amanhã a turma aprende a controlar isso explicitamente com
+  fecha sozinho; na próxima aula a turma aprende a controlar isso explicitamente com
   `@Transactional`, no momento em que uma operação da Rota Sul precisa fazer
   duas escritas como uma coisa só, ou nenhuma das duas.
 
@@ -4674,7 +4771,7 @@ Na Aula 15 cada aluno entregou o CRUD completo de `Pedido` sobre
 `PedidoRepository extends JpaRepository<Pedido, Long>`, sem uma linha de
 implementação escrita à mão. Abrir `docs/decisoes.md` na linha da contagem
 final: `PedidoRepositoryEmMemoria`, `PedidoRepositoryJdbc` e o `JpaRepository`
-de ontem. A régua de hoje é diferente: não é mais sobre quantas linhas o
+da aula passada. A régua de hoje é diferente: não é mais sobre quantas linhas o
 repositório custa, é sobre o que garante que duas operações de escrita
 aconteçam juntas, ou nenhuma delas aconteça.
 
@@ -4862,7 +4959,7 @@ aconteceu uma vez, e não precisa se repetir.
    Aula 18.
 2. **Anotar `Remessa` e `Ocorrencia` como entidades.** `@Entity`, `@Table`,
    `@Id`, `@GeneratedValue(strategy = GenerationType.IDENTITY)`, seguindo
-   exatamente o padrão que `Pedido` fixou ontem.
+   exatamente o padrão que `Pedido` fixou na aula passada.
 3. **Escrever `RemessaRepository` e `OcorrenciaRepository`.** Duas
    interfaces, `extends JpaRepository<Remessa, Long>` e `extends
    JpaRepository<Ocorrencia, Long>`, ambas sem corpo, herdando `save` e
@@ -5392,11 +5489,21 @@ Laboratório do relacionamento e da evidência de desempenho.
 1. **Migration do relacionamento.** Em
    `src/main/resources/db/migration/V3__adiciona_relacionamento_remessa_ocorrencia.sql`,
    `ALTER TABLE ocorrencia ADD COLUMN remessa_id BIGINT`, com um índice, mas
-   **sem `CONSTRAINT` de chave estrangeira formal**. É uma decisão
-   deliberada: a integridade do relacionamento é garantida pelo código Java
-   hoje, via Hibernate, e essa mesma decisão facilita a divisão em serviços
-   independentes que a Aula 19 vai fazer, quando o dono da tabela `remessa`
-   e o dono da tabela `ocorrencia` passam a ser dois processos diferentes.
+   **sem `CONSTRAINT` de chave estrangeira formal**.
+
+   > **Nota para o professor.** Dispensar a `FOREIGN KEY` é opinião de
+   > arquitetura, não regra do capítulo, e o professor pode discordar dela em
+   > sala. O argumento a favor: a integridade do relacionamento é garantida
+   > hoje pelo código Java, via Hibernate, e a ausência da `CONSTRAINT` é o
+   > que permite que a Aula 19 separe a tabela `remessa` e a tabela
+   > `ocorrencia` em dois processos donos diferentes sem escrever nenhuma
+   > migration de remoção de restrição. O argumento contra, que vale colocar
+   > para a turma: sem `FOREIGN KEY`, o banco aceita uma `ocorrencia`
+   > apontando para uma `remessa` que não existe, e nada além do código
+   > impede isso. Se o professor preferir a `CONSTRAINT`, o custo é uma
+   > migration a mais na Aula 19, com `ALTER TABLE ocorrencia DROP FOREIGN
+   > KEY`, antes da separação em serviços. A decisão precisa ser tomada hoje,
+   > porque a Aula 19 depende dela.
 2. **Mapear o relacionamento nas duas entidades.** Em `Ocorrencia`, o lado
    dono: `@ManyToOne @JoinColumn(name = "remessa_id") private Remessa
    remessa;`. Em `Remessa`, o lado inverso, só leitura:
@@ -5498,8 +5605,8 @@ ingênua e exatamente uma na versão com `JOIN FETCH`, e as duas linhas de
 `pedidos-service`, `expedicao-service`, `rastreamento-service` e
 `portal-web`, subindo juntos com um único `compose.yaml`, publicados em
 GitHub Codespaces com a porta do `portal-web` marcada como pública. Critério
-de aceitação: `docker compose up` sobe os quatro serviços mais o banco sem
-erro, a URL pública do Codespaces responde ao portal, um pedido cadastrado
+de aceitação: `docker compose up --build` sobe os quatro serviços mais o banco
+sem erro, a URL pública do Codespaces responde ao portal, um pedido cadastrado
 pelo `portal-web` aparece no `pedidos-service` e uma baixa de remessa gera uma
 ocorrência visível pelo `rastreamento-service`, tudo através de chamadas de
 rede reais entre os quatro processos.
@@ -5573,8 +5680,8 @@ precisa mudar para essa chamada continuar funcionando?
 
 ### Ciclo 2, 20h05 às 20h40
 
-- **Conceito.** Três armadilhas de container, e a publicação em GitHub
-  Codespaces.
+- **Conceito.** Quatro armadilhas da quebra em processos, e a publicação em
+  GitHub Codespaces.
 
   **O host do banco dentro do compose não é `localhost`.** Desde a Aula 14,
   `application.properties` aponta para `jdbc:mysql://localhost:3306/rotasul`,
@@ -5611,6 +5718,52 @@ precisa mudar para essa chamada continuar funcionando?
   de um `depends_on` simples, que só espera o container **existir**, não
   espera ele **responder**.
 
+  **Três serviços, um schema, três históricos de migration.** Esta é a
+  armadilha que não aparece no `compose.yaml` e derruba a subida do dia. A
+  especificação da disciplina fixa **um único schema**, `rotasul`, e o
+  `compose.yaml` de hoje tem **um único** serviço `db`: os três serviços com
+  banco apontam `SPRING_DATASOURCE_URL` para o mesmo lugar. Só que o Flyway,
+  por padrão, grava o que já aplicou numa tabela de controle de nome fixo,
+  `flyway_schema_history`. Três serviços com o mesmo schema e o mesmo nome de
+  tabela de controle disputam **um histórico só**: o primeiro a subir grava
+  ali as suas migrations; o segundo lê a mesma tabela, encontra migrations
+  aplicadas que não existem no próprio `db/migration`, conclui que o histórico
+  está corrompido e aborta a subida com "Detected applied migration not
+  resolved locally". O `docker compose up` não completa, e o erro não fala de
+  arquitetura, fala de arquivo faltando.
+
+  O problema é de arquitetura distribuída, não de configuração: **estado
+  compartilhado sem dono definido**. Três processos independentes escrevendo
+  na mesma estrutura de controle, cada um com a sua verdade parcial sobre o
+  que já foi aplicado. Num desenho de microsserviços maduro a resposta seria
+  um banco por serviço, e é a resposta que vale citar em voz alta. Como o
+  case fixa schema único, a Rota Sul usa a segunda melhor: **cada serviço tem
+  a sua própria tabela de histórico dentro do mesmo schema**, declarada em
+  `application.properties`, e cuida apenas das próprias tabelas.
+
+  ```properties
+  spring.flyway.table=flyway_schema_history_pedidos
+  ```
+
+  Com isso, `pedidos-service` só conhece a tabela `pedido`,
+  `expedicao-service` só conhece `remessa` e `rastreamento-service` só conhece
+  `ocorrencia`; cada um aplica o seu conjunto de migrations, numerado a partir
+  de `V1` dentro do próprio módulo, sem enxergar o histórico dos outros.
+  `portal-web` não tem banco, não tem JPA e não tem Flyway.
+
+  **Migration aplicada não se edita.** O corolário precisa ficar dito: o
+  Flyway guarda o checksum de cada arquivo aplicado, e alterar o conteúdo de
+  uma migration que já rodou faz a subida seguinte falhar com erro de
+  validação. Como o laboratório de hoje **recorta** as migrations do monólito,
+  redistribuindo `pedido`, `remessa` e `ocorrencia` entre três módulos, os
+  arquivos mudam de nome, de numeração e de conteúdo. Isso só é legítimo
+  porque o banco do `compose.yaml` é um banco **novo**, num volume novo, que
+  nunca viu essas migrations. Se a turma já tiver subido o compose antes e
+  precisar recomeçar, a instrução é uma só: `docker compose down -v`, que
+  apaga o volume junto com os containers, e depois `docker compose up
+  --build`. Sem o `-v`, o volume antigo sobrevive, as tabelas já existem, e o
+  `CREATE TABLE` da migration recortada falha.
+
   **A URL do Codespaces existe enquanto o codespace está rodando.** Isso
   precisa ficar dito com todas as letras: o GitHub Codespaces **hiberna por
   inatividade**, e quando isso acontece, a URL pública para de responder. O
@@ -5630,8 +5783,8 @@ precisa mudar para essa chamada continuar funcionando?
   funcionar perfeitamente para quem o construiu e não abrir para mais
   ninguém.
 
-- **Demonstração no projetor.** Projetar o trecho do `compose.yaml` que
-  resolve as três primeiras armadilhas de uma vez:
+- **Demonstração no projetor.** Projetar o trecho do `compose.yaml` do kit que
+  resolve as armadilhas de uma vez:
 
   ```yaml
   services:
@@ -5653,6 +5806,7 @@ precisa mudar para essa chamada continuar funcionando?
         SPRING_DATASOURCE_USERNAME: root
         SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
         SPRING_JPA_HIBERNATE_DDL__AUTO: validate
+        SPRING_FLYWAY_TABLE: flyway_schema_history_pedidos
       depends_on:
         db:
           condition: service_healthy
@@ -5660,20 +5814,26 @@ precisa mudar para essa chamada continuar funcionando?
         - "8081:8080"
   ```
 
-  Apontar as quatro linhas que resolvem as três armadilhas: `db` como host,
+  Apontar as cinco linhas que resolvem as quatro armadilhas: `db` como host,
   não `localhost`; `SPRING_JPA_HIBERNATE_DDL__AUTO` com sublinhado duplo,
-  não simples; `healthcheck` no serviço `db`; e `condition: service_healthy`
-  no `depends_on` de quem depende dele.
+  não simples; `healthcheck` no serviço `db`; `condition: service_healthy`
+  no `depends_on` de quem depende dele; e `SPRING_FLYWAY_TABLE` com sufixo do
+  serviço, que aqui repete, em variável de ambiente, o que cada
+  `application.properties` já declara, para o valor ficar visível no mesmo
+  arquivo em que se lê o resto do desenho.
 
-- **Exercício curto.** Cinco minutos, em duplas. Três trechos quebrados de
+- **Exercício curto.** Cinco minutos, em duplas. Quatro trechos quebrados de
   `compose.yaml` são projetados, um de cada vez, e cada dupla identifica qual
-  das três armadilhas cada um representa: (a) `SPRING_DATASOURCE_URL:
+  das quatro armadilhas cada um representa: (a) `SPRING_DATASOURCE_URL:
   jdbc:mysql://localhost:3306/rotasul` dentro de um serviço do compose; (b)
   `SPRING_JPA_HIBERNATE_DDL_AUTO: validate`, com um sublinhado só; (c)
-  `depends_on: - db`, sem `condition`. Gabarito: (a) host errado, devia ser
+  `depends_on: - db`, sem `condition`; (d) os três serviços com banco sem
+  nenhuma linha de `SPRING_FLYWAY_TABLE`. Gabarito: (a) host errado, devia ser
   `db`; (b) falta o segundo sublinhado do hífen de `ddl-auto`; (c) falta
   `condition: service_healthy`, o compose só espera o container existir, não
-  esperar o banco responder.
+  espera o banco responder; (d) os três vão disputar a mesma
+  `flyway_schema_history` no schema `rotasul`, e o segundo a subir aborta com
+  "Detected applied migration not resolved locally".
 
 ### Quiz, 20h40 às 20h50
 
@@ -5697,30 +5857,75 @@ qualquer cliente consegue chamar, seja o `portal-web` de dentro da rede do
 `compose.yaml`, seja um `curl` de fora para depuração: o desenho de "servir
 vários tipos de clientes" que a alternativa D descreve para o EJB é o mesmo
 desenho que uma API REST bem definida cumpre para os serviços de hoje. As
-alternativas A e B estão erradas porque nenhum EJB existe sem ao menos uma
-interface de negócios, é ela quem define o contrato que os clientes usam. A
-C atende só clientes remotos, deixando de fora quem está no mesmo servidor,
-o oposto de "vários tipos de clientes".
+alternativas A e B estão erradas por alcance, não por ilegalidade: um
+`@Stateless` sem interface nenhuma é perfeitamente válido desde o EJB 3.1, que
+introduziu a *no-interface view*, mas essa visão é **local por definição**, só
+enxergada por clientes que rodam na mesma aplicação e na mesma JVM. Um
+componente sem interface, portanto, atende um tipo de cliente só, e é
+exatamente isso que a pergunta exclui; a A ainda agrava, porque `@Stateful`
+amarra uma instância a cada conversa de cliente, o contrário de um componente
+compartilhado por clientes variados. A C erra pelo lado oposto: atende só
+clientes remotos, deixando de fora quem está no mesmo servidor e pagando custo
+de rede sem necessidade.
+
+> **Nota para o professor.** Se algum aluno perguntar se um EJB pode existir
+> sem interface, a resposta é sim, desde o EJB 3.1. A razão de descartar A e B
+> aqui é o alcance da *no-interface view*, que é local, e não uma proibição da
+> especificação.
 
 ### Ciclo 3, 20h50 às 21h25
 
-Laboratório de quebra do monólito. O padrão é demonstrado por completo em
-`pedidos-service`; os outros três serviços seguem a mesma sequência de
-passos, aplicada ao próprio pacote.
+Laboratório de quebra do monólito. O andaime da montagem chega pronto no kit;
+o tempo de aula é gasto nas três coisas que ensinam arquitetura distribuída:
+quebrar o relacionamento de objeto, trocar a chamada em processo por chamada
+de rede, e publicar.
 
-1. **Criar o projeto multi-módulo.** Um `pom.xml` pai na raiz do fork, tipo
-   `pom`, listando os quatro módulos:
-   `<modules><module>pedidos-service</module><module>expedicao-service</module><module>rastreamento-service</module><module>portal-web</module></modules>`.
-   Cada módulo é um projeto Spring Boot completo, com seu próprio `pom.xml`
-   filho e sua própria classe `Application`.
+> **O que chega pronto no kit `aulas-1sem/labs/aula19-lab/`.** Tudo o que é
+> montagem repetitiva, e nada do que é decisão de arquitetura:
+>
+> - `pom.xml` pai na raiz, tipo `pom`, com os quatro módulos declarados e as
+>   versões de Spring Boot e Java 21 herdadas.
+> - Os quatro esqueletos de módulo, cada um com o seu `pom.xml` filho, a sua
+>   classe `Application` e o seu `application.properties` já preenchido. Nos
+>   três serviços com banco, isso inclui a linha `spring.flyway.table` própria
+>   de cada um, o `ddl-auto=validate` e a URL apontando para `db`; em
+>   `portal-web`, que não tem banco, o `pom.xml` filho não traz JPA, MySQL nem
+>   Flyway. Os diretórios de código e de `db/migration` chegam vazios: quem os
+>   preenche é o aluno.
+> - Os quatro `Dockerfile`, de duas etapas cada (build com Maven, execução em
+>   imagem JRE enxuta), o mesmo `.jar` executável que a Aula 08 já mostrou
+>   rodando com `java -jar`, agora empacotado numa imagem.
+> - O `compose.yaml` completo, com os cinco serviços, o `healthcheck` do `db`
+>   e os `depends_on` com `condition: service_healthy`.
+>
+> A justificativa é de tempo de aula: escrever quatro `pom.xml`, quatro
+> `Dockerfile` e um `compose.yaml` de cinco serviços é trabalho de várias
+> horas de digitação que não produz nenhum entendimento novo, e o critério de
+> aceitação do dia é o sistema **subindo**. O professor projeta os arquivos do
+> kit no Ciclo 2, e o aluno os lê antes de usá-los.
+
+1. **Instalar o kit e conferir que o esqueleto compila.** Copiar o conteúdo do
+   kit para a raiz do fork e rodar `./mvnw -q -DskipTests package`. Os quatro
+   módulos, ainda vazios de código de negócio, precisam compilar antes de
+   receber qualquer classe: se o `pom.xml` pai não estiver enxergando os
+   quatro módulos, é melhor descobrir agora. Abrir os quatro
+   `application.properties` e ler em voz alta a linha `spring.flyway.table` de
+   cada um, ligando com a quarta armadilha do Ciclo 2.
 2. **Mover `pedido.*` para `pedidos-service`.** Copiar `pedido/web`,
    `pedido/service`, `pedido/repository` e `pedido/domain` para dentro do
-   novo módulo, junto com `V1__cria_tabela_pedido.sql`. `pedidos-service`
-   sobe sozinho, com seu próprio `application.properties`, sem mais nada do
-   monólito.
-3. **Mover `expedicao.*` e `parceiro.*` para `expedicao-service`.** Junto,
-   as migrations `V2` e `V3` que criaram e relacionaram `remessa` e
-   `ocorrencia`... exceto a parte de `ocorrencia`, que muda no próximo passo.
+   módulo, e a migration da tabela `pedido` para o `db/migration` dele,
+   renumerada como `V1__cria_tabela_pedido.sql`, que é o `V1` **deste**
+   serviço. `pedidos-service` passa a ser dono da tabela `pedido` e de mais
+   nada.
+3. **Distribuir os outros dois contextos e recortar as migrations.**
+   `expedicao.*` e `parceiro.*` vão para `expedicao-service`, que recebe em
+   `db/migration` um `V1__cria_tabela_remessa.sql` contendo só a parte de
+   `remessa` da antiga migration de remessa e ocorrência. `rastreamento.*` vai
+   para `rastreamento-service`, que recebe um `V1__cria_tabela_ocorrencia.sql`
+   com a tabela `ocorrencia` **já com a coluna `remessa_id`**, isto é, com o
+   que a Aula 16 e a Aula 18 escreveram em duas migrations separadas fundido
+   numa só. As antigas migrations do monólito somem junto com o monólito;
+   nenhum banco existente é alterado, porque o `db` do compose sobe vazio.
 4. **Quebrar o relacionamento de objeto entre `Remessa` e `Ocorrencia`.**
    Este é o ponto central do dia. `Ocorrencia` não mora mais no mesmo
    classpath de `Remessa`: `expedicao-service` não tem mais a classe
@@ -5731,67 +5936,65 @@ passos, aplicada ao próprio pacote.
    referência por valor, não mais um objeto. Em `Remessa` (agora só em
    `expedicao-service`), a lista `ocorrencias` é removida por completo. A
    coluna `remessa_id`, sem `CONSTRAINT` formal desde a Aula 18, não precisa
-   de nenhuma migration nova para essa mudança, só o código Java muda.
-5. **Trocar a chamada em processo por uma chamada de rede.**
+   de nenhuma restrição a remover: o preço dessa decisão está sendo pago
+   agora, e é zero.
+5. **Mover a apresentação para `portal-web`.** Os templates Thymeleaf e
+   `PedidoFormController`, da Aula 13, migram para `portal-web`, que **não
+   tem banco próprio, nenhuma dependência de JPA, de MySQL nem de Flyway**:
+   ele consome os três outros serviços por REST, via `RestTemplate` ou
+   `WebClient`, apontando para `http://pedidos-service:8080` e os demais,
+   sempre pelo nome do serviço no compose.
+
+### Ciclo 4, 21h25 às 21h50
+
+6. **Trocar a chamada em processo por uma chamada de rede.**
    `RemessaService.baixarRemessa`, que chamava `ocorrenciaRepository.save`
    diretamente, passa a chamar um cliente HTTP,
    `RastreamentoServiceClient`, apontando para
    `http://rastreamento-service:8080/ocorrencias` (o nome do serviço no
    compose, não `localhost`), enviando `remessaId` no corpo da requisição.
    `rastreamento-service` ganha um `OcorrenciaController` novo, com `POST
-   /ocorrencias`, para receber essa chamada.
-6. **Mover `rastreamento.*` para `rastreamento-service`**, com seu próprio
-   recorte das migrations, contendo só a tabela `ocorrencia`.
-7. **Mover a apresentação para `portal-web`.** Os templates Thymeleaf e
-   `PedidoFormController`, da Aula 13, migram para `portal-web`, que **não
-   tem banco próprio, nenhuma dependência de JPA nem de MySQL**: ele consome
-   os três outros serviços por REST, via `RestTemplate` ou `WebClient`,
-   apontando para `http://pedidos-service:8080` e os demais, sempre pelo
-   nome do serviço no compose.
+   /ocorrencias`, para receber essa chamada. Dizer em voz alta o que se perdeu
+   no caminho: a transação única da Aula 16 acabou. Se a chamada HTTP falhar
+   depois de a remessa ter sido baixada, não existe `rollback` que desfaça as
+   duas coisas, porque são dois bancos lógicos e dois processos.
+7. **Subir tudo no Codespace.** `docker compose up --build`, conferindo que os
+   cinco containers sobem sem erro. Se o compose já tiver sido subido antes
+   nesta máquina, começar por `docker compose down -v`, para o volume do banco
+   ser recriado: as migrations recortadas no passo 3 pressupõem um schema
+   vazio. Acompanhar no log a linha do Flyway de cada serviço e conferir que
+   cada uma cita a sua própria tabela de histórico.
+8. **Publicar a porta como pública, o passo que mais gera 401.** No painel
+   de portas do Codespaces, clicar com o botão direito na porta do
+   `portal-web` e trocar a visibilidade de "Private" para "Public".
+   Confirmar abrindo a URL numa aba anônima do navegador, sem estar
+   autenticado como dono do codespace: se a tela do portal aparecer sem
+   pedir login, a porta está pública de verdade.
+9. **Testar a jornada completa pela URL pública.** Cadastrar um pedido pelo
+   `portal-web`, conferir que ele aparece em `pedidos-service`, dar baixa
+   numa remessa correspondente, e conferir que uma nova ocorrência aparece
+   em `rastreamento-service`, tudo através da URL pública, não de
+   `localhost`.
+10. **Atualizar o diagrama e registrar as decisões.** Editar
+    `docs/arquitetura/implantacao.puml`, esboçado na Aula 04, para representar
+    os quatro `node` reais mais o `database`, exatamente como o `compose.yaml`
+    de hoje os sobe: o esboço da quarta semana vira o retrato fiel do sistema.
+    Em `docs/decisoes.md`, quatro linhas: onde o contexto `parceiro` foi
+    encaixado (`expedicao-service`, pela relação com a última milha); a quebra
+    do relacionamento de objeto entre `Remessa` e `Ocorrencia` em referência
+    por `remessaId`; a tabela de histórico do Flyway separada por serviço
+    dentro do schema único, com o motivo; e o lembrete, escrito em letras
+    maiúsculas no próprio arquivo, de iniciar o codespace antes da Aula 20.
 
-### Ciclo 4, 21h25 às 21h50
-
-8. **Escrever o `Dockerfile` de cada serviço.** Um `Dockerfile` simples de
-   duas etapas por módulo (build com Maven, execução com uma imagem JRE
-   enxuta), o mesmo `.jar` executável que a Aula 08 já mostrou rodando com
-   `java -jar`, agora empacotado numa imagem.
-9. **Escrever o `compose.yaml` completo**, na raiz do fork, com os cinco
-   serviços (`db` mais os quatro), cada aplicação com seu `SPRING_DATASOURCE_URL`
-   apontando para `db`, sua variável de `ddl-auto` com o sublinhado duplo, e
-   `depends_on: db: condition: service_healthy`.
-10. **Subir tudo localmente no Codespace.** `docker compose up --build`,
-    conferindo que os cinco containers sobem sem erro e que `portal-web`
-    responde na porta que o Codespaces encaminhou.
-11. **Atualizar o diagrama de implantação.** Editar
-    `docs/arquitetura/implantacao.puml`, esboçado na Aula 04, para
-    representar os quatro `node` reais mais o `database`, exatamente como o
-    `compose.yaml` de hoje os sobe. O esboço da quarta semana vira o retrato
-    fiel do sistema na décima nona.
-12. **Publicar a porta como pública, o passo que mais gera 401.** No painel
-    de portas do Codespaces, clicar com o botão direito na porta do
-    `portal-web` e trocar a visibilidade de "Private" para "Public".
-    Confirmar abrindo a URL numa aba anônima do navegador, sem estar
-    autenticado como dono do codespace: se a tela do portal aparecer sem
-    pedir login, a porta está pública de verdade.
-13. **Testar a jornada completa pela URL pública.** Cadastrar um pedido pelo
-    `portal-web`, conferir que ele aparece em `pedidos-service`, dar baixa
-    numa remessa correspondente, e conferir que uma nova ocorrência aparece
-    em `rastreamento-service`, tudo através da URL pública, não de
-    `localhost`.
-14. **Registrar as decisões do dia.** Em `docs/decisoes.md`: onde o contexto
-    `parceiro` foi encaixado (`expedicao-service`, pela relação com a última
-    milha); a quebra do relacionamento de objeto entre `Remessa` e
-    `Ocorrencia` em referência por `remessaId`; e o lembrete, escrito em
-    letras maiúsculas no próprio arquivo, de iniciar o codespace antes da
-    Aula 20.
-
-**Entregável do dia:** quatro módulos Maven (`pedidos-service`,
-`expedicao-service`, `rastreamento-service`, `portal-web`), cada um com seu
-`Dockerfile`, subindo juntos por `compose.yaml`, com a URL pública do
-Codespaces respondendo e a porta do `portal-web` marcada como pública.
-Critério de aceitação: a jornada completa, cadastro de pedido pelo portal,
-baixa de remessa, ocorrência visível em rastreamento, funcionando pela URL
-pública, e as três decisões do passo 14 registradas em `docs/decisoes.md`.
+**Entregável do dia:** os quatro módulos Maven (`pedidos-service`,
+`expedicao-service`, `rastreamento-service`, `portal-web`) preenchidos com o
+código do monólito redistribuído, subindo juntos pelo `compose.yaml` do kit,
+com a URL pública do Codespaces respondendo e a porta do `portal-web` marcada
+como pública. Critério de aceitação: `docker compose up --build` sobe os cinco
+containers sem erro de Flyway; a jornada completa, cadastro de pedido pelo
+portal, baixa de remessa, ocorrência visível em rastreamento, funcionando pela
+URL pública; e as quatro linhas do passo 10 registradas em
+`docs/decisoes.md`.
 
 ### Fechamento, 21h50 às 22h00
 
@@ -5828,6 +6031,8 @@ pública, e as três decisões do passo 14 registradas em `docs/decisoes.md`.
    <https://docs.spring.io/spring-boot/reference/features/external-config.html>
 6. Docker. **Documentação de referência do `Dockerfile`.**
    <https://docs.docker.com/reference/dockerfile/>
+7. Flyway. **Documentação**, propriedade `flyway.table` e validação por
+   checksum. <https://documentation.red-gate.com/fd/table-184127474.html>
 
 ---
 
