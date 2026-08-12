@@ -2081,10 +2081,10 @@ de implementação, agora na camada de serviço.
   necessidade e invocá-lo.
 
 - **Demonstração no projetor.** Abrir `docs/arquitetura/componentes.puml`, da
-  Aula 05, e reler o diagrama com o vocabulário de hoje: o componente
+  Aula 04, e reler o diagrama com o vocabulário de hoje: o componente
   "Integração com parceiros" é um Provedor de Serviço, que oferece a interface
   `despacharUltimaMilha`; o componente "Montagem de remessas" é o Consumidor
-  dessa interface. O diagrama que a turma desenhou há duas aulas já é, sem que
+  dessa interface. O diagrama que a turma desenhou há três aulas já é, sem que
   ninguém tivesse dito o nome, um desenho de arquitetura orientada a serviços.
   Falta uma peça: o capítulo cita como exemplo real de Provedor de Serviço o
   serviço de consulta de CEP dos Correios, que a Aula 10 vai usar como modelo
@@ -2223,7 +2223,7 @@ qualquer alteração no controlador.
    <https://docs.spring.io/spring-framework/reference/core/beans/environment.html>
 5. JUnit. **JUnit 5 User Guide.** <https://junit.org/junit5/docs/current/user-guide/>
 6. `docs/arquitetura/componentes.puml` do fork do aluno, entregável da Aula
-   05, usado na demonstração do Ciclo 2.
+   04, usado na demonstração do Ciclo 2.
 
 ---
 

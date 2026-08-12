@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aula 07, Arquitetura orientada a serviços, SOA | Uninove</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="../assets/css/uninove-theme.css">
+  <link rel="stylesheet" href="../assets/css/uninove-print.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ==================== SLIDE 1: CAPA ==================== -->
+      <section class="cover-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho" class="uninove-logo-full"
+             style="max-width:400px; background:#FFFFFF; padding:26px 36px; border-radius:10px;">
+        <div style="margin-top:36px; color:#FFFFFF; font-size:0.95em; font-weight:800; letter-spacing:4px; text-transform:uppercase;">Arquitetura de Software</div>
+        <div style="margin-top:12px; color:#C84B31; font-size:0.6em; font-weight:700; letter-spacing:3px; text-transform:uppercase;">Graduação, 2026.2</div>
+      </section>
+
+      <!-- ==================== SLIDE 2: TÍTULO ==================== -->
+      <section class="title-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="title-card">
+          <div class="accent-bar"></div>
+          <h1>Arquitetura de Software</h1>
+          <h2>Arquitetura orientada a serviços, SOA</h2>
+          <h3>Prof. José Romualdo</h3>
+        </div>
+        <div class="lesson-bar">AULA 07 &nbsp;|&nbsp; Módulo 2, Integração e serviços distribuídos</div>
+      </section>
+
+      <!-- ==================== SLIDE 3: AGENDA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Agenda do encontro de hoje</h2>
+        </div>
+
+        <p class="lead">São 150 minutos corridos, em quatro ciclos. Não há intervalo formal: a troca de ciclo é o respiro da aula.</p>
+
+        <table>
+          <thead>
+            <tr><th style="width:190px;">Horário</th><th style="width:200px;">Bloco</th><th>O que acontece</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>19h30 às 20h05</td><td>Ciclo 1</td><td>Comunicação entre componentes: ponto a ponto, cliente-servidor e broadcast</td></tr>
+            <tr><td>20h05 às 20h40</td><td>Ciclo 2</td><td>Arquitetura Orientada a Serviços, SOA, e seus três componentes principais</td></tr>
+            <tr><td>20h40 às 20h50</td><td>Quiz de fixação</td><td>O conceito de serviço no modelo SOA</td></tr>
+            <tr><td>20h50 às 21h25</td><td>Ciclo 3</td><td>Laboratório: separar a interface <code>PedidoService</code> de sua implementação</td></tr>
+            <tr><td>21h25 às 21h50</td><td>Ciclo 4</td><td>Laboratório: segunda implementação, suíte de contrato e troca de perfil</td></tr>
+            <tr><td>21h50 às 22h00</td><td>Fechamento</td><td>Commit, push e prévia da Aula 08</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Agenda do encontro</div>
+          <div class="footer-page">3</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 4: RETOMADA DA AULA 06 ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Retomada: o que a Aula 06 deixou pronto</h2>
+        </div>
+
+        <p class="lead">Na Aula 06 cada aluno entregou a primeira fatia em três camadas de <code>br.uni9.rotasul.pedido</code>: <code>PedidoController</code>, <code>PedidoService</code> como classe concreta, a interface <code>PedidoRepository</code> e a implementação em memória.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>O que já tem contrato</h4>
+            <p style="margin:0;">O repositório já ganhou o tratamento certo: <code>PedidoRepository</code> é uma interface, e <code>PedidoRepositoryEmMemoria</code> é só uma das formas possíveis de implementá-la.</p>
+          </div>
+          <div class="side">
+            <h4>O que ainda não tem</h4>
+            <p style="margin:0;"><code>PedidoService</code> é uma classe, não uma interface, e o <code>PedidoController</code> depende diretamente dela. Trocar a forma de decidir um pedido hoje exigiria mudar o controlador.</p>
+          </div>
+        </div>
+
+        <div class="takeaway">
+          <span class="takeaway-label">A pergunta que abre a aula</span>
+          <p>E se a Rota Sul precisar de duas formas diferentes de decidir se aceita um pedido, uma para o fluxo normal e outra para quando o lojista está sob análise de risco? A aula de hoje resolve isso do mesmo jeito que a Aula 06 já resolveu para o repositório: separando contrato de implementação, agora na camada de serviço.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Retomada</div>
+          <div class="footer-page">4</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 5: CICLO 1, COMPONENTE E COMUNICAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Componente de software e comunicação entre componentes <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">O capítulo retoma a definição já vista na Aula 06 e a aplica à troca de mensagens entre componentes.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Componente de software, revisitado</h4>
+            <p style="margin:0;">A parte do sistema responsável por executar um único serviço, como validar um CPF, verificar um endereço a partir do CEP, ou gerar um identificador ao gravar dados numa base. É o conceito mais comum ao modelo SOA.</p>
+          </div>
+          <div class="side">
+            <h4>Comunicação entre componentes</h4>
+            <p style="margin:0;">Quem envia inicia a comunicação solicitando um processamento; quem recebe verifica o que precisa fazer e executa; ao final envia outra mensagem de volta, com a resposta. Controlar esse tráfego exige uma estratégia.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Componente e comunicação</div>
+          <div class="footer-page">5</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 6: CICLO 1, PONTO A PONTO E CLIENTE-SERVIDOR ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Ponto a ponto e cliente-servidor <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">As duas primeiras estratégias são unicast: um nó determina quem recebe a mensagem.</p>
+
+        <table style="margin-top:4px; font-size:0.72em;">
+          <thead>
+            <tr><th>Modelo</th><th>Como funciona</th><th>Ponto de atenção</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Ponto a ponto</td><td>O nó de origem copia a mensagem e a envia a um nó, ou conjunto de nós, conectados na rede</td><td>Atraso nas transmissões, perda de sincronismo, escalabilidade inviável</td></tr>
+            <tr><td>Cliente-servidor</td><td>A mensagem vai para um servidor, que centraliza o processamento e distribui aos clientes</td><td>Processamento em vários servidores pode gerar redundância</td></tr>
+          </tbody>
+        </table>
+
+        <div class="takeaway" style="margin-top:10px;">
+          <span class="takeaway-label">A vantagem do cliente-servidor</span>
+          <p>Os clientes não precisam ficar sempre conectados, o que reduz o uso da rede.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Ponto a ponto e cliente-servidor</div>
+          <div class="footer-page">6</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 7: CICLO 1, BROADCAST E A CONVERGÊNCIA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Broadcast e a convergência para o SOA <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Broadcast reduz o custo de verificação de recebimento que o unicast exige em cada nó.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Broadcast</h4>
+            <p style="margin:0;">Funciona como rádio ou TV: um nó envia, a mensagem fica disponível a todo nó conectado, e só quem deseja a processa. Exige que a rede suporte o envio e que os interessados estejam conectados no momento.</p>
+          </div>
+          <div class="side">
+            <h4>A convergência para o SOA</h4>
+            <p style="margin:0;">Combinar vários modelos soma vantagens e desvantagens. Para reduzir o impacto negativo, surgiu um modelo em que os nós desempenham, ao mesmo tempo, os papéis de cliente e servidor: é esse modelo híbrido que torna o SOA popular.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Broadcast e convergência</div>
+          <div class="footer-page">7</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 8: CICLO 1, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: duas situações da Rota Sul</h2>
+        </div>
+
+        <p class="lead">Duas comunicações do case, para distinguir os modelos na prática.</p>
+
+        <div class="exercise-container">
+          <h3>No projetor</h3>
+          <ol class="exercise-steps">
+            <li>O atendente liga para um motorista específico perguntando onde está o volume: ponto a ponto, só os dois nós participam, como já visto na Aula 03.</li>
+            <li>Um alarme sonoro soa no armazém avisando todos os expedidores presentes de que um caminhão está atrasado: broadcast, a mensagem chega a todos os conectados, e só quem está prestando atenção a processa.</li>
+          </ol>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Demonstração, duas situações</div>
+          <div class="footer-page">8</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 9: EXERCÍCIO CURTO DO CICLO 1 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício individual: classificar três comunicações</h2>
+        </div>
+
+        <p class="lead">Cinco minutos, individual. Classificar cada comunicação da Rota Sul.</p>
+
+        <div class="exercise-container">
+          <h3>As três comunicações</h3>
+          <ol class="exercise-steps">
+            <li>O atendente liga para o motorista X perguntando sua posição.</li>
+            <li>O painel de ocorrências mostra, ao mesmo tempo, para todos os expedidores conectados, uma ocorrência recém-registrada.</li>
+            <li>O sistema recebe todos os pedidos do dia num servidor central, que os distribui aos expedidores conforme a rota.</li>
+          </ol>
+        </div>
+
+        <div class="callout">
+          <p><strong>Gabarito:</strong> (a) ponto a ponto, (b) broadcast, (c) cliente-servidor.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Exercício, três comunicações</div>
+          <div class="footer-page">9</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 10: CICLO 2, SERVIÇO NO MODELO SOA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Serviço, no modelo de Arquitetura Orientada a Serviços <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">SOA, sigla de <em>Service Oriented Architecture</em>, orienta o desenvolvedor a basear o projeto em componentes que executam serviços específicos.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Definição</h4>
+            <p style="margin:0;">No modelo SOA, o termo serviço tem significado parecido com o de componente de software: é um componente independente e autocontido, capaz de terminar o que está fazendo independentemente de o resultado ser positivo ou negativo.</p>
+          </div>
+          <div class="side">
+            <h4>Como identificar os serviços</h4>
+            <p style="margin:0;">É praticamente o mesmo processo usado para componentes: o projetista identifica quais serviços o software precisa e como eles se comunicam, seja por metadados, seja por mensagens.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Serviço no modelo SOA</div>
+          <div class="footer-page">10</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 11: CICLO 2, OS TRÊS COMPONENTES DO SOA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Os três componentes principais do modelo SOA <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">O SOA se apoia no modelo de comunicação híbrida do Ciclo 1: um nó pode ser, ao mesmo tempo, Provedor e Consumidor.</p>
+
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-top:10px;">
+          <div class="concept-card">
+            <h4>Provedor de Serviço</h4>
+            <p style="font-size:0.72em;">Executa um determinado serviço e mantém a rede informada sobre qual tipo de serviço está oferecendo.</p>
+          </div>
+          <div class="concept-card">
+            <h4>Serviço de Descoberta</h4>
+            <p style="font-size:0.72em;">Armazena a localização dos serviços disponíveis na rede e conecta o serviço solicitado a quem o solicitou.</p>
+          </div>
+          <div class="concept-card">
+            <h4>Consumidor</h4>
+            <p style="font-size:0.72em;">É quem solicita a execução de um serviço.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Os três componentes do SOA</div>
+          <div class="footer-page">11</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 12: CICLO 2, DESCRIÇÃO DE SERVIÇO E CONSEQUÊNCIAS ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Descrição de serviço e as consequências do modelo <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Todo Provedor de Serviços define uma Descrição de Serviço: o que ele faz e o que o Consumidor precisa fornecer para usá-lo.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Interface de serviço</h4>
+            <p style="margin:0; font-size:0.72em;">Conjunto de métodos invocáveis mais os tipos de dados usados na invocação. Permite que o Consumidor use o serviço sem saber como o Provedor funciona por dentro: é a base do reuso de software no SOA.</p>
+          </div>
+          <div class="side">
+            <h4>Consequências</h4>
+            <p style="margin:0; font-size:0.72em;">Sistema distribuído, ambiente heterogêneo, exigindo interoperabilidade por padrões de protocolo e metadados. Resultado: baixo acoplamento, com componentes localizados e invocados dinamicamente.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Descrição de serviço</div>
+          <div class="footer-page">12</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 13: CICLO 2, APLICANDO O SOA E DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Aplicando o SOA e revisitando o diagrama da Rota Sul</h2>
+        </div>
+
+        <p class="lead">O capítulo fecha ligando o SOA aos sistemas colaborativos das Aulas 03 e 04.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Nos aplicativos colaborativos</h4>
+            <p style="margin:0; font-size:0.72em;">Os usuários atuam tanto como Provedores, ao criar e publicar um serviço, quanto como Consumidores, ao pesquisar um serviço que atenda a uma necessidade e invocá-lo.</p>
+          </div>
+          <div class="side">
+            <h4>No projetor</h4>
+            <p style="margin:0; font-size:0.72em;">Abrir <code>componentes.puml</code>, entregável da Aula 04: "Integração com parceiros" é um Provedor de Serviço, que oferece <code>despacharUltimaMilha</code>; "Montagem de remessas" é o Consumidor dessa interface.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:10px;">
+          <span class="takeaway-label">Falta uma peça</span>
+          <p>O capítulo cita como exemplo real de Provedor de Serviço o serviço de consulta de CEP dos Correios, que a Aula 10 vai usar como modelo para o parceiro legado da Rota Sul.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Aplicando o SOA</div>
+          <div class="footer-page">13</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 14: EXERCÍCIO CURTO DO CICLO 2 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício em duplas: quem é Provedor, quem é Consumidor</h2>
+        </div>
+
+        <p class="lead">Cinco minutos, em duplas. Para cada interação, decidir quem é Provedor e quem é Consumidor.</p>
+
+        <div class="exercise-container">
+          <h3>As três interações</h3>
+          <ol class="exercise-steps">
+            <li>O motorista solicita ao servidor da Rota Sul a lista de entregas do dia.</li>
+            <li>O parceiro da última milha avisa a Rota Sul que um volume foi entregue.</li>
+            <li>O atendente da Rota Sul consulta o serviço de CEP dos Correios para validar um endereço.</li>
+          </ol>
+        </div>
+
+        <div class="callout">
+          <p><strong>Gabarito:</strong> (a) Provedor é o servidor da Rota Sul, Consumidor é o app do motorista; (b) Provedor é o parceiro, Consumidor é a Rota Sul; (c) Provedor são os Correios, Consumidor é a Rota Sul.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Exercício, Provedor e Consumidor</div>
+          <div class="footer-page">14</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 15: QUIZ DE FIXAÇÃO ==================== -->
+      <section class="quiz-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area"><div class="accent-bar"></div><h2>Quiz de fixação</h2></div>
+        <div class="quiz-container">
+          <div class="quiz-question">A Rota Sul expõe a montagem de remessas como um serviço que outros componentes invocam sem conhecer sua implementação. Qual afirmação descreve o conceito de serviço no modelo SOA?</div>
+          <ul class="quiz-options">
+            <li data-correct="false"><span class="option-letter">A</span> É um conceito completamente diferente de componente de software, sem relação entre os dois.</li>
+            <li data-correct="true"><span class="option-letter">B</span> Tem significado parecido com o de componente de software: é independente e autocontido, capaz de terminar o que faz independentemente de o resultado ser positivo ou negativo.</li>
+            <li data-correct="false"><span class="option-letter">C</span> Só pode ser consumido por aplicativos escritos na mesma linguagem de programação do Provedor.</li>
+            <li data-correct="false"><span class="option-letter">D</span> Elimina a necessidade de qualquer comunicação em rede entre os componentes.</li>
+          </ul>
+          <div class="quiz-feedback"
+               data-correct-msg="Correto. É a definição do capítulo: serviço é independente e autocontido, terminando o que faz independentemente do resultado ser positivo ou negativo."
+               data-incorrect-msg="Incorreto. A nega a relação entre serviço e componente, C contraria a interoperabilidade do ambiente heterogêneo, D ignora que o SOA existe para orquestrar comunicação em rede."></div>
+        </div>
+        <div class="slide-footer"><div class="footer-bar">07 Quiz de fixação</div><div class="footer-page">15</div></div>
+      </section>
+
+      <!-- ==================== SLIDE 16: LABORATÓRIO, INTRODUÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório: separar contrato de implementação, agora no serviço</h2>
+        </div>
+
+        <p class="lead">O código de hoje não cria endpoint novo: reorganiza o <code>pedido.service</code> que a Aula 06 entregou, aplicando à camada de serviço a mesma lição que a Aula 06 já aplicou ao repositório.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>O que já existe</h4>
+            <p style="margin:0; font-size:0.72em;"><code>PedidoRepository</code> já é interface, com <code>PedidoRepositoryEmMemoria</code> implementando-a. Hoje <code>PedidoService</code> ganha o mesmo tratamento.</p>
+          </div>
+          <div class="side">
+            <h4>O que muda</h4>
+            <p style="margin:0; font-size:0.72em;"><code>PedidoService</code> deixa de ser classe e vira interface, com duas implementações por trás dela, trocáveis por perfil do Spring.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Laboratório, introdução</div>
+          <div class="footer-page">16</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 17: LAB PASSO 1, EXTRAIR A INTERFACE ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 1: extrair a interface</h2>
+        </div>
+
+        <p class="lead">Em <code>pedido/service</code>, criar a interface <code>PedidoService</code> com as duas assinaturas já existentes. Nenhuma anotação de framework: ela é o contrato, não a implementação.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public interface PedidoService {
+  Pedido registrar(Pedido pedido);
+  List&lt;Pedido&gt; listar();
+}</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Laboratório, passo 1, interface</div>
+          <div class="footer-page">17</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 18: LAB PASSO 2, RENOMEAR A IMPLEMENTAÇÃO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 2: renomear a implementação atual</h2>
+        </div>
+
+        <p class="lead">A classe <code>PedidoService</code> da Aula 06 passa a se chamar <code>PedidoServicePadrao</code> e a implementar a interface, mantendo o construtor e a regra de recusar pedido sem cliente.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Service
+@Profile("padrao")
+public class PedidoServicePadrao implements PedidoService {
+  private final PedidoRepository pedidoRepository;
+  public PedidoServicePadrao(PedidoRepository pedidoRepository) {
+    this.pedidoRepository = pedidoRepository;
+  }
+  // registrar(...) e listar(...): corpo idêntico ao PedidoService
+  // da Aula 06, migrado para cá sem alteração nenhuma
+}</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Laboratório, passo 2, renomear</div>
+          <div class="footer-page">18</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 19: LAB PASSO 3, AJUSTAR O CONTROLADOR ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 3: ajustar o controlador</h2>
+        </div>
+
+        <p class="lead">Conferir que <code>PedidoController</code> passa a receber <code>PedidoService</code>, a interface, no construtor. Se ele ainda importar <code>PedidoServicePadrao</code> em algum lugar, a separação não terminou.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@RestController
+@RequestMapping("/pedidos")
+public class PedidoController {
+  private final PedidoService pedidoService;
+  public PedidoController(PedidoService pedidoService) {
+    this.pedidoService = pedidoService;
+  }
+  // listar() e registrar(...): idênticos aos da Aula 06
+}</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p><strong>O que muda não é o nome:</strong> <code>pedidoService</code> já era o nome do parâmetro na Aula 06. O que muda é o tipo que esse nome designa.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Laboratório, passo 3, controlador</div>
+          <div class="footer-page">19</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 20: LAB PASSO 4, CONFIGURAR O PERFIL PADRÃO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 4: configurar o perfil padrão</h2>
+        </div>
+
+        <p class="lead">Sem esta linha, nenhum bean de <code>PedidoService</code> fica ativo: os dois candidatos estão guardados por <code>@Profile</code>, e o Spring recusa subir sem um deles disponível.</p>
+
+        <pre class="code-compact"><code class="language-properties" data-trim># application.properties
+spring.profiles.active=padrao</code></pre>
+
+        <pre class="code-compact" style="margin-top:8px;"><code class="language-bash" data-trim>./mvnw spring-boot:run
+curl http://localhost:8080/pedidos</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p><strong>Conferir:</strong> <code>GET /pedidos</code> continua respondendo exatamente como na Aula 06.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Laboratório, passo 4, perfil</div>
+          <div class="footer-page">20</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 21: LAB PASSO 5, A SEGUNDA IMPLEMENTAÇÃO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: criar a segunda implementação</h2>
+        </div>
+
+        <p class="lead"><code>PedidoServiceComAnaliseDeRisco</code>, anotada <code>@Service</code> e <code>@Profile("risco")</code>. Mantém a regra herdada e acrescenta a recusa de lojista bloqueado.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Service
+@Profile("risco")
+public class PedidoServiceComAnaliseDeRisco implements PedidoService {
+  private static final Set&lt;String&gt; LOJISTAS_BLOQUEADOS = Set.of("LOJISTA-BLOQUEADO");
+  // construtor idêntico ao de PedidoServicePadrao
+  public Pedido registrar(Pedido pedido) {
+    // mesma checagem de cliente vazio de PedidoServicePadrao, mais:
+    if (LOJISTAS_BLOQUEADOS.contains(pedido.getCliente())) {
+      throw new IllegalArgumentException("Pedido de lojista bloqueado é recusado.");
+    }
+    return pedidoRepository.salvar(pedido);
+  }
+  // listar(...): idêntico ao de PedidoServicePadrao
+}</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Laboratório, passo 5, segunda implementação</div>
+          <div class="footer-page">21</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 22: LAB PASSO 6, SUÍTE DE CONTRATO (1/2) ==================== -->
+      <!-- PedidoServiceContratoTest tem dois testes e passa de 20 linhas
+           mesmo sem package/import. Pela mesma regra de segurança usada no
+           teste da Aula 06 (dividir em dois, nunca reduzir a fonte), este
+           bloco também foi dividido em dois slides. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 6: a suíte de contrato, parte 1 de 2</h2>
+        </div>
+
+        <p class="lead">Em <code>src/test/.../pedido/service/</code>, criar a classe abstrata <code>PedidoServiceContratoTest</code>. Nenhum dos testes sabe qual implementação está rodando: eles testam só o contrato.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>abstract class PedidoServiceContratoTest {
+  protected abstract PedidoService criarServico();
+
+  @Test
+  void registraPedidoValidoEApareceNaListagem() {
+    PedidoService pedidoService = criarServico();
+    Pedido pedido = new Pedido("Lojista Ana", "Duas caixas");
+    pedidoService.registrar(pedido);
+    assertThat(pedidoService.listar()).hasSize(1);
+  }
+  // continua: o caso da recusa por cliente ausente</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Laboratório, passo 6, suíte 1/2</div>
+          <div class="footer-page">22</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 23: LAB PASSO 6, SUÍTE DE CONTRATO (2/2) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 6: a suíte de contrato, parte 2 de 2</h2>
+        </div>
+
+        <p class="lead">Continuação: o teste que confirma a recusa por cliente ausente.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>  @Test
+  void recusaPedidoSemClienteInformado() {
+    PedidoService pedidoService = criarServico();
+    Pedido pedido = new Pedido("", "Pedido sem cliente");
+    assertThatThrownBy(() -&gt; pedidoService.registrar(pedido))
+        .isInstanceOf(IllegalArgumentException.class);
+    assertThat(pedidoService.listar()).isEmpty();
+  }
+}</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p><strong>Gabarito completo,</strong> com os dois métodos e os imports, está no <code>README.md</code> do laboratório.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Laboratório, passo 6, suíte 2/2</div>
+          <div class="footer-page">23</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 24: LAB PASSO 7, ESTENDER A SUÍTE ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 7: estender a suíte para cada implementação</h2>
+        </div>
+
+        <p class="lead">Duas classes concretas, cada uma implementando <code>criarServico()</code> para devolver a sua própria implementação, com um <code>PedidoRepositoryEmMemoria</code> novo a cada teste.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>class PedidoServicePadraoContratoTest extends PedidoServiceContratoTest {
+  protected PedidoService criarServico() {
+    return new PedidoServicePadrao(new PedidoRepositoryEmMemoria());
+  }
+}
+class PedidoServiceComAnaliseDeRiscoContratoTest extends PedidoServiceContratoTest {
+  protected PedidoService criarServico() {
+    return new PedidoServiceComAnaliseDeRisco(new PedidoRepositoryEmMemoria());
+  }
+}</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p><strong><code>./mvnw test</code>:</strong> os dois métodos da classe abstrata executam duas vezes, uma para cada implementação, e as quatro execuções precisam passar.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Laboratório, passo 7, estender suíte</div>
+          <div class="footer-page">24</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 25: LAB PASSO 8, CONFIRMAR A TROCA DE PERFIL ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 8: confirmar a troca de perfil em tempo de execução</h2>
+        </div>
+
+        <p class="lead">Subir com o perfil <code>risco</code> e enviar um pedido do lojista bloqueado; depois voltar ao perfil <code>padrao</code> e repetir.</p>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>./mvnw spring-boot:run -Dspring-boot.run.profiles=risco
+curl -X POST http://localhost:8080/pedidos \
+  -H "Content-Type: application/json" \
+  -d '{"cliente":"LOJISTA-BLOQUEADO","descricao":"Pedido suspeito"}'
+# resposta de recusa
+
+./mvnw spring-boot:run
+# mesmo POST agora responde com sucesso</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p><strong>Colar as duas evidências no commit.</strong></p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Laboratório, passo 8, troca de perfil</div>
+          <div class="footer-page">25</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 26: LAB PASSO 9, REGISTRAR A DECISÃO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 9: registrar a decisão</h2>
+        </div>
+
+        <p class="lead">Em <code>docs/decisoes.md</code>, uma linha nova explicando o padrão de contrato mais implementações trocáveis por perfil.</p>
+
+        <div class="exercise-container">
+          <h3>O que a linha precisa dizer</h3>
+          <ol class="exercise-steps">
+            <li>O padrão adotado: interface <code>PedidoService</code> mais duas implementações escolhidas por <code>@Profile</code>.</li>
+            <li>O motivo: trocar a regra de negócio sem alterar o controlador nem quem consome o serviço.</li>
+          </ol>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">A frase que liga ao vocabulário de hoje</span>
+          <p>A interface é a Descrição de Serviço, e cada implementação é um Provedor diferente por trás do mesmo contrato.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Laboratório, passo 9, decisão</div>
+          <div class="footer-page">26</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 27: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- O slide do entregável é o último passo do laboratório e nasce
+           dentro do Ciclo 4, então leva `exercise-slide content-slide` como
+           os demais slides de passo. Ver ADR-008. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Entregável de hoje e critérios de aceitação</h2>
+        </div>
+
+        <p class="lead">A interface <code>PedidoService</code>, as duas implementações, e a suíte de teste abstrata estendida pelas duas.</p>
+
+        <table style="margin-top:4px; font-size:0.64em;">
+          <thead>
+            <tr><th style="width:380px;">Critério de aceitação</th><th>Evidência conferida na correção</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>./mvnw test</code> passando</td><td>Quatro execuções verdes, duas por implementação</td></tr>
+            <tr><td>Nenhuma anotação de framework na interface</td><td><code>PedidoService.java</code> sem <code>@Service</code> nem <code>@Profile</code></td></tr>
+            <tr><td><code>PedidoController</code> depende só da interface</td><td>Nenhum import de <code>PedidoServicePadrao</code> nem de <code>PedidoServiceComAnaliseDeRisco</code> no controlador</td></tr>
+            <tr><td>Troca de perfil muda o comportamento observável</td><td>Lojista bloqueado recusado no perfil <code>risco</code>, aceito no <code>padrao</code>, sem alteração no controlador</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Entregável e critérios</div>
+          <div class="footer-page">27</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 28: FECHAMENTO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Commit, push e prévia da Aula 08</h2>
+        </div>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>git add src docs
+git commit -m "feat(pedido): separa contrato PedidoService de duas implementações trocáveis por perfil"
+git push</code></pre>
+
+        <div class="side-by-side" style="margin-top:12px;">
+          <div class="side" style="padding:14px 18px;">
+            <h4>O Módulo 2 abre aqui</h4>
+            <p style="margin:0; font-size:0.68em;">Hoje a Rota Sul trocou a implementação de um serviço sem tocar em quem o consome. É a mesma lição do repositório da Aula 06, agora um andar acima.</p>
+          </div>
+          <div class="side" style="padding:14px 18px;">
+            <h4>Prévia da Aula 08</h4>
+            <p style="margin:0; font-size:0.68em;">Amanhã a Rota Sul troca a forma de empacotar e rodar a aplicação inteira, comparando o <code>.jar</code> executável com o modelo de servidor de aplicações. O entregável é o <code>.jar</code> rodando sozinho, sem <code>./mvnw</code>, mais a comparação escrita.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Fechamento</div>
+          <div class="footer-page">28</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 29: REFERÊNCIAS ==================== -->
+      <section id="ref-slide" class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Referências desta aula</h2>
+        </div>
+
+        <p class="lead">Os números entre colchetes nos títulos remetem a esta lista.</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; margin-top:14px;">
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[1] Arquitetura Orientada a Serviços (SOA)</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">MESQUITA, P. R. B. <em>Capítulo 06</em>. Arquitetura de Software. AVA, Uninove. Fonte primária desta aula.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[2] Sistemas Colaborativos</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">PIMENTEL, M.; FUCKS, H. Rio de Janeiro: Campus, 2011. Referência indicada pelo capítulo, já usada na Aula 03.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[3] Achieving Service-Oriented Architecture</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">SWENEY, R. Wiley, 2010. Referência indicada pelo capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[4] Documentação do Spring Framework</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">Seção de perfis (<code style="font-size:0.9em;">@Profile</code>), <code style="font-size:0.9em;">docs.spring.io/spring-framework</code>.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[5] JUnit 5 User Guide</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;"><code style="font-size:0.9em;">junit.org/junit5/docs/current/user-guide</code></p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[6] <code style="font-size:0.9em;">componentes.puml</code> do fork</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">Entregável da Aula 04, usado na demonstração do Ciclo 2.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">07 Referências</div>
+          <div class="footer-page">29</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 30: ENCERRAMENTO ==================== -->
+      <section class="end-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
+             style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">
+        <div class="copyright">
+          Copyright &copy; 2026<br>
+          Prof. José Romualdo da Costa Filho<br><br>
+          Todos os direitos reservados. É expressamente proibida a reprodução, divulgação<br>
+          total ou parcial, deste material acadêmico sem autorização formal,<br>
+          por escrito, do Professor autor da ementa.
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="../assets/js/uninove-quiz.js"></script>
+  <script>
+    Reveal.initialize({
+      width: 1280, height: 720, center: false, margin: 0,
+      hash: true, slideNumber: false,
+      // Os chevrons de navegação caem sobre a footer-bar e sobre o triângulo
+      // azul do canto inferior direito; a barra de progresso encosta no rodapé
+      // e parece um segundo rodapé. Nenhum dos dois é usado na projeção.
+      controls: false, progress: false,
+      // Um slide por página no ?print-pdf, para o PDF bater com o deck.
+      pdfMaxPagesPerSlide: 1,
+      plugins: [RevealHighlight],
+    });
+  </script>
+</body>
+</html>
