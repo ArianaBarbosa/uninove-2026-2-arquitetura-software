@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Suite de testes dos validadores
+        run: python -m pytest tests/ -v
+
+      - name: Estrutura dos decks
+        run: |
+          shopt -s nullglob
+          decks=(aulas-1sem/aulas/aula*.html)
+          if [ ${#decks[@]} -eq 0 ]; then echo "nenhum deck ainda"; exit 0; fi
+          python tools/check_decks.py "${decks[@]}"
+
+      # check_slides.py e check_canto_coral.py sobem um Chromium via Playwright
+      # e o tema carrega o Reveal por CDN (jsDelivr). Ou seja, este passo tem
+      # dependência de rede: se o jsDelivr estiver fora do ar, o passo falha
+      # sem que exista defeito real no material. Quem investigar um build
+      # vermelho aqui deve checar a disponibilidade do CDN antes de suspeitar
+      # dos decks.
+      - name: Geometria dos decks
+        run: |
+          shopt -s nullglob
+          decks=(aulas-1sem/aulas/aula*.html)
+          if [ ${#decks[@]} -eq 0 ]; then echo "nenhum deck ainda"; exit 0; fi
+          python tools/check_slides.py "${decks[@]}"
+          python tools/check_canto_coral.py "${decks[@]}"
+
+      - name: Portal
+        run: |
+          if [ ! -f aulas-1sem/index.html ]; then echo "portal ainda nao existe"; exit 0; fi
+          python tools/check_portal.py
