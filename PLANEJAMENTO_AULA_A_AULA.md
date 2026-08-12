@@ -2139,11 +2139,21 @@ de serviço a mesma lição que a Aula 06 já aplicou à camada de repositório.
    `PedidoService` com as duas assinaturas já existentes: `Pedido
    registrar(Pedido pedido)` e `List<Pedido> listar()`. Nenhuma anotação de
    framework na interface: ela é o contrato, não a implementação.
-2. **Renomear a implementação atual.** A classe `PedidoService` da Aula 06
-   passa a se chamar `PedidoServicePadrao` e a implementar a interface
-   `PedidoService`, mantendo o construtor que recebe `PedidoRepository` e a
-   regra de recusar pedido sem cliente. Anotar com `@Service` e com
-   `@Profile("padrao")`.
+2. **Renomear a implementação atual, e o teste que a instanciava.** A classe
+   `PedidoService` da Aula 06 passa a se chamar `PedidoServicePadrao` e a
+   implementar a interface `PedidoService`, mantendo o construtor que recebe
+   `PedidoRepository` e a regra de recusar pedido sem cliente. Anotar com
+   `@Service` e com `@Profile("padrao")`. Essa troca de tipo quebra
+   `PedidoServiceTest`, o teste que a Aula 06 entregou: ele instancia `new
+   PedidoService(new PedidoRepositoryEmMemoria())` no `@BeforeEach`, e
+   `PedidoService` deixou de ser um tipo que se instancia. Sem o ajuste,
+   `./mvnw test` nem chega a compilar o projeto, e a suíte inteira para, não
+   só os testes de hoje. Trocar a instanciação para `PedidoServicePadrao` e
+   renomear o arquivo e a classe para `PedidoServicePadraoTest`, deixando
+   claro que ele testa uma implementação concreta, não o contrato (a suíte
+   que testa o contrato de verdade vem no passo 6). É a mesma lição do passo
+   1, do lado de quem consome o tipo: mudar uma classe concreta para
+   interface quebra, na hora, todo código que a instanciava diretamente.
 3. **Ajustar o controlador.** Conferir que `PedidoController` passa a receber
    `PedidoService`, a interface, no construtor, e não mais o tipo concreto.
    Se o controlador ainda importa `PedidoServicePadrao` em algum lugar, é
@@ -2191,15 +2201,19 @@ de serviço a mesma lição que a Aula 06 já aplicou à camada de repositório.
    e cada implementação é um Provedor diferente por trás do mesmo contrato.
 
 **Entregável do dia:** a interface `PedidoService`, as duas implementações
-`PedidoServicePadrao` e `PedidoServiceComAnaliseDeRisco`, e a suíte de teste
-abstrata estendida pelas duas. Critério de aceitação: `./mvnw test` passando
-com as quatro execuções verdes, `PedidoController` dependendo apenas da
-interface, e a troca de perfil mudando o comportamento observável da API sem
-qualquer alteração no controlador.
+`PedidoServicePadrao` e `PedidoServiceComAnaliseDeRisco`, `PedidoServicePadraoTest`
+(renomeado e ajustado a partir do `PedidoServiceTest` da Aula 06), e a suíte de
+teste abstrata estendida pelas duas implementações. Critério de aceitação:
+`./mvnw test` passando com as seis execuções verdes (as duas de
+`PedidoServicePadraoTest`, mais as duas da suíte abstrata rodando duas vezes,
+uma por implementação), `PedidoController` dependendo apenas da interface, e a
+troca de perfil mudando o comportamento observável da API sem qualquer
+alteração no controlador.
 
 ### Fechamento, 21h50 às 22h00
 
-- `git add src docs`
+- `git add -A src docs` (`PedidoServiceTest.java`, da Aula 06, some do fork
+  neste passo; `git add src` sozinho não registra a remoção)
 - `git commit -m "feat(pedido): separa contrato PedidoService de duas implementações trocáveis por perfil"`
 - `git push`
 - **Prévia da Aula 08.** Hoje a Rota Sul trocou a implementação de um serviço
@@ -3182,18 +3196,22 @@ prontos, como a Aula 10 faz, para que o aluno não tente digitar tudo.
 **A quebra de compatibilidade do construtor de `Pedido`, e como ela é
 resolvida.** O passo que acrescenta `regiao` como terceiro parâmetro
 obrigatório do construtor de `Pedido` quebra duas chamadas pré-existentes no
-fork: `PedidoServiceTest` (Aula 06) e `PedidoServiceContratoTest` (Aula 07,
-o mesmo arquivo que a retomada de hoje projeta na tela a propósito de
-Template Method), ambas com `new Pedido(cliente, descricao)`, de dois
-argumentos. Sem ajuste, `./mvnw test` para de compilar o projeto inteiro, não
-só o código de hoje, e o critério de aceitação que exige a suíte inteira
-verde fica desonesto: o aluno precisaria caçar, sob pressão de tempo, todo
-lugar do fork que chama o construtor, um trabalho real e não contabilizado
-em nenhum dos passos. A resolução é dupla: o kit entrega as duas classes já
-ajustadas ao novo construtor, junto com `Pedido.java`, para que a suíte
-nasça verde; e o passo do deck que introduz `regiao` diz isso explicitamente,
-aproveitando o momento para ensinar, em uma frase, que mudar a assinatura de
-um construtor público tem custo, porque quebra quem já dependia dela.
+fork: `PedidoServicePadraoTest` (renomeado nesse sentido pela própria Aula
+07, a partir do `PedidoServiceTest` que a Aula 06 entregou) e
+`PedidoServiceContratoTest` (Aula 07, o mesmo arquivo que a retomada de hoje
+projeta na tela a propósito de Template Method), ambas com `new
+Pedido(cliente, descricao)`, de dois argumentos. Sem ajuste, `./mvnw test`
+para de compilar o projeto inteiro, não só o código de hoje, e o critério de
+aceitação que exige a suíte inteira verde fica desonesto: o aluno precisaria
+caçar, sob pressão de tempo, todo lugar do fork que chama o construtor, um
+trabalho real e não contabilizado em nenhum dos passos. A resolução é dupla:
+o kit entrega as duas classes já ajustadas ao novo construtor, junto com
+`Pedido.java`, para que a suíte nasça verde; e o passo do deck que introduz
+`regiao` diz isso explicitamente, aproveitando o momento para ensinar, em uma
+frase, que mudar a assinatura de um construtor público tem custo, porque
+quebra quem já dependia dela. Diferente da Aula 07, aqui a quebra é só de
+argumentos, não de tipo: nenhuma das duas classes precisa trocar qual
+serviço instancia, só o que passam ao construtor de `Pedido`.
 
 ### Retomada, 5 minutos
 
@@ -3412,14 +3430,15 @@ pacotes da Aula 05 e ainda sem nenhuma linha de código.
 
 1. **Instalar o kit da camada `pedido`.** Copiar `Pedido.java`, já com o
    atributo `regiao` (valores possíveis `"PRINCIPAL"` e `"ULTIMA_MILHA"`) e o
-   construtor de três argumentos, mais `PedidoServiceTest` (Aula 06) e
-   `PedidoServiceContratoTest` (Aula 07) já ajustados a essa mudança. Dizer à
-   turma: o construtor de `Pedido` ganhou um terceiro parâmetro obrigatório, e
-   isso quebra qualquer chamada de dois argumentos que já existisse no fork,
-   como as duas que o kit acabou de corrigir. Mudar a assinatura de um
-   construtor público tem custo: quebra quem já dependia dela, e levantar
-   esse impacto é trabalho real, às vezes grande, numa base maior ou num
-   contrato exposto fora do time.
+   construtor de três argumentos, mais `PedidoServicePadraoTest` (o arquivo
+   que a Aula 07 já renomeou a partir do `PedidoServiceTest` da Aula 06) e
+   `PedidoServiceContratoTest` (Aula 07), ambos já ajustados ao novo
+   construtor de `Pedido`. Dizer à turma: o construtor de `Pedido` ganhou um
+   terceiro parâmetro obrigatório, e isso quebra qualquer chamada de dois
+   argumentos que já existisse no fork, como as duas que o kit acabou de
+   corrigir. Mudar a assinatura de um construtor público tem custo: quebra
+   quem já dependia dela, e levantar esse impacto é trabalho real, às vezes
+   grande, numa base maior ou num contrato exposto fora do time.
 2. **Criar o contrato da estratégia.** Em `pedido/domain`, criar a interface
    `CalculadoraDeFrete`, com um único método, `BigDecimal calcular(Pedido
    pedido)`. Sem anotação de framework: é domínio.

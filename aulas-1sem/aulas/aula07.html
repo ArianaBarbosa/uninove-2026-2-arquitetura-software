@@ -486,7 +486,7 @@
         <div class="decor-coral"></div>
         <div class="slide-title-area">
           <div class="accent-bar"></div>
-          <h2>Laboratório, passo 2: renomear a implementação atual</h2>
+          <h2>Laboratório, passo 2: renomear a implementação e o teste que a instanciava</h2>
         </div>
 
         <p class="lead">A classe <code>PedidoService</code> da Aula 06 passa a se chamar <code>PedidoServicePadrao</code> e a implementar a interface, mantendo o construtor e a regra de recusar pedido sem cliente.</p>
@@ -498,9 +498,12 @@ public class PedidoServicePadrao implements PedidoService {
   public PedidoServicePadrao(PedidoRepository pedidoRepository) {
     this.pedidoRepository = pedidoRepository;
   }
-  // registrar(...) e listar(...): corpo idêntico ao PedidoService
-  // da Aula 06, migrado para cá sem alteração nenhuma
+  // registrar(...) e listar(...): idêntico ao da Aula 06
 }</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><strong>Trocar uma classe concreta por interface quebra quem a instanciava:</strong> <code>PedidoServiceTest</code> fazia <code>new PedidoService(...)</code>, que deixa de compilar quando <code>PedidoService</code> vira interface.</p>
+        </div>
 
         <div class="slide-footer">
           <div class="footer-bar">07 Laboratório, passo 2, renomear</div>

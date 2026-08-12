@@ -12,7 +12,7 @@ chegam prontos para o aluno copiar:
 | Arquivo | Onde entra no fork | Papel |
 |---|---|---|
 | [`src/main/java/br/uni9/rotasul/pedido/domain/Pedido.java`](src/main/java/br/uni9/rotasul/pedido/domain/Pedido.java) | `pedido/domain/Pedido.java` (substitui a versão da Aula 06) | Já com o atributo `regiao` e o construtor de três argumentos que o Strategy de hoje usa |
-| [`src/test/java/br/uni9/rotasul/pedido/service/PedidoServiceTest.java`](src/test/java/br/uni9/rotasul/pedido/service/PedidoServiceTest.java) | `pedido/service/PedidoServiceTest.java` (substitui a versão da Aula 06) | Chamada ao construtor de `Pedido` corrigida para três argumentos |
+| [`src/test/java/br/uni9/rotasul/pedido/service/PedidoServicePadraoTest.java`](src/test/java/br/uni9/rotasul/pedido/service/PedidoServicePadraoTest.java) | `pedido/service/PedidoServicePadraoTest.java` (substitui a versão que a Aula 07 já havia renomeado a partir do `PedidoServiceTest` da Aula 06) | Chamada ao construtor de `Pedido` corrigida para três argumentos |
 | [`src/test/java/br/uni9/rotasul/pedido/service/PedidoServiceContratoTest.java`](src/test/java/br/uni9/rotasul/pedido/service/PedidoServiceContratoTest.java) | `pedido/service/PedidoServiceContratoTest.java` (substitui a versão da Aula 07) | Chamada ao construtor de `Pedido` corrigida para três argumentos |
 | [`src/main/java/br/uni9/rotasul/rastreamento/domain/Ocorrencia.java`](src/main/java/br/uni9/rotasul/rastreamento/domain/Ocorrencia.java) | `rastreamento/domain/Ocorrencia.java` | Produto abstrato do Factory Method |
 | [`src/main/java/br/uni9/rotasul/rastreamento/domain/OcorrenciaAtraso.java`](src/main/java/br/uni9/rotasul/rastreamento/domain/OcorrenciaAtraso.java) | `rastreamento/domain/OcorrenciaAtraso.java` | Subclasse concreta do produto |
@@ -31,15 +31,16 @@ Method e consumiria tempo do laboratório.
 acrescenta `regiao` como terceiro parâmetro obrigatório do construtor de
 `Pedido`. Trocar a assinatura de um construtor público quebra qualquer
 chamada existente com dois argumentos, e duas já existem no fork desde antes
-de hoje: `PedidoServiceTest` (Aula 06) e `PedidoServiceContratoTest` (Aula
-07). Sem o ajuste, `./mvnw test` para de compilar o projeto inteiro, não só
-os testes de hoje. O kit já entrega as duas classes corrigidas, para que a
-suíte nasça verde e o critério de aceitação 6 (seção 5) seja honesto: o
-aluno não precisa caçar, sob pressão de tempo, todo lugar do fork que chama
-`new Pedido(...)`. `PedidoServiceTest` recebe um segundo ajuste, não ligado a
-hoje: desde a Aula 07, `PedidoService` é uma interface, e a instanciação
-usa `PedidoServicePadrao`, a implementação concreta que a substituiu naquela
-aula.
+de hoje: `PedidoServicePadraoTest` e `PedidoServiceContratoTest`, as duas de
+`pedido.service`. Sem o ajuste, `./mvnw test` para de compilar o projeto
+inteiro, não só os testes de hoje. O kit já entrega as duas classes
+corrigidas, para que a suíte nasça verde e o critério de aceitação 6 (seção
+5) seja honesto: o aluno não precisa caçar, sob pressão de tempo, todo lugar
+do fork que chama `new Pedido(...)`. Diferente do que aconteceu na Aula 07,
+aqui nenhuma das duas muda qual serviço instancia; `PedidoServicePadraoTest`
+já chegou renomeado e ajustado naquela aula, quando `PedidoService` virou
+interface, e hoje só recebe o terceiro argumento novo do construtor de
+`Pedido`.
 
 Todo o código dos passos 3.2 a 3.6, 3.8, 3.9 e 3.10 abaixo é o que o aluno
 escreve; os passos 3.1 e 3.7 usam os seis arquivos prontos, copiando-os sem
@@ -87,16 +88,17 @@ Strategy só precisa provar que calcula o valor certo, isolado, com teste.
 
 Copiar os três primeiros arquivos da seção 0 para as posições
 correspondentes no fork, substituindo os que já existem:
-`pedido/domain/Pedido.java`, `pedido/service/PedidoServiceTest.java` e
+`pedido/domain/Pedido.java`, `pedido/service/PedidoServicePadraoTest.java` e
 `pedido/service/PedidoServiceContratoTest.java`.
 
 > **Mudar a assinatura de um construtor público tem custo.** `Pedido` é
 > domínio, usado por toda a Rota Sul; qualquer código externo que já
 > chamasse `new Pedido(cliente, descricao)`, com dois argumentos, deixa de
 > compilar assim que `regiao` vira o terceiro parâmetro obrigatório. É
-> exatamente o que aconteceu aqui: `PedidoServiceTest`, da Aula 06, e
-> `PedidoServiceContratoTest`, da Aula 07 (o mesmo arquivo que o slide 4 de
-> hoje projeta na tela, a propósito de Template Method), chamavam o
+> exatamente o que aconteceu aqui: `PedidoServicePadraoTest` (renomeado
+> naquele sentido pela própria Aula 07, a partir do `PedidoServiceTest` da
+> Aula 06) e `PedidoServiceContratoTest`, da Aula 07 (o mesmo arquivo que o
+> slide 4 de hoje projeta na tela, a propósito de Template Method), chamavam o
 > construtor de duas posições. Mudar um contrato público sempre exige
 > revisitar quem depende dele; hoje o kit já traz essa revisão pronta, mas
 > em um sistema maior, ou num contrato exposto fora do próprio time, esse
@@ -474,8 +476,9 @@ Em `docs/decisoes.md`, duas linhas novas:
 
 - `Pedido` (Aula 06), acrescido do atributo `regiao` e do construtor de três
   argumentos.
-- `PedidoServiceTest` (Aula 06) e `PedidoServiceContratoTest` (Aula 07),
-  ajustados à nova assinatura do construtor de `Pedido`.
+- `PedidoServicePadraoTest` e `PedidoServiceContratoTest` (as duas de
+  `pedido.service`, renomeada e criada, respectivamente, na Aula 07),
+  ajustadas à nova assinatura do construtor de `Pedido`.
 - `Ocorrencia`, `OcorrenciaAtraso` e `OcorrenciaExtravio`, em
   `rastreamento.domain`.
 
@@ -518,10 +521,10 @@ verificação não isolou só o código novo de hoje: incluiu também `Pedido`,
 `PedidoRepository`, `PedidoRepositoryEmMemoria`, a interface `PedidoService`
 com as duas implementações da Aula 07 (`PedidoServicePadrao`,
 `PedidoServiceComAnaliseDeRisco`) e as quatro classes de teste que dependem
-do construtor de `Pedido` (`PedidoServiceTest`, `PedidoServiceContratoTest`
-e as suas duas subclasses concretas), exatamente para confirmar que os seis
-arquivos do kit (seção 0) fazem a suíte inteira do fork nascer verde, não só
-o código de hoje isolado.
+do construtor de `Pedido` (`PedidoServicePadraoTest`,
+`PedidoServiceContratoTest` e as suas duas subclasses concretas), exatamente
+para confirmar que os seis arquivos do kit (seção 0) fazem a suíte inteira
+do fork nascer verde, não só o código de hoje isolado.
 
 ```
 $ export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
@@ -535,7 +538,7 @@ $ mvn clean compile
 BUILD SUCCESS   (sem warning nem erro)
 
 $ mvn test
-[INFO] Running br.uni9.rotasul.pedido.service.PedidoServiceTest
+[INFO] Running br.uni9.rotasul.pedido.service.PedidoServicePadraoTest
 [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
 [INFO] Running br.uni9.rotasul.pedido.service.PedidoServiceComAnaliseDeRiscoContratoTest
 [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0

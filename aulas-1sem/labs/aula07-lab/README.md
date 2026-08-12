@@ -63,7 +63,7 @@ public interface PedidoService {
 }
 ```
 
-### 3.2 Renomear a implementação atual
+### 3.2 Renomear a implementação atual e ajustar o teste que a instanciava
 
 A classe `PedidoService` da Aula 06 passa a se chamar `PedidoServicePadrao` e
 a implementar a interface `PedidoService`, mantendo o construtor que recebe
@@ -108,6 +108,84 @@ public class PedidoServicePadrao implements PedidoService {
     }
 }
 ```
+
+A classe que a Aula 06 entregava com o nome `PedidoService` sumiu: agora é
+`PedidoServicePadrao`. Isso quebra `PedidoServiceTest`, o teste que a Aula 06
+também entregou, porque ele instancia `new PedidoService(new
+PedidoRepositoryEmMemoria())` no `@BeforeEach`, e `PedidoService` deixou de
+ser um tipo que se instancia: é interface agora, e interface não tem
+construtor. **Sem este ajuste, `./mvnw test` nem chega a compilar o
+projeto**, e a suíte inteira para, não só os testes de hoje.
+
+Trocar a instanciação para `PedidoServicePadrao` resolve a compilação, mas
+deixa um nome enganoso: `PedidoServiceTest` sugere que a classe testa o
+contrato `PedidoService`, quando sempre testou uma implementação concreta (a
+única que existia até agora). **Renomear o arquivo e a classe para
+`PedidoServicePadraoTest`**, deixando claro que ele testa a implementação
+padrão, não o contrato; a suíte que testa o contrato de verdade vem no passo
+3.6.
+
+```java
+package br.uni9.rotasul.pedido.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import br.uni9.rotasul.pedido.domain.Pedido;
+import br.uni9.rotasul.pedido.repository.PedidoRepositoryEmMemoria;
+
+// Teste da implementação PedidoServicePadrao, não do contrato PedidoService:
+// daí o nome. Arquivo da Aula 06 (então PedidoServiceTest), renomeado e
+// ajustado porque PedidoService virou interface neste laboratório, e uma
+// interface não se instancia.
+class PedidoServicePadraoTest {
+
+    private PedidoService pedidoService;
+
+    @BeforeEach
+    void configurar() {
+        pedidoService = new PedidoServicePadrao(new PedidoRepositoryEmMemoria());
+    }
+
+    @Test
+    void registraPedidoValidoEApareceNaListagem() {
+        Pedido pedido = new Pedido("Lojista Ana", "Duas caixas de peças automotivas");
+
+        pedidoService.registrar(pedido);
+
+        assertThat(pedidoService.listar())
+                .hasSize(1)
+                .first()
+                .satisfies(registrado -> {
+                    assertThat(registrado.getId()).isNotNull();
+                    assertThat(registrado.getCliente()).isEqualTo("Lojista Ana");
+                    assertThat(registrado.getSituacao()).isEqualTo("RECEBIDO");
+                });
+    }
+
+    @Test
+    void recusaPedidoSemClienteInformado() {
+        Pedido pedido = new Pedido("", "Pedido sem cliente");
+
+        assertThatThrownBy(() -> pedidoService.registrar(pedido))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Pedido sem cliente informado é recusado.");
+
+        assertThat(pedidoService.listar()).isEmpty();
+    }
+}
+```
+
+> **A lição por trás do ajuste.** Trocar um tipo de classe concreta por
+> interface quebra, na hora, todo código que o instanciava diretamente: quem
+> escrevia `new PedidoService(...)` perde o direito de fazê-lo, porque
+> interface não tem construtor. É o mesmo movimento do passo 3.1, visto agora
+> do lado de quem consome o tipo: separar contrato de implementação também
+> significa escolher, a cada `new`, qual implementação está entrando em
+> cena.
 
 ### 3.3 Ajustar o controlador
 
@@ -430,6 +508,9 @@ No fork do aluno:
   framework.
 - As duas implementações, `PedidoServicePadrao` (perfil `padrao`) e
   `PedidoServiceComAnaliseDeRisco` (perfil `risco`).
+- `PedidoServicePadraoTest`, renomeado e ajustado a partir do
+  `PedidoServiceTest` que a Aula 06 entregou, agora instanciando
+  `PedidoServicePadrao` em vez do extinto tipo concreto `PedidoService`.
 - A suíte de teste `PedidoServiceContratoTest` (classe abstrata) estendida
   por `PedidoServicePadraoContratoTest` e
   `PedidoServiceComAnaliseDeRiscoContratoTest`.
@@ -442,7 +523,8 @@ No fork do aluno:
 
 | Critério | Evidência conferida na correção |
 |---|---|
-| `./mvnw test` passando | Quatro execuções verdes: os dois testes da suíte abstrata, duas vezes, uma por implementação |
+| `./mvnw test` passando | Seis execuções verdes: os dois testes de `PedidoServicePadraoTest`, mais os dois da suíte abstrata rodando duas vezes, uma por implementação |
+| O teste herdado da Aula 06 foi ajustado e renomeado | `PedidoServicePadraoTest.java` existe e instancia `PedidoServicePadrao`; `PedidoServiceTest.java`, da Aula 06, não existe mais no fork |
 | Nenhuma anotação de framework na interface | `PedidoService.java` sem `@Service`, `@Repository`, `@Profile` nem qualquer outra anotação do Spring |
 | `PedidoController` depende só da interface | Nenhum import de `PedidoServicePadrao` nem de `PedidoServiceComAnaliseDeRisco` no controlador |
 | As duas implementações são trocáveis | Assinatura idêntica dos métodos `registrar` e `listar` nas duas classes |
@@ -452,8 +534,14 @@ No fork do aluno:
 
 ## 6. Commit e push esperados
 
+`PedidoServiceTest.java`, da Aula 06, some do fork: o passo 3.2 o substitui
+por `PedidoServicePadraoTest.java`. `git add src` sozinho não registra essa
+remoção; usar `git add -A src` (ou `git rm` explícito do arquivo antigo)
+garante que o commit reflita a exclusão, não só a criação do arquivo novo.
+
 ```bash
-git add src docs
+git add -A src
+git add docs
 git commit -m "feat(pedido): separa contrato PedidoService de duas implementações trocáveis por perfil"
 git push
 ```
