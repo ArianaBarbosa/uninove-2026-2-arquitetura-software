@@ -3415,8 +3415,10 @@ pacotes da Aula 05 e ainda sem nenhuma linha de código.
 
 7. **Criar o contexto `rastreamento`.** Dentro de
    `src/main/java/br/uni9/rotasul/`, criar `rastreamento/domain`. É o
-   primeiro código real do terceiro contexto previsto desde a Aula 05; até
-   hoje só existiam `pedido` e `expedicao`.
+   primeiro código do terceiro contexto reservado desde o diagrama de
+   pacotes da Aula 05, ao lado de `pedido` e `expedicao`; a Aula 10 já havia
+   acrescentado o pacote `parceiro`, fora desse trio original, para simular
+   o parceiro legado por SOAP.
 8. **Escrever a hierarquia de produtos.** Em `rastreamento/domain`, a classe
    abstrata `Ocorrencia`, com os atributos `codigoRastreio` e `registradaEm`
    (`LocalDateTime`) e o método abstrato `String getTipo()`. Duas subclasses:

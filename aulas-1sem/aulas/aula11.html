@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aula 11, Design Patterns | Uninove</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="../assets/css/uninove-theme.css">
+  <link rel="stylesheet" href="../assets/css/uninove-print.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ==================== SLIDE 1: CAPA ==================== -->
+      <section class="cover-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho" class="uninove-logo-full"
+             style="max-width:400px; background:#FFFFFF; padding:26px 36px; border-radius:10px;">
+        <div style="margin-top:36px; color:#FFFFFF; font-size:0.95em; font-weight:800; letter-spacing:4px; text-transform:uppercase;">Arquitetura de Software</div>
+        <div style="margin-top:12px; color:#C84B31; font-size:0.6em; font-weight:700; letter-spacing:3px; text-transform:uppercase;">Graduação, 2026.2</div>
+      </section>
+
+      <!-- ==================== SLIDE 2: TÍTULO ==================== -->
+      <section class="title-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="title-card">
+          <div class="accent-bar"></div>
+          <h1>Arquitetura de Software</h1>
+          <h2>Design Patterns</h2>
+          <h3>Prof. José Romualdo</h3>
+        </div>
+        <div class="lesson-bar">AULA 11 &nbsp;|&nbsp; Módulo 3, Padrões e frameworks</div>
+      </section>
+
+      <!-- ==================== SLIDE 3: AGENDA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Agenda do encontro de hoje</h2>
+        </div>
+
+        <p class="lead">São 150 minutos corridos, em quatro ciclos. Abre o Módulo 3, Padrões e frameworks.</p>
+
+        <table>
+          <thead>
+            <tr><th style="width:190px;">Horário</th><th style="width:200px;">Bloco</th><th>O que acontece</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>19h30 às 20h05</td><td>Ciclo 1</td><td>A origem dos padrões de projeto e o MVC como primeiro exemplo</td></tr>
+            <tr><td>20h05 às 20h40</td><td>Ciclo 2</td><td>O catálogo GoF, e os dois padrões de hoje: Strategy e Factory Method</td></tr>
+            <tr><td>20h40 às 20h50</td><td>Quiz de fixação</td><td>O que não é característica de um design pattern</td></tr>
+            <tr><td>20h50 às 21h25</td><td>Ciclo 3</td><td>Laboratório: Strategy no cálculo de frete</td></tr>
+            <tr><td>21h25 às 21h50</td><td>Ciclo 4</td><td>Laboratório: Factory Method na criação de <code>Ocorrencia</code></td></tr>
+            <tr><td>21h50 às 22h00</td><td>Fechamento</td><td>Commit, push e prévia da Aula 12</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Agenda do encontro</div>
+          <div class="footer-page">3</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 4: RETOMADA DA AULA 10 ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Retomada: o que a Aula 10 deixou pronto</h2>
+        </div>
+
+        <p class="lead">Na Aula 10 cada aluno entregou o cliente SOAP em <code>br.uni9.rotasul.parceiro</code>, consumindo o parceiro legado simulado, mais a API REST de <code>/remessas</code> documentada pelo springdoc-openapi, fechando o Módulo 2.</p>
+
+        <div class="callout" style="margin-top:10px;">
+          <p><strong>Uma dívida que ficou em aberto.</strong> Projetar <code>PedidoServiceContratoTest</code>, da Aula 07: uma classe abstrata que define um algoritmo em etapas fixas e deixa uma etapa específica para cada subclasse preencher. Quem sabe como se chama isso? Hoje o nome chega, Template Method, junto com o catálogo inteiro de onde ele vem.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:10px;">
+          <span class="takeaway-label">O Módulo 3 abre aqui</span>
+          <p>A turma usa padrões de projeto desde a Aula 06, sem nomeá-los. Hoje os nomes chegam, e dois novos entram no código de propósito.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Retomada</div>
+          <div class="footer-page">4</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 5: CICLO 1, OS DOIS CAMINHOS ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Os dois caminhos do desenvolvimento de software <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">O capítulo abre descrevendo dois modos de trabalho, e uma frase que resume a diferença entre eles.</p>
+
+        <div class="side-by-side" style="margin-top:4px;">
+          <div class="side">
+            <h4>"Fazer e depois pensar no que foi feito"</h4>
+            <p style="margin:0; font-size:0.68em;">Por questão cultural, o desenvolvedor constrói o software sem avaliar devidamente os problemas que ele pode ter, nem quando uma solução pode ser reaproveitada, e acaba replicando o que já foi desenvolvido. Se a parte replicada precisar mudar depois, o custo de atualização e reteste é alto.</p>
+          </div>
+          <div class="side">
+            <h4>"Pensar em como deve ser feito, e depois fazer"</h4>
+            <p style="margin:0; font-size:0.68em;">O desenvolvedor segue regras de modelos de arquitetura, orientações de frameworks e padrões de projeto. É mais complexo, gasta mais tempo em planejamento, mas gasta bem menos tempo nas demais atividades.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">A estimativa do capítulo</span>
+          <p>No Brasil, cerca de 10% do tempo de projeto vai para análise, 20% para programação, e o resto para correção de erros e alterações. Num país de cultura mais estruturada, como a Alemanha do exemplo do capítulo, a proporção se inverte: cerca de 60% para análise, 30% para programação e 10% para correção.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Os dois caminhos</div>
+          <div class="footer-page">5</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 6: CICLO 1, ORIGEM HISTÓRICA E O MVC ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Origem histórica dos padrões de projeto, e o MVC <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Os padrões de projeto vêm de boas práticas definidas por desenvolvedores no início dos anos 1970, trocadas em congressos e seminários.</p>
+
+        <div class="side-by-side" style="margin-top:4px;">
+          <div class="side">
+            <h4>Dois problemas comuns, achados na troca de experiências</h4>
+            <p style="margin:0; font-size:0.66em;">O primeiro: a relação entre interface de usuário, regras de negócio e base de dados, e como modificar uma dessas partes sem quebrar as outras duas. O segundo: a possibilidade de construir um novo software sem recomeçar do zero. O capítulo cita dois livros clássicos, GAMMA e JOHNSON [2] e LARMAN [3].</p>
+          </div>
+          <div class="side">
+            <h4>O MVC, primeiro exemplo do capítulo, cerca de 1975</h4>
+            <p style="margin:0; font-size:0.66em;">Orienta a separação do código-fonte em três partes independentes: interação com o usuário (view), regras de negócio e acesso à base de dados (model), e algo que conecta as duas (controller). A analogia do capítulo: cada parte é uma peça de quebra-cabeça, com um desenho que encaixa nas outras.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Por que o MVC nasceu</span>
+          <p>Reduzir o tempo de desenvolvimento e teste em atualizações futuras: uma vez pronta, cada parte pode ser reaproveitada em novos softwares. Talvez seja o padrão de projeto mais usado entre os desenvolvedores.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Origem histórica e o MVC</div>
+          <div class="footer-page">6</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 7: CICLO 1, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: onde está cada peça do quebra-cabeça</h2>
+        </div>
+
+        <p class="lead">Abrir o fork no terminal e listar <code>src/main/java/br/uni9/rotasul/pedido</code>: onde está cada peça do MVC?</p>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>pedido/
+├── web/          # PedidoController
+├── service/      # PedidoService
+├── repository/   # PedidoRepository
+└── domain/       # Pedido</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><code>PedidoController</code>, em <code>web</code>, recebe a requisição, mas hoje devolve JSON puro, sem um View separado: a Rota Sul ainda não tem apresentação server-side, isso muda na Aula 13. <code>PedidoService</code> e <code>Pedido</code> fazem o papel do Model. Não há, ainda, um Controller no sentido clássico do MVC; o próprio <code>PedidoController</code> do Spring acumula parte desse papel.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:6px;">
+          <span class="takeaway-label">O padrão sem nome</span>
+          <p>A turma está usando uma variação do MVC desde a Aula 06, sem ter lido a definição formal até hoje.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Demonstração, MVC</div>
+          <div class="footer-page">7</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 8: EXERCÍCIO CURTO DO CICLO 1 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício em duplas: padrão de projeto ou framework?</h2>
+        </div>
+
+        <p class="lead">Cinco minutos. Relembrando a frase da Aula 02: padrões de projeto são modelos abstratos que orientam a implementação de um software, enquanto um framework inclui a implementação de código pronto.</p>
+
+        <div class="exercise-container">
+          <h3>Classificar cada item</h3>
+          <ol class="exercise-steps">
+            <li>MVC</li>
+            <li>Hibernate</li>
+            <li>Spring Boot</li>
+            <li>Strategy</li>
+          </ol>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Exercício, padrão ou framework</div>
+          <div class="footer-page">8</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 9: CICLO 2, O CATÁLOGO GOF ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>O catálogo de padrões de projeto, GoF <a href="#/ref-slide" class="ref-badge" title="Ver referências">[2]</a></h2>
+        </div>
+
+        <p class="lead">Os 23 padrões do livro <em>Design Patterns: Elements of Reusable Object-Oriented Software</em> se organizam em três famílias, pela pergunta que cada uma responde.</p>
+
+        <div class="callout" style="margin-top:10px;">
+          <p><strong>Nota para o professor.</strong> O capítulo apresenta a origem dos padrões e um único exemplo detalhado, o MVC; não organiza os 23 padrões em catálogo, e não nomeia Strategy nem Factory Method. Essa organização vem da própria bibliografia que o capítulo cita como referência, GAMMA, HELM, JOHNSON e VLISSIDES (1994), o livro "Gang of Four", GoF.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:10px;">
+          <span class="takeaway-label">O que abre a porta, e de onde vem o resto</span>
+          <p>O capítulo abre a porta com a origem e o MVC; o catálogo, no próximo slide, vem de onde o próprio capítulo manda buscar.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Catálogo GoF</div>
+          <div class="footer-page">9</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 10: CICLO 2, AS TRÊS FAMÍLIAS ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>As três famílias do catálogo GoF <a href="#/ref-slide" class="ref-badge" title="Ver referências">[2]</a></h2>
+        </div>
+
+        <p class="lead">Os 23 padrões se organizam pela pergunta que cada família responde.</p>
+
+        <table style="margin-top:6px;">
+          <thead><tr><th>Família</th><th>Pergunta que responde</th><th>Exemplos do catálogo</th></tr></thead>
+          <tbody>
+            <tr><td>Criacionais</td><td>Como um objeto é instanciado</td><td>Factory Method, Abstract Factory, Builder, Prototype, Singleton</td></tr>
+            <tr><td>Estruturais</td><td>Como classes e objetos se compõem</td><td>Adapter, Bridge, Composite, Decorator, Facade, Proxy</td></tr>
+            <tr><td>Comportamentais</td><td>Como os objetos interagem</td><td>Strategy, Template Method, Observer, State, Command</td></tr>
+          </tbody>
+        </table>
+
+        <div class="takeaway" style="margin-top:10px;">
+          <span class="takeaway-label">Onde os dois padrões de hoje entram</span>
+          <p>Template Method, comportamental, a turma já usou na Aula 07 sem saber o nome. Os dois padrões de hoje são um de cada uma das outras duas famílias.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 As três famílias</div>
+          <div class="footer-page">10</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 11: CICLO 2, STRATEGY ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Strategy, comportamental</h2>
+        </div>
+
+        <p class="lead">Define uma família de algoritmos, encapsula cada um numa classe própria e os torna intercambiáveis: o algoritmo pode variar independentemente de quem o usa.</p>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>Na Rota Sul: o cálculo do frete de um pedido muda de fórmula conforme quem faz a entrega, a frota própria na rota principal ou uma transportadora parceira na última milha. A operação é sempre a mesma, calcular o frete, mas o algoritmo muda, e a escolha acontece a cada pedido novo, em tempo de execução.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Diferente do que a Aula 07 fez</span>
+          <p>Em <code>PedidoService</code>, a implementação inteira é fixada uma vez, quando a aplicação sobe, pelo parâmetro de perfil. No Strategy de hoje, a escolha acontece de novo a cada chamada, dentro do processo em execução, com base num dado do próprio pedido.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Strategy</div>
+          <div class="footer-page">11</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 12: CICLO 2, FACTORY METHOD ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Factory Method, criacional</h2>
+        </div>
+
+        <p class="lead">Define uma interface para criar um objeto, mas deixa que subclasses decidam qual classe concreta instanciar.</p>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>Na Rota Sul: quando o atendente registra uma ocorrência por telefone, ele informa o tipo, atraso ou extravio, e o sistema precisa instanciar a subclasse de <code>Ocorrencia</code> correspondente sem que o código que atende a ligação conheça as subclasses.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">A diferença entre os dois, em uma frase</span>
+          <p>Strategy troca o algoritmo de uma operação que já tem um objeto para atuar; Factory Method troca qual objeto é criado, antes de qualquer operação acontecer sobre ele.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Factory Method</div>
+          <div class="footer-page">12</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 13: CICLO 2, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: diagrama de classes do Strategy de hoje</h2>
+        </div>
+
+        <p class="lead">Mesma notação da Aula 05. O professor cola no editor on-line do PlantUML e projeta.</p>
+
+        <pre class="code-compact"><code class="language-text" data-trim>interface CalculadoraDeFrete {
+  +calcular(pedido: Pedido): BigDecimal
+}
+class FreteRotaPropria { +calcular(pedido): BigDecimal }
+class FreteTransportadoraParceira { +calcular(pedido): BigDecimal }
+class CalculoDeFreteService {
+  -rotaPropria: CalculadoraDeFrete
+  -transportadoraParceira: CalculadoraDeFrete
+}
+CalculadoraDeFrete <|.. FreteRotaPropria
+CalculadoraDeFrete <|.. FreteTransportadoraParceira
+CalculoDeFreteService o-- CalculadoraDeFrete</code></pre>
+
+        <div class="takeaway" style="margin-top:6px;">
+          <span class="takeaway-label">A seta <code>o--</code></span>
+          <p><code>CalculoDeFreteService</code> guarda uma referência às duas estratégias e decide qual invocar a cada chamada: o "contexto" do Strategy, na terminologia do GoF.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Demonstração, diagrama Strategy</div>
+          <div class="footer-page">13</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 14: EXERCÍCIO CURTO DO CICLO 2 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício em duplas: qual padrão se aplica?</h2>
+        </div>
+
+        <p class="lead">Cinco minutos. Duas situações da Rota Sul: decidir qual dos dois padrões de hoje se aplica a cada uma.</p>
+
+        <div class="exercise-container">
+          <h3>Situações</h3>
+          <ol class="exercise-steps">
+            <li>O cálculo do frete de um pedido muda de fórmula conforme o destino é atendido pela frota própria ou por um parceiro, e a escolha acontece a cada pedido novo.</li>
+            <li>Ao registrar uma ocorrência por telefone, o atendente informa o tipo, e o sistema precisa instanciar a subclasse correta de <code>Ocorrencia</code> sem que o código que atende a ligação conheça as subclasses.</li>
+          </ol>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Exercício, qual padrão</div>
+          <div class="footer-page">14</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 15: QUIZ DE FIXAÇÃO ==================== -->
+      <section class="quiz-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area"><div class="accent-bar"></div><h2>Quiz de fixação</h2></div>
+        <div class="quiz-container">
+          <div class="quiz-question">Segundo o capítulo, qual das alternativas a seguir NÃO é característica de um design pattern?</div>
+          <ul class="quiz-options">
+            <li data-correct="false"><span class="option-letter">A</span> Apresenta um modelo de organização de classes para resolver um problema já conhecido.</li>
+            <li data-correct="false"><span class="option-letter">B</span> É resultado de uma boa prática de programação, aplicada para resolver problemas conhecidos.</li>
+            <li data-correct="false"><span class="option-letter">C</span> Provê um mecanismo para estruturar o software de modo organizado, facilitando manutenções futuras.</li>
+            <li data-correct="true"><span class="option-letter">D</span> Não pode ser aplicado em arquiteturas organizadas em camadas.</li>
+          </ul>
+          <div class="quiz-feedback"
+               data-correct-msg="Correto. O próprio capítulo contradiz a alternativa D ao descrever o MVC, um design pattern, como um modelo que organiza o código-fonte exatamente em camadas independentes: view, model e controller."
+               data-incorrect-msg="Incorreto. As alternativas A, B e C são características reais, tiradas quase literalmente do capítulo. A errada é a D: o MVC, o próprio exemplo do capítulo, é um design pattern que organiza o software em camadas."></div>
+        </div>
+        <div class="slide-footer"><div class="footer-bar">11 Quiz de fixação</div><div class="footer-page">15</div></div>
+      </section>
+
+      <!-- ==================== SLIDE 16: LABORATÓRIO, INTRODUÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório: dois padrões de projeto, dois contextos</h2>
+        </div>
+
+        <p class="lead">Nenhum endpoint novo nasce hoje. O Strategy entra nas camadas <code>domain</code> e <code>service</code> do contexto <code>pedido</code>; o Factory Method abre o contexto <code>rastreamento</code>, reservado desde a Aula 05.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Ciclo 3, Strategy no frete</h4>
+            <p style="margin:0; font-size:0.7em;">Seis passos: o contrato <code>CalculadoraDeFrete</code>, o atributo <code>regiao</code> em <code>Pedido</code>, as duas estratégias, o contexto <code>CalculoDeFreteService</code> e o teste.</p>
+          </div>
+          <div class="side">
+            <h4>Ciclo 4, Factory Method na ocorrência</h4>
+            <p style="margin:0; font-size:0.7em;">Cinco passos: o contexto <code>rastreamento</code>, a hierarquia de <code>Ocorrencia</code>, a hierarquia de criadores, o teste, e as duas decisões em <code>docs/decisoes.md</code>.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, introdução</div>
+          <div class="footer-page">16</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 17: LAB PASSO 1, CONTRATO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 1: o contrato da estratégia</h2>
+        </div>
+
+        <p class="lead">Em <code>pedido/domain</code>, a interface <code>CalculadoraDeFrete</code>, com um único método. Sem anotação de framework: é domínio.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public interface CalculadoraDeFrete {
+  BigDecimal calcular(Pedido pedido);
+}</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>É o contrato do Strategy: uma família de algoritmos de cálculo de frete, encapsulados cada um numa classe própria e intercambiáveis.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, passo 1, contrato</div>
+          <div class="footer-page">17</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 18: LAB PASSO 2, A REGIÃO DO PEDIDO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 2: a região do pedido</h2>
+        </div>
+
+        <p class="lead">Em <code>pedido/domain/Pedido</code>, criado na Aula 06, acrescentar o atributo <code>regiao</code>, mais o getter e o ajuste no construtor.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public Pedido(String cliente, String descricao, String regiao) {
+  this.cliente = cliente;
+  this.descricao = descricao;
+  this.situacao = "RECEBIDO";
+  this.regiao = regiao;
+}
+
+public String getRegiao() {
+  return regiao;
+}</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>Valores possíveis: <code>"PRINCIPAL"</code> e <code>"ULTIMA_MILHA"</code>. É a primeira vez que <code>Pedido</code> muda desde que nasceu, e ela continua sem depender de nada do Spring.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, passo 2, região</div>
+          <div class="footer-page">18</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 19: LAB PASSO 3, PRIMEIRA ESTRATÉGIA ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 3: a primeira estratégia</h2>
+        </div>
+
+        <p class="lead"><code>FreteRotaPropria implements CalculadoraDeFrete</code>, em <code>pedido/domain</code>: tarifa fixa para a frota própria na rota principal.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public class FreteRotaPropria implements CalculadoraDeFrete {
+  private static final BigDecimal TARIFA_BASE = new BigDecimal("15.00");
+
+  @Override
+  public BigDecimal calcular(Pedido pedido) {
+    return TARIFA_BASE;
+  }
+}</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, passo 3, primeira estratégia</div>
+          <div class="footer-page">19</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 20: LAB PASSO 4, SEGUNDA ESTRATÉGIA ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 4: a segunda estratégia</h2>
+        </div>
+
+        <p class="lead"><code>FreteTransportadoraParceira implements CalculadoraDeFrete</code>, também em <code>pedido/domain</code>: adicional de 30% sobre a mesma tarifa base.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public class FreteTransportadoraParceira implements CalculadoraDeFrete {
+  private static final BigDecimal TARIFA_BASE = new BigDecimal("15.00");
+  private static final BigDecimal ADICIONAL = new BigDecimal("1.30");
+
+  @Override
+  public BigDecimal calcular(Pedido pedido) {
+    return TARIFA_BASE.multiply(ADICIONAL).setScale(2, RoundingMode.HALF_UP);
+  }
+}</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><code>15.00</code> multiplicado por <code>1.30</code> resulta em <code>19.50</code>, representando o repasse pago ao parceiro da última milha.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, passo 4, segunda estratégia</div>
+          <div class="footer-page">20</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 21: LAB PASSO 5, CONTEXTO DO STRATEGY (1/2) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: o contexto do Strategy (1/2)</h2>
+        </div>
+
+        <p class="lead">Em <code>pedido/service</code>, <code>CalculoDeFreteService</code>, anotada <code>@Service</code>, recebendo as duas estratégias pelo construtor.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Service
+public class CalculoDeFreteService {
+  private final CalculadoraDeFrete rotaPropria;
+  private final CalculadoraDeFrete transportadoraParceira;
+
+  public CalculoDeFreteService(FreteRotaPropria rotaPropria,
+      FreteTransportadoraParceira transportadoraParceira) {
+    this.rotaPropria = rotaPropria;
+    this.transportadoraParceira = transportadoraParceira;
+  }
+}</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>O construtor guarda as duas estratégias concretas. É o único ponto do código que vai conhecer as duas ao mesmo tempo.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, passo 5, contexto (1/2)</div>
+          <div class="footer-page">21</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 22: LAB PASSO 5, CONTEXTO DO STRATEGY (2/2) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: o contexto do Strategy (2/2)</h2>
+        </div>
+
+        <p class="lead">O método <code>calcular</code> decide qual estratégia chamar olhando <code>pedido.getRegiao()</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public BigDecimal calcular(Pedido pedido) {
+  if ("ULTIMA_MILHA".equals(pedido.getRegiao())) {
+    return transportadoraParceira.calcular(pedido);
+  }
+  return rotaPropria.calcular(pedido);
+}</code></pre>
+
+        <div class="takeaway" style="margin-top:10px;">
+          <span class="takeaway-label">O que o resto do sistema enxerga</span>
+          <p>Todo o resto da Rota Sul só vai conhecer a interface <code>CalculadoraDeFrete</code> e este serviço, nunca as duas implementações concretas diretamente.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, passo 5, contexto (2/2)</div>
+          <div class="footer-page">22</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 23: LAB PASSO 6, TESTAR O STRATEGY ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 6: testar o Strategy</h2>
+        </div>
+
+        <p class="lead"><code>CalculoDeFreteServiceTest</code>, com dois casos: <code>"PRINCIPAL"</code> calcula <code>15.00</code>, <code>"ULTIMA_MILHA"</code> calcula <code>19.50</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Test
+void calculaTarifaFixaParaPedidoDaRotaPrincipal() {
+  Pedido pedido = new Pedido("Lojista Centro", "3 volumes", "PRINCIPAL");
+  BigDecimal frete = service.calcular(pedido);
+  assertEquals(new BigDecimal("15.00"), frete);
+}</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>Um segundo método, simétrico, cobre <code>"ULTIMA_MILHA"</code> esperando <code>19.50</code>. Rodar <code>./mvnw test</code>.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, passo 6, teste</div>
+          <div class="footer-page">23</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 24: LAB PASSO 7, CONTEXTO RASTREAMENTO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 7: o contexto <code>rastreamento</code></h2>
+        </div>
+
+        <p class="lead">Dentro de <code>src/main/java/br/uni9/rotasul/</code>, criar <code>rastreamento/domain</code>. É o primeiro código do terceiro contexto reservado desde a Aula 05, ao lado de <code>pedido</code> e <code>expedicao</code>.</p>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>br/uni9/rotasul/
+├── pedido/
+├── expedicao/
+├── parceiro/
+└── rastreamento/
+    └── domain/</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>A Aula 10 já havia acrescentado o pacote <code>parceiro</code>, fora desse trio original, para simular o parceiro legado por SOAP.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, passo 7, rastreamento</div>
+          <div class="footer-page">24</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 25: LAB PASSO 8, HIERARQUIA DE OCORRENCIA ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 8: a hierarquia de <code>Ocorrencia</code></h2>
+        </div>
+
+        <p class="lead">Em <code>rastreamento/domain</code>, a classe abstrata <code>Ocorrencia</code>, com <code>codigoRastreio</code>, <code>registradaEm</code> e o método abstrato <code>getTipo()</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public abstract class Ocorrencia {
+  private final String codigoRastreio;
+  private final LocalDateTime registradaEm;
+  protected Ocorrencia(String codigoRastreio, LocalDateTime registradaEm) {
+    this.codigoRastreio = codigoRastreio;
+    this.registradaEm = registradaEm;
+  }
+  public abstract String getTipo();
+}</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>Duas subclasses: <code>OcorrenciaAtraso</code> (<code>horasDeAtraso</code>, <code>getTipo()</code> = <code>"ATRASO"</code>) e <code>OcorrenciaExtravio</code> (<code>ultimaLocalizacaoConhecida</code>, <code>getTipo()</code> = <code>"EXTRAVIO"</code>).</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, passo 8, Ocorrência</div>
+          <div class="footer-page">25</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 26: LAB PASSO 9, O FACTORY METHOD ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 9: a hierarquia de criadores</h2>
+        </div>
+
+        <p class="lead">Também em <code>rastreamento/domain</code>, a classe abstrata <code>OcorrenciaCreator</code>. <code>registrar</code> é final; <code>criarOcorrencia</code> é o Factory Method, abstrato.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public abstract class OcorrenciaCreator {
+  public final Ocorrencia registrar(String codigoRastreio) {
+    if (codigoRastreio == null || codigoRastreio.isBlank()) {
+      throw new IllegalArgumentException("codigo de rastreio e obrigatorio");
+    }
+    return criarOcorrencia(codigoRastreio, LocalDateTime.now());
+  }
+
+  protected abstract Ocorrencia criarOcorrencia(
+      String codigoRastreio, LocalDateTime registradaEm);
+}</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>Duas subclasses: <code>AtrasoOcorrenciaCreator</code> devolve <code>new OcorrenciaAtraso(...)</code> e <code>ExtravioOcorrenciaCreator</code> devolve <code>new OcorrenciaExtravio(...)</code>.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, passo 9, Factory Method</div>
+          <div class="footer-page">26</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 27: LAB PASSO 10, TESTAR O FACTORY METHOD ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 10: testar o Factory Method</h2>
+        </div>
+
+        <p class="lead"><code>OcorrenciaCreatorTest</code>, com três casos.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Test
+void atrasoOcorrenciaCreatorRegistraUmaOcorrenciaDeAtraso() {
+  Ocorrencia o = new AtrasoOcorrenciaCreator(3).registrar("RS12345");
+  assertEquals("ATRASO", o.getTipo());
+}
+
+@Test
+void registrarComCodigoDeRastreioVazioLancaExcecao() {
+  OcorrenciaCreator creator = new AtrasoOcorrenciaCreator(3);
+  assertThrows(IllegalArgumentException.class, () -> creator.registrar(""));
+}</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>Um terceiro caso, simétrico ao primeiro, cobre <code>ExtravioOcorrenciaCreator</code>. Rodar <code>./mvnw test</code>.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, passo 10, teste</div>
+          <div class="footer-page">27</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 28: LAB PASSO 11, REGISTRAR AS DECISÕES ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 11: registrar as duas decisões</h2>
+        </div>
+
+        <p class="lead">Em <code>docs/decisoes.md</code>, duas linhas novas, uma para cada padrão aplicado hoje.</p>
+
+        <pre class="code-compact"><code class="language-markdown" data-trim>Calculo de frete: Strategy, porque a formula precisa variar por
+pedido, em tempo de execucao.
+
+Criacao de Ocorrencia: Factory Method, porque o codigo que recebe
+a ligacao do atendente nao deve conhecer as subclasses concretas.</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, passo 11, decisões</div>
+          <div class="footer-page">28</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 29: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- O slide do entregável é o último passo do laboratório e nasce
+           dentro do Ciclo 4, então leva `exercise-slide content-slide` como
+           os demais slides de passo. Ver ADR-008. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Entregável de hoje e critérios de aceitação</h2>
+        </div>
+
+        <p class="lead">Strategy no cálculo de frete e Factory Method na criação de <code>Ocorrencia</code>, cada um com teste JUnit passando.</p>
+
+        <table style="margin-top:4px; font-size:0.58em;">
+          <thead>
+            <tr><th style="width:380px;">Critério de aceitação</th><th>Evidência conferida na correção</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>CalculoDeFreteServiceTest</code> passando</td><td><code>./mvnw test</code> verde, <code>PRINCIPAL</code> em <code>15.00</code> e <code>ULTIMA_MILHA</code> em <code>19.50</code></td></tr>
+            <tr><td><code>OcorrenciaCreatorTest</code> passando</td><td><code>./mvnw test</code> verde, os três casos, <code>ATRASO</code>, <code>EXTRAVIO</code> e exceção</td></tr>
+            <tr><td>Nenhuma anotação de framework no domínio envolvido</td><td>Inspeção de <code>Pedido</code>, <code>CalculadoraDeFrete</code>, as duas estratégias, <code>Ocorrencia</code> e suas subclasses, <code>OcorrenciaCreator</code> e seus dois criadores</td></tr>
+            <tr><td>Nenhuma classe fora dos pacotes de domínio e serviço instancia as quatro implementações diretamente</td><td>Busca por <code>new FreteRotaPropria</code>, <code>new FreteTransportadoraParceira</code>, <code>new AtrasoOcorrenciaCreator</code> e <code>new ExtravioOcorrenciaCreator</code> fora de <code>pedido.domain</code>, <code>pedido.service</code> e <code>rastreamento.domain</code></td></tr>
+            <tr><td>As duas decisões registradas</td><td><code>docs/decisoes.md</code> com as duas linhas novas</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Entregável e critérios</div>
+          <div class="footer-page">29</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 30: FECHAMENTO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Commit, push e prévia da Aula 12</h2>
+        </div>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>git add src docs
+git commit -m "feat(padroes): aplica Strategy no calculo de frete e Factory Method na criacao de Ocorrencia"
+git push</code></pre>
+
+        <div class="side-by-side" style="margin-top:12px;">
+          <div class="side" style="padding:14px 18px;">
+            <h4>O Módulo 3 abre aqui</h4>
+            <p style="margin:0; font-size:0.66em;">Até aqui a Rota Sul usou padrões sem nomear, Template Method na Aula 07. Hoje nomeou dois novos, Strategy e Factory Method, e aplicou os dois de propósito. <code>CalculoDeFreteService</code> fica paralelo ao fluxo de <code>PedidoService.registrar</code> até a Aula 13.</p>
+          </div>
+          <div class="side" style="padding:14px 18px;">
+            <h4>Prévia da Aula 12</h4>
+            <p style="margin:0; font-size:0.66em;">O capítulo de hoje citou, de passagem, que um framework "determina como o aplicativo funcionará". A Aula 12 abre exatamente esse ponto, inversão de controle: no Strategy de hoje, quem decide qual implementação usar é o código da Rota Sul; lá, quem decide é o Spring.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Fechamento</div>
+          <div class="footer-page">30</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 31: REFERÊNCIAS ==================== -->
+      <section id="ref-slide" class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Referências desta aula</h2>
+        </div>
+
+        <p class="lead">Os números entre colchetes nos títulos remetem a esta lista.</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; margin-top:14px;">
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[1] Design Patterns</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">MESQUITA, P. R. B. <em>Capítulo 10</em>. Arquitetura de Software. AVA, Uninove. Fonte primária desta aula.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[2] Design Patterns: Elements of Reusable Object-Oriented Software</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">GAMMA, E.; HELM, R.; JOHNSON, R.; VLISSIDES, J. Addison-Wesley, 1994. Referência indicada pelo capítulo, e a fonte do catálogo das três famílias.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[3] Utilizando UML e Padrões</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">LARMAN, C. Bookman, 2007. Referência indicada pelo capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[4] JUnit 5 User Guide</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;"><code style="font-size:0.9em;">junit.org/junit5/docs/current/user-guide/</code></p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[5] PlantUML</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">Documentação da linguagem. <code style="font-size:0.9em;">plantuml.com/pt</code></p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[6] Diagrama de pacotes da Rota Sul</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;"><code style="font-size:0.9em;">docs/arquitetura/pacotes.puml</code> do fork do aluno, entregável da Aula 05, contexto <code>rastreamento</code>, que ganha seu primeiro código nesta aula.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Referências</div>
+          <div class="footer-page">31</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 32: ENCERRAMENTO ==================== -->
+      <section class="end-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
+             style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">
+        <div class="copyright">
+          Copyright &copy; 2026<br>
+          Prof. José Romualdo da Costa Filho<br><br>
+          Todos os direitos reservados. É expressamente proibida a reprodução, divulgação<br>
+          total ou parcial, deste material acadêmico sem autorização formal,<br>
+          por escrito, do Professor autor da ementa.
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="../assets/js/uninove-quiz.js"></script>
+  <script>
+    Reveal.initialize({
+      width: 1280, height: 720, center: false, margin: 0,
+      hash: true, slideNumber: false,
+      // Os chevrons de navegação caem sobre a footer-bar e sobre o triângulo
+      // azul do canto inferior direito; a barra de progresso encosta no rodapé
+      // e parece um segundo rodapé. Nenhum dos dois é usado na projeção.
+      controls: false, progress: false,
+      // Um slide por página no ?print-pdf, para o PDF bater com o deck.
+      pdfMaxPagesPerSlide: 1,
+      plugins: [RevealHighlight],
+    });
+  </script>
+</body>
+</html>
