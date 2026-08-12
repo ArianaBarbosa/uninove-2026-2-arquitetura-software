@@ -81,6 +81,30 @@ do `monokai.css`), não quebra de linha; este acervo não pode usar rolagem
 porque a `section` tem altura e largura travadas e ninguém rola nada em sala,
 então a saída é forçar a quebra.
 
+**A quinta variante, achada na revisão da Aula 09:** um `<code>` **inline**,
+fora de `<pre>`, com um trecho longo sem espaço (o XML de exemplo
+`<volume><etiqueta>VOL-001</etiqueta><pesoKg>12.5</pesoKg></volume>`, 66
+caracteres, dentro de um `<li>` do `exercise-container`) não recebe a regra de
+quebra da quarta variante, porque `.reveal pre, .reveal pre code
+{ white-space: pre-wrap; overflow-wrap: anywhere }` é escopada a `<pre>` e ao
+`<code>` que vive dentro dele. Sem espaço para quebrar, o navegador tratou a
+string como um único token; o `<code>` inline forçou a largura do `<li>`, e
+por tabela a `section` inteira (e, junto com ela, `.top-bar` e
+`.decor-coral`, que usam `left:0; right:0` relativos à `section`) esticaram
+além de 1280px. O sintoma, de novo, só apareceu numa captura de tela real:
+`check_slides.py` mede estouro vertical e sobreposição de blocos, não
+alargamento horizontal de um `<li>` dentro de uma lista, e
+`check_canto_coral.py` mede o triângulo em si, não a largura do contêiner que
+o carrega. A correção pontual da Aula 09 (mover o trecho para um
+`<pre class="code-compact">`) resolveu aquele slide, mas não a causa: o
+próximo `<code>` inline com um trecho de código longo, em qualquer um dos
+onze decks que faltam, reabre o mesmo defeito. Fechada na origem com
+`.reveal code { overflow-wrap: anywhere }`, sem `!important` e sem
+`white-space`, porque código inline não tinha (nem precisa de) uma regra de
+quebra conflitante: o padrão do navegador para `<code>` já é `white-space:
+normal`, que quebra em espaço; faltava só a permissão para quebrar dentro de
+um token sem espaço quando não houver outra opção.
+
 ## Decisão
 
 Quando um defeito de tema é invisível aos quatro validadores, a resposta é
@@ -122,13 +146,14 @@ em vez de confiar na disciplina de quem escreve o deck.
 | `aulas-1sem/assets/css/uninove-theme.css`, linha 541 | `.exercise-slide .exercise-container h3` de volta a `display: block`, tirando a armadilha da origem |
 | `aulas-1sem/assets/css/uninove-theme.css`, linha 636 | `.reveal pre code` com `max-height: none`, que troca o corte silencioso do código por um estouro que o `check_slides.py` enxerga |
 | `aulas-1sem/assets/css/uninove-theme.css`, linha 655 | `.reveal pre, .reveal pre code` com `white-space: pre-wrap !important` e `overflow-wrap: anywhere !important`, movida da Aula 04 para o tema: a regra equivalente do `reveal.css` só vale dentro de `@media print`, então na tela nada quebrava linha comprida de código sem esta regra |
+| `aulas-1sem/assets/css/uninove-theme.css`, linha 684 | `.reveal code` com `overflow-wrap: anywhere` (sem `!important`, sem `white-space`), achada na Aula 09: quinta variante, `<code>` inline fora de `<pre>` com trecho longo sem espaço, que a regra da linha 655 não cobre por ser escopada a `<pre>` |
 | `aulas-1sem/SKILL.md`, seções 6.3, 7 e 10 | A convenção do `.option-text` e a tabela do que cada validador cobre |
 | `tools/check_slides.py`, campo `folgaAltura` do `JS_MEDIR`, e parâmetro `clicarQuiz` | A geometria (limite inferior menos `padding-bottom`) e o clique programático na alternativa certa, reaproveitados por `tools/medir_folga.py` em vez de duplicados |
 | `tools/medir_folga.py`, opção `--quiz-respondido` | Mede o slide de quiz com o `.quiz-feedback` visível, o ponto cego desta ADR; ver seção "Riscos conhecidos" |
 
 ## Riscos conhecidos
 
-- **A classe de defeito não acabou; só os quatro casos conhecidos foram
+- **A classe de defeito não acabou; só os cinco casos conhecidos foram
   fechados.** Qualquer regra nova de tema pode reabrir a categoria, e nenhum
   validador procura "defeito que só aparece na tela" de forma genérica, porque
   isso não é procurável.
@@ -178,13 +203,16 @@ em vez de confiar na disciplina de quem escreve o deck.
   `check_decks.py` reprova o elemento inline solto na leitura do HTML, antes de
   qualquer navegador, e a mensagem de erro explica o mecanismo do flex em vez
   de só apontar a linha.
-- **Três armadilhas sumiram da origem**, sem depender de convenção: o `h3` do
+- **Quatro armadilhas sumiram da origem**, sem depender de convenção: o `h3` do
   `exercise-container` voltou a `display: block`, o `max-height` do
   `pre code` foi zerado, o que transforma código cortado em estouro que o
-  `check_slides.py` acusa, e a quebra de linha longa em bloco de código, achada
-  na Aula 04, saiu do `style` inline daquele deck e foi para o tema: os 20
-  decks ganham o comportamento de uma vez, e ninguém precisa redescobrir que a
-  regra equivalente do `reveal.css` só vale na impressão.
+  `check_slides.py` acusa, a quebra de linha longa em bloco de código, achada
+  na Aula 04, saiu do `style` inline daquele deck e foi para o tema, e o
+  `<code>` inline com trecho longo, achado na Aula 09, ganhou a mesma quebra
+  sem precisar de `<pre>`: os 20 decks ganham o comportamento de uma vez, e
+  ninguém precisa redescobrir que a regra equivalente do `reveal.css` só vale
+  na impressão, nem lembrar de mover o próximo trecho longo para dentro de um
+  `<pre>`.
 - Quem lê os comentários do tema e do validador encontra o mecanismo explicado
   no ponto de uso, e não precisa reconstruí-lo a partir do sintoma.
 - A postura fica registrada: diante de um defeito novo dessa categoria, a

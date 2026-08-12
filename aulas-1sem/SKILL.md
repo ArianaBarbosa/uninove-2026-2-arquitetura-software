@@ -278,6 +278,16 @@ Não precisa tratar isso no deck: `uninove-theme.css` já força
 do acervo, então a linha quebra sozinha na projeção. Se um slide novo mostrar
 essa linha sem quebrar, o defeito é no tema, não no deck; ver ADR-007.
 
+**Uma quinta armadilha, achada na Aula 09 e da mesma família da anterior:**
+um `<code>` **inline**, fora de qualquer `<pre>` (um trecho de XML ou JSON
+citado dentro de um parágrafo ou item de lista, por exemplo), não herdava a
+quebra acima, porque a regra do tema era escopada a `<pre>` e ao `<code>` que
+vive dentro dele. Sem espaço para quebrar, o elemento inline esticava a
+`section` além de 1280px, e nenhum dos quatro validadores via isso. Fechada
+na origem: `.reveal code` recebe `overflow-wrap: anywhere` para todo código
+inline do acervo, sem depender de alguém lembrar de mover o próximo trecho
+longo para dentro de um `<pre>`. Ver ADR-007, quinta variante.
+
 ### 5.6 A forma distribuída, Aula 19
 
 A Aula 19 monta a versão distribuída do case, com quatro processos subindo

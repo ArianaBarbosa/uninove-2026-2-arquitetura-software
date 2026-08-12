@@ -665,6 +665,25 @@
   font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
 }
 
+/* Quinta variante do defeito da ADR-007: um `<code>` INLINE, fora de `<pre>`,
+   com um token longo sem espaço (um trecho de XML citado dentro de um
+   parágrafo ou item de lista, por exemplo) não herda a quebra de linha da
+   regra acima, que é escopada a `.reveal pre` e `.reveal pre code`. Sem
+   espaço para quebrar, o navegador trata a string como um único token; o
+   elemento inline força a largura do pai, e por tabela `.top-bar` e
+   `.decor-coral` (que usam `left:0; right:0` relativos à `section`) esticam
+   junto, além dos 1280px. Achado na Aula 09, num XML de exemplo dentro de um
+   `<li>` do `exercise-container`; corrigido ali movendo o trecho para
+   `<pre>`, o que resolve aquele caso mas não a causa. Esta regra fecha a
+   causa no tema: qualquer `<code>` inline futuro com trecho longo já nasce
+   protegido, sem depender de alguém lembrar de usar `<pre>`. Sem
+   `!important`: não há regra de `white-space` conflitante para código
+   inline (a única declaração com `!important` é a de `.reveal pre code`,
+   mais específica, e que este seletor não sobrescreve). */
+.reveal code {
+  overflow-wrap: anywhere;
+}
+
 /* Comentários dentro dos blocos de código. O tom original do monokai
    (#75715e sobre #1e1e1e) rende 3,40:1, abaixo do mínimo AA de 4,5:1, e é
    justamente onde o aluno lê o que cada comando faz. Este tom rende 6,42:1
