@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aula 14, Frameworks para gerenciamento de dados | Uninove</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="../assets/css/uninove-theme.css">
+  <link rel="stylesheet" href="../assets/css/uninove-print.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ==================== SLIDE 1: CAPA ==================== -->
+      <section class="cover-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho" class="uninove-logo-full"
+             style="max-width:400px; background:#FFFFFF; padding:26px 36px; border-radius:10px;">
+        <div style="margin-top:36px; color:#FFFFFF; font-size:0.95em; font-weight:800; letter-spacing:4px; text-transform:uppercase;">Arquitetura de Software</div>
+        <div style="margin-top:12px; color:#C84B31; font-size:0.6em; font-weight:700; letter-spacing:3px; text-transform:uppercase;">Graduação, 2026.2</div>
+      </section>
+
+      <!-- ==================== SLIDE 2: TÍTULO ==================== -->
+      <section class="title-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="title-card">
+          <div class="accent-bar"></div>
+          <h1>Arquitetura de Software</h1>
+          <h2>Frameworks para gerenciamento de dados</h2>
+          <h3>Prof. José Romualdo</h3>
+        </div>
+        <div class="lesson-bar">AULA 14 &nbsp;|&nbsp; Módulo 3, Padrões e frameworks</div>
+      </section>
+
+      <!-- ==================== SLIDE 3: AGENDA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Agenda do encontro de hoje</h2>
+        </div>
+
+        <p class="lead">São 150 minutos corridos, em quatro ciclos. Fecha o Módulo 3, Padrões e frameworks.</p>
+
+        <table>
+          <thead>
+            <tr><th style="width:190px;">Horário</th><th style="width:200px;">Bloco</th><th>O que acontece</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>19h30 às 20h05</td><td>Ciclo 1</td><td>Persistência de dados, ODBC e a distinção framework contra API</td></tr>
+            <tr><td>20h05 às 20h40</td><td>Ciclo 2</td><td>ORM, os cinco padrões de persistência e o Repository Pattern</td></tr>
+            <tr><td>20h40 às 20h50</td><td>Quiz de fixação</td><td>Qual padrão descreve o contrato <code>PedidoRepository</code></td></tr>
+            <tr><td>20h50 às 21h25</td><td>Ciclo 3</td><td>Laboratório: MySQL local, migration e <code>PedidoRepositoryJdbc</code></td></tr>
+            <tr><td>21h25 às 21h50</td><td>Ciclo 4</td><td>Laboratório: prova de persistência, teste e contagem de linhas</td></tr>
+            <tr><td>21h50 às 22h00</td><td>Fechamento</td><td>Commit, push e prévia da Aula 15</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Agenda do encontro</div>
+          <div class="footer-page">3</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 4: RETOMADA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Retomada: o que a Aula 13 deixou pronto</h2>
+        </div>
+
+        <p class="lead">Na Aula 13 cada aluno entregou a tela de cadastro de pedido em <code>/pedidos/novo</code>, com layout, fragments e validação do campo <code>cliente</code>, chamando o mesmo <code>PedidoService</code> da API REST.</p>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Abrir essa tela, cadastrar um pedido, reiniciar a aplicação com <code>Ctrl+C</code> e <code>./mvnw spring-boot:run</code>, e voltar em <code>/pedidos</code>: o pedido sumiu.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Por quê</span>
+          <p>A resposta está em <code>PedidoRepositoryEmMemoria</code>, viva desde a Aula 06: uma <code>List</code> dentro da JVM, que existe enquanto o processo existe e some quando ele para. A aula de hoje ataca exatamente esse ponto.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Retomada</div>
+          <div class="footer-page">4</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 5: CICLO 1, PERSISTÊNCIA E ODBC ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Por que persistir com um mecanismo eficiente <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">O objetivo principal de um aplicativo é prover dados a seus usuários, obtidos de outros sistemas ou digitados pelo próprio usuário; para isso, ele precisa persistir esses dados com eficiência, mantendo-os sempre disponíveis e atualizados.</p>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>A forma mais comum de armazenamento é um SGBD, sistema de gerenciamento de banco de dados. O capítulo cita uma proporção de mercado de aproximadamente 80% de SGBDs relacionais, que executam SQL, contra 20% para os demais modelos, incluindo NoSQL.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">A origem do ODBC</span>
+          <p>Entre 1970 e 1990, os aplicativos evoluíram até um padrão chamado ODBC, Open DataBase Connectivity, a primeira solução a manter alguma independência entre o aplicativo e o SGBD que ele usa.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Persistência e ODBC</div>
+          <div class="footer-page">5</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 6: CICLO 1, FRAMEWORK X API ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Framework contra API de persistência, a distinção do capítulo <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Uma camada de persistência independente da aplicação pode ser distribuída como componentes de software: na forma de um framework, ou na forma de uma API.</p>
+
+        <div class="side-by-side" style="margin-top:4px;">
+          <div class="side">
+            <h4>Framework</h4>
+            <p style="margin:0; font-size:0.68em;">Os componentes têm interfaces de conexão que acoplam o framework ao aplicativo; é o framework quem determina como a camada de persistência funciona, ainda que o desenvolvedor mantenha algum controle.</p>
+          </div>
+          <div class="side">
+            <h4>API</h4>
+            <p style="margin:0; font-size:0.68em;">Os componentes também têm interfaces de conexão, mas quem realiza as tarefas de persistir é a própria API, sem o desenvolvedor controlar como isso acontece por dentro.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label"><code>PedidoRepositoryJdbc</code> não é nenhum dos dois</span>
+          <p>É o próprio desenvolvedor controlando cada instrução SQL, sem framework nem API de persistência no meio. É exatamente esse contraste, sentido na mão, que prepara a Aula 15.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Framework contra API</div>
+          <div class="footer-page">6</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 7: CICLO 1, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: <code>PedidoRepositoryEmMemoria</code> contra a definição do capítulo</h2>
+        </div>
+
+        <p class="lead">Projetar <code>PedidoRepositoryEmMemoria</code>, da Aula 06, ao lado da definição de camada de persistência do capítulo: independente da aplicação, reutilizável por qualquer aplicativo.</p>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>A versão em memória cumpre a independência da interface, <code>PedidoRepository</code>, mas não cumpre a persistência de verdade: os dados não sobrevivem ao processo.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Hoje a turma escreve as duas coisas</span>
+          <p>Uma implementação independente da aplicação, como já era, e que também persiste de verdade, contra um MySQL real.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Demonstração, definição de camada</div>
+          <div class="footer-page">7</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 8: EXERCÍCIO CURTO DO CICLO 1 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício individual: Spring Data JPA é framework ou API?</h2>
+        </div>
+
+        <p class="lead">Cinco minutos, por escrito, aplicando a distinção do capítulo entre framework e API de persistência.</p>
+
+        <div class="exercise-container">
+          <h3>Responder</h3>
+          <ol class="exercise-steps">
+            <li>Segundo o capítulo, framework é quem determina como a camada de dados funciona, com algum controle do desenvolvedor; API é quem executa as tarefas de persistir sem esse controle.</li>
+            <li>Classificar: Spring Data JPA, que a Aula 15 vai apresentar, é mais parecido com framework ou com API?</li>
+          </ol>
+        </div>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><strong>Gabarito.</strong> Mais parecido com framework, porque o desenvolvedor escreve a interface do repositório e mantém controle sobre o mapeamento das entidades, mesmo que o Spring Data gere a implementação.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Exercício, framework ou API</div>
+          <div class="footer-page">8</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 9: CICLO 2, ORM ==================== -->
+      <!-- Nota para o professor, fora da tela: o capitulo ilustra ORM com uma
+           classe Banda anotada @Entity, @Table, @Id e @OneToMany, e com uma
+           AbstractFacade<T> chamando EntityManager. Isso e JPA, o assunto da
+           Aula 15, nao de hoje. Mostrar o trecho e util para indicar aonde o
+           semestre vai, mas nenhuma dessas anotacoes entra no laboratorio: o
+           laboratorio de hoje e deliberadamente o oposto disso, JDBC sem
+           mapeamento automatico. Nao ensinar o significado das anotacoes. -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Mapa objeto-relacional, a raiz do problema <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">A estrutura de tabelas de um SGBD relacional não é diretamente mapeável para a forma como a orientação a objetos estrutura classes e objetos.</p>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Um ORM orienta o desenvolvedor a escrever classes de entidade, cada uma representando uma entidade do SGBD, informando à API o nome da entidade, as colunas e as restrições de chave. A API usa reflexão de objetos para elaborar os comandos SQL a partir dessas classes.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">O capítulo já mostra o próximo passo</span>
+          <p>Uma classe <code>Banda</code> anotada <code>@Entity</code>, <code>@Table</code>, <code>@Id</code>, e uma fachada chamando <code>EntityManager</code>. Isso é JPA, o assunto da Aula 15: nenhuma dessas anotações entra no laboratório de hoje.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Mapa objeto-relacional</div>
+          <div class="footer-page">9</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 10: CICLO 2, CINCO PADRÕES ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Os cinco padrões de projeto para persistência <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead" style="margin-bottom:2px;">O capítulo lista cinco padrões usados no desenvolvimento de frameworks e APIs de persistência.</p>
+
+        <div class="concept-cards" style="margin-top:4px; grid-template-columns:repeat(5, 1fr); gap:8px;">
+          <div class="concept-card" style="padding:8px 10px;">
+            <h4 style="margin:0 0 4px 0;">Unit-of-Work</h4>
+            <p style="font-size:0.62em; line-height:1.3;">Agrupa várias instruções SQL numa única transação.</p>
+          </div>
+          <div class="concept-card" style="padding:8px 10px;">
+            <h4 style="margin:0 0 4px 0;">Repository</h4>
+            <p style="font-size:0.62em; line-height:1.3;">Camada abstrata de dados, usada em vez de conectar direto à base.</p>
+          </div>
+          <div class="concept-card" style="padding:8px 10px;">
+            <h4 style="margin:0 0 4px 0;">Bridge</h4>
+            <p style="font-size:0.62em; line-height:1.3;">Conecta um aplicativo a diferentes tipos de base de dados.</p>
+          </div>
+          <div class="concept-card" style="padding:8px 10px;">
+            <h4 style="margin:0 0 4px 0;">Factory</h4>
+            <p style="font-size:0.62em; line-height:1.3;">Modo conveniente de criar os objetos que a regra de negócio precisa.</p>
+          </div>
+          <div class="concept-card" style="padding:8px 10px;">
+            <h4 style="margin:0 0 4px 0;">Gateway</h4>
+            <p style="font-size:0.62em; line-height:1.3;">Lógica de conexão entre regra de negócio e banco de dados.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">O nome que faltava desde a Aula 06</span>
+          <p><code>PedidoRepository</code> é uma aplicação do Repository Pattern: a turma usa esse padrão há oito aulas sem o nome.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Cinco padrões de persistência</div>
+          <div class="footer-page">10</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 11: CICLO 2, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: anotação de mapeamento contra coluna lida à mão</h2>
+        </div>
+
+        <p class="lead">Ler em voz alta a listagem do capítulo com a classe <code>Banda</code>, contando as anotações de mapeamento numa única declaração de atributo: <code>@Id</code>, <code>@GeneratedValue</code>, <code>@Column</code>.</p>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Contrastar com o que a turma vai escrever em <code>PedidoRepositoryJdbc</code>: nenhuma anotação de mapeamento, e em troca, cada coluna lida com <code>resultado.getString("cliente")</code>, à mão.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Preço e benefício invertidos</span>
+          <p>É o mesmo par de mundos que o slide anterior mostrou; a Aula 15 mostra o outro lado da balança.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Demonstração, anotação x coluna</div>
+          <div class="footer-page">11</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 12: EXERCÍCIO CURTO DO CICLO 2 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício em duplas: ainda seria Repository Pattern?</h2>
+        </div>
+
+        <p class="lead">Cinco minutos, em duplas. Reler a definição de Repository Pattern do capítulo.</p>
+
+        <div class="exercise-container">
+          <h3>Decidir</h3>
+          <ol class="exercise-steps">
+            <li>Se <code>PedidoService</code> chamasse <code>DriverManager.getConnection(...)</code> diretamente, dentro de si mesmo, em vez de depender de <code>PedidoRepository</code>, isso ainda seria uma aplicação do Repository Pattern?</li>
+          </ol>
+        </div>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><strong>Gabarito.</strong> Não, porque o padrão exige exatamente a camada abstrata entre a aplicação e a base, e uma conexão direta dentro do serviço apaga essa camada, mesmo que o resultado funcione.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Exercício, Repository Pattern</div>
+          <div class="footer-page">12</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 13: QUIZ DE FIXAÇÃO ==================== -->
+      <section class="quiz-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area"><div class="accent-bar"></div><h2>Quiz de fixação</h2></div>
+        <div class="quiz-container">
+          <div class="quiz-question">A Rota Sul usa a interface <code>PedidoRepository</code>, com implementações trocáveis, sem que <code>PedidoService</code> mude uma linha. Qual padrão do capítulo descreve essa prática?</div>
+          <ul class="quiz-options">
+            <li data-correct="false"><span class="option-letter">A</span> <span class="option-text">Unit-of-Work, agrupa várias instruções SQL numa única transação.</span></li>
+            <li data-correct="true"><span class="option-letter">B</span> <span class="option-text">Repository, camada abstrata de dados em vez de conectar direto à base.</span></li>
+            <li data-correct="false"><span class="option-letter">C</span> <span class="option-text">Bridge, conecta um aplicativo a diferentes tipos de base de dados.</span></li>
+            <li data-correct="false"><span class="option-letter">D</span> <span class="option-text">Gateway, liga a regra de negócio ao banco de dados.</span></li>
+          </ul>
+          <div class="quiz-feedback"
+               data-correct-msg="Correto. E a definicao do Repository Pattern: camada abstrata entre PedidoService e a origem dos dados, trocavel sem alterar quem a consome."
+               data-incorrect-msg="Incorreto. A agrupa comandos numa transacao. C conecta a bancos diferentes ao mesmo tempo, nao o caso aqui. D e mais proxima do que um Gateway faria dentro do repositorio."></div>
+        </div>
+        <div class="slide-footer"><div class="footer-bar">14 Quiz de fixação</div><div class="footer-page">13</div></div>
+      </section>
+
+      <!-- ==================== SLIDE 14: LABORATÓRIO, INTRODUÇÃO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório de troca de implementação: memória por JDBC puro</h2>
+        </div>
+
+        <p class="lead">O contrato <code>PedidoRepository</code>, com <code>salvar(Pedido)</code> e <code>listarTodos()</code>, não muda uma linha; só a implementação por trás dele muda, sem <code>JdbcTemplate</code> e sem ORM.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Ciclo 3, MySQL e o repositório</h4>
+            <p style="margin:0; font-size:0.7em;">Dependências, MySQL local, migration, datasource, <code>PedidoRepositoryJdbc</code> e a contagem de linhas.</p>
+          </div>
+          <div class="side">
+            <h4>Ciclo 4, prova e entregável</h4>
+            <p style="margin:0; font-size:0.7em;">Desativar a versão em memória, provar a persistência real, testar com Testcontainers e registrar as decisões.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Antes de começar</span>
+          <p>A troca de hoje é a primeira de duas etapas prometidas desde a Aula 06: hoje sai a memória, entra o JDBC puro, sentindo a verbosidade na mão; a Aula 15 troca o JDBC por JPA, sentindo o alívio. Ninguém deve esperar o ORM já hoje.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Laboratório, introdução</div>
+          <div class="footer-page">14</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 15: LAB PASSO 1, DEPENDÊNCIAS ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 1: acrescentar as dependências</h2>
+        </div>
+
+        <p class="lead">No <code>pom.xml</code>, quatro dependências novas.</p>
+
+        <pre class="code-compact"><code class="language-xml" data-trim>&lt;artifactId&gt;spring-boot-starter-jdbc&lt;/artifactId&gt;
+&lt;artifactId&gt;mysql-connector-j&lt;/artifactId&gt;
+&lt;artifactId&gt;flyway-core&lt;/artifactId&gt;
+&lt;artifactId&gt;flyway-mysql&lt;/artifactId&gt;
+&lt;artifactId&gt;mysql&lt;/artifactId&gt; &lt;!-- org.testcontainers --&gt;</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><code>spring-boot-starter-jdbc</code> traz o <code>DataSource</code> autoconfigurado; <code>mysql-connector-j</code> é o driver; <code>flyway-core</code> mais <code>flyway-mysql</code> controlam a evolução do schema (o Flyway 10 separou o suporte a MySQL do núcleo); <code>org.testcontainers:mysql</code> sobe um MySQL descartável para o teste de hoje.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Laboratório, passo 1, dependências</div>
+          <div class="footer-page">15</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 16: LAB PASSO 2, MYSQL LOCAL ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 2: subir um MySQL local</h2>
+        </div>
+
+        <p class="lead">Com <code>DB_PASSWORD</code> lida do <code>.env</code>, nunca escrita no comando nem no repositório.</p>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>export DB_PASSWORD=$(grep DB_PASSWORD .env | cut -d= -f2)
+docker run --name rotasul-mysql -e MYSQL_ROOT_PASSWORD=${DB_PASSWORD} \
+  -e MYSQL_DATABASE=rotasul -p 3306:3306 -d mysql:8.4</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>A porta 3306 é a porta padrão do MySQL, fixada pelo próprio driver JDBC do passo 4, diferente da porta da aplicação Spring Boot, que continua sendo a que o terminal imprimir.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Laboratório, passo 2, MySQL local</div>
+          <div class="footer-page">16</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 17: LAB PASSO 3, MIGRATION ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 3: escrever a migration</h2>
+        </div>
+
+        <p class="lead">Em <code>src/main/resources/db/migration/V1__cria_tabela_pedido.sql</code>.</p>
+
+        <pre class="code-compact"><code class="language-sql" data-trim>CREATE TABLE pedido (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  cliente VARCHAR(255) NOT NULL,
+  descricao VARCHAR(255),
+  situacao VARCHAR(50) NOT NULL,
+  regiao VARCHAR(50) NOT NULL
+);</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><code>regiao</code>, obrigatório, é o atributo que a Aula 11 acrescentou ao domínio. O Flyway aplica essa migration sozinho na próxima subida da aplicação, contra qualquer banco novo, local ou de teste.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Laboratório, passo 3, migration</div>
+          <div class="footer-page">17</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 18: LAB PASSO 4, DATASOURCE ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 4: configurar o datasource</h2>
+        </div>
+
+        <p class="lead">Em <code>application.properties</code>.</p>
+
+        <pre class="code-compact"><code class="language-properties" data-trim>spring.datasource.url=jdbc:mysql://localhost:3306/rotasul
+spring.datasource.username=root
+spring.datasource.password=${DB_PASSWORD}</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Nenhuma senha em texto puro no arquivo, a mesma regra desde a Aula 01: <code>${DB_PASSWORD}</code> é resolvida pela variável de ambiente exportada no passo 2.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Laboratório, passo 4, datasource</div>
+          <div class="footer-page">18</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 19: LAB PASSO 5, PedidoRepositoryJdbc SALVAR (1/2) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: <code>PedidoRepositoryJdbc</code>, o método <code>salvar</code> (1/2)</h2>
+        </div>
+
+        <p class="lead">Em <code>pedido/repository</code>, com <code>java.sql</code> puro, recebendo <code>DataSource</code> pelo construtor. Abertura da conexão e o <code>INSERT</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public Pedido salvar(Pedido pedido) {
+  String sql = "INSERT INTO pedido (cliente, descricao, situacao, regiao) VALUES (?, ?, ?, ?)";
+  try (Connection conexao = dataSource.getConnection();
+       PreparedStatement comando = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+    comando.setString(1, pedido.getCliente());
+    comando.setString(2, pedido.getDescricao());
+    comando.setString(3, pedido.getSituacao());
+    comando.setString(4, pedido.getRegiao());
+    // continua no proximo slide
+  }
+}</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Laboratório, passo 5, salvar (1/2)</div>
+          <div class="footer-page">19</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 20: LAB PASSO 5, PedidoRepositoryJdbc SALVAR (2/2) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: <code>PedidoRepositoryJdbc</code>, o método <code>salvar</code> (2/2)</h2>
+        </div>
+
+        <p class="lead">A execução, a leitura da chave gerada e o tratamento de erro, ainda no mesmo método.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>comando.executeUpdate();
+try (ResultSet chaves = comando.getGeneratedKeys()) {
+  if (chaves.next()) {
+    pedido.setId(chaves.getLong(1));
+  }
+}
+return pedido;
+// fora do try, o catch:
+// catch (SQLException erro) {
+//   throw new IllegalStateException("falha ao salvar pedido", erro);
+// }</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p><code>Statement.RETURN_GENERATED_KEYS</code>, do slide anterior, é o que permite ler o <code>id</code> autoincremento de volta; sem ele, <code>getGeneratedKeys()</code> devolveria um <code>ResultSet</code> vazio.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Laboratório, passo 5, salvar (2/2)</div>
+          <div class="footer-page">20</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 21: LAB PASSO 5, PedidoRepositoryJdbc LISTARTODOS (1/2) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: <code>PedidoRepositoryJdbc</code>, o método <code>listarTodos</code> (1/2)</h2>
+        </div>
+
+        <p class="lead">Mesmo padrão do <code>salvar</code>: <code>SELECT</code>, <code>PreparedStatement</code>, e agora um <code>ResultSet</code> percorrido à mão.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public List&lt;Pedido&gt; listarTodos() {
+  String sql = "SELECT id, cliente, descricao, situacao, regiao FROM pedido";
+  List&lt;Pedido&gt; pedidos = new ArrayList&lt;&gt;();
+  try (Connection conexao = dataSource.getConnection();
+       PreparedStatement comando = conexao.prepareStatement(sql);
+       ResultSet resultado = comando.executeQuery()) {
+    // o while (resultado.next()) entra no proximo slide
+  }
+}</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Laboratório, passo 5, listarTodos (1/2)</div>
+          <div class="footer-page">21</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 22: LAB PASSO 5, PedidoRepositoryJdbc LISTARTODOS (2/2) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: <code>PedidoRepositoryJdbc</code>, o método <code>listarTodos</code> (2/2)</h2>
+        </div>
+
+        <p class="lead">A montagem manual de cada <code>Pedido</code> a partir da linha lida, coluna por coluna.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>while (resultado.next()) {
+  Pedido pedido = new Pedido(resultado.getString("cliente"),
+      resultado.getString("descricao"), resultado.getString("regiao"));
+  pedido.setId(resultado.getLong("id"));
+  pedido.setSituacao(resultado.getString("situacao"));
+  pedidos.add(pedido);
+}
+return pedidos;</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Nenhuma anotação mapeia <code>cliente</code> à coluna: o nome é uma <code>String</code> escrita à mão em cada <code>getString</code>. Ajustar os nomes de campo conforme a versão de <code>Pedido</code> que cada aluno já tem.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Laboratório, passo 5, listarTodos (2/2)</div>
+          <div class="footer-page">22</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 21: LAB PASSO 6, COMPILAR E CONTAR LINHAS ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 6: compilar e contar as linhas</h2>
+        </div>
+
+        <p class="lead">O registro central do Ciclo 4 começa aqui.</p>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>./mvnw compile
+wc -l src/main/java/.../pedido/repository/PedidoRepositoryEmMemoria.java \
+      src/main/java/.../pedido/repository/PedidoRepositoryJdbc.java</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Anotar os dois números num papel ou num editor à parte, para o registro do Ciclo 4. Ajustar os nomes de campo e o construtor de <code>Pedido</code> conforme a versão que cada aluno já tem, escrita na Aula 06 e ajustada na Aula 11.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Laboratório, passo 6, contar linhas</div>
+          <div class="footer-page">23</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 22: LAB PASSO 7, DESATIVAR EM MEMÓRIA ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 7: desativar a implementação em memória</h2>
+        </div>
+
+        <p class="lead">Remover a anotação <code>@Repository</code> de <code>PedidoRepositoryEmMemoria</code>, e acrescentar <code>@Repository</code> em <code>PedidoRepositoryJdbc</code>.</p>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>A classe em memória continua existindo no código, intacta, só deixa de ser candidata a bean: é o material de comparação da contagem de linhas, não código morto para apagar. <code>PedidoRepositoryJdbc</code> passa a ser a única implementação que o Spring enxerga.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Laboratório, passo 7, desativar memória</div>
+          <div class="footer-page">24</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 23: LAB PASSO 8, PROVAR PERSISTÊNCIA REAL ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 8: provar a persistência real</h2>
+        </div>
+
+        <p class="lead">Subir a aplicação, cadastrar um pedido pela tela <code>/pedidos/novo</code> da Aula 13, parar e subir de novo.</p>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>./mvnw spring-boot:run
+# cadastrar um pedido em /pedidos/novo, depois Ctrl+C
+./mvnw spring-boot:run
+# conferir em /pedidos: o pedido continua la</code></pre>
+
+        <div class="takeaway" style="margin-top:6px;">
+          <span class="takeaway-label">O oposto exato da retomada de hoje</span>
+          <p>É a prova de que a implementação nova cumpre o que a versão em memória nunca cumpriu.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Laboratório, passo 8, persistência real</div>
+          <div class="footer-page">25</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 24: LAB PASSO 9, TESTCONTAINERS ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 9: testar com Testcontainers</h2>
+        </div>
+
+        <p class="lead"><code>PedidoRepositoryJdbcTest</code>, anotado <code>@Testcontainers</code> e <code>@SpringBootTest</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Container
+static MySQLContainer&lt;?&gt; mysql = new MySQLContainer&lt;&gt;("mysql:8.4");
+
+@DynamicPropertySource
+static void configurar(DynamicPropertyRegistry registry) {
+  registry.add("spring.datasource.url", mysql::getJdbcUrl);
+  registry.add("spring.datasource.username", mysql::getUsername);
+  registry.add("spring.datasource.password", mysql::getPassword);
+}</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>Um caso: salvar um <code>Pedido</code> e conferir que <code>listarTodos()</code> devolve uma lista de tamanho um. Esse teste sobe um MySQL descartável a cada execução, sem depender do container manual do passo 2. Rodar <code>./mvnw test</code>.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Laboratório, passo 9, Testcontainers</div>
+          <div class="footer-page">26</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 25: LAB PASSO 10-11, REGISTRAR ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 10 e 11: registrar a contagem e a decisão</h2>
+        </div>
+
+        <p class="lead">Em <code>docs/decisoes.md</code>, duas linhas: a contagem do passo 6, o entregável central de hoje, e a razão arquitetural da troca.</p>
+
+        <pre class="code-compact"><code class="language-markdown" data-trim>PedidoRepositoryEmMemoria: 33 linhas; PedidoRepositoryJdbc: 75 linhas.
+Diferenca: abertura/fechamento de Connection, PreparedStatement,
+tratamento de SQLException e montagem manual de cada Pedido.
+
+Repository Pattern (capitulo 13) e a razao de a troca ter custado
+zero linha em PedidoService: a camada abstrata ja existia desde a Aula 06.</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Laboratório, passo 10-11, registrar</div>
+          <div class="footer-page">27</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 26: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- O slide do entregável é o último passo do laboratório e nasce
+           dentro do Ciclo 4, então leva `exercise-slide content-slide` como
+           os demais slides de passo. Ver ADR-008. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Entregável de hoje e critérios de aceitação</h2>
+        </div>
+
+        <p class="lead"><code>PedidoRepositoryJdbc</code>, nova implementação de <code>PedidoRepository</code> com JDBC puro contra um MySQL real, mais a contagem de linhas registrada em <code>docs/decisoes.md</code>.</p>
+
+        <table style="margin-top:4px; font-size:0.58em;">
+          <thead>
+            <tr><th style="width:360px;">Critério de aceitação</th><th>Evidência conferida na correção</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>PedidoRepositoryJdbc</code> é o único bean de <code>PedidoRepository</code></td><td><code>@Repository</code> só na classe JDBC, aplicação sobe sem erro de bean duplicado</td></tr>
+            <tr><td>Um pedido sobrevive a um reinício da aplicação</td><td><code>GET /pedidos</code> lista o pedido depois de <code>Ctrl+C</code> e nova subida</td></tr>
+            <tr><td><code>PedidoRepositoryJdbcTest</code> passando</td><td><code>./mvnw test</code> verde, usando Testcontainers</td></tr>
+            <tr><td>A contagem de linhas está registrada</td><td><code>docs/decisoes.md</code> com os dois números do passo 6</td></tr>
+            <tr><td>A decisão de arquitetura está registrada</td><td><code>docs/decisoes.md</code> nomeando o Repository Pattern</td></tr>
+            <tr><td><code>./mvnw test</code> passando</td><td>Suíte inteira verde, incluindo as Aulas 06 a 13</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Entregável e critérios</div>
+          <div class="footer-page">28</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 27: FECHAMENTO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Commit, push e o Módulo 3 em quatro frases</h2>
+        </div>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>git add src docs pom.xml
+git commit -m "feat(pedido): troca PedidoRepositoryEmMemoria por PedidoRepositoryJdbc com JDBC puro"
+git push</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Strategy e Factory Method nomeando o que a Rota Sul já fazia (Aula 11); inversão de controle explicando quem decide qual bean sobe (Aula 12); Thymeleaf abrindo uma segunda porta de entrada sem duplicar regra de negócio (Aula 13); e hoje, o primeiro contato com um banco de verdade, sentido na mão em linhas de código.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Prévia da Aula 15</span>
+          <p>A contagem de hoje é a régua que a próxima aula usa: a Aula 15 troca <code>PedidoRepositoryJdbc</code> por uma versão sobre a API de Persistência Java, e a turma mede de novo quantas linhas isso custa, desta vez para menos.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Fechamento</div>
+          <div class="footer-page">29</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 28: REFERÊNCIAS ==================== -->
+      <section id="ref-slide" class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Referências desta aula</h2>
+        </div>
+
+        <p class="lead">Os números entre colchetes nos títulos remetem a esta lista.</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; margin-top:14px;">
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[1] Frameworks para Gerenciamento de Dados</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">MESQUITA, P. R. B. <em>Capítulo 13</em>. Arquitetura de Software. AVA, Uninove. Fonte primária desta aula.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[2] Contracted Persistent Object Programming</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">BALZER, S. University of Glasgow, School of CS Research; ETH Zürich, 2015. Referência indicada pelo capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[3] MySQL Reference Manual</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">Oracle. <code style="font-size:0.9em;">dev.mysql.com/doc/</code></p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[4] Documentação do Flyway</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">Seção de migrations. Fonte de <code>V1__cria_tabela_pedido.sql</code>, fora do capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[5] Documentação do módulo MySQL do Testcontainers</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">Fonte de <code>MySQLContainer</code> e <code>@DynamicPropertySource</code>, fora do capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[6] JDBC API Documentation</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">Oracle. Fonte de <code>PreparedStatement</code> e <code>ResultSet</code>.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[7] JUnit 5 User Guide</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;"><code style="font-size:0.9em;">junit.org/junit5/docs/current/user-guide/</code></p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">14 Referências</div>
+          <div class="footer-page">30</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 29: ENCERRAMENTO ==================== -->
+      <section class="end-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
+             style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">
+        <div class="copyright">
+          Copyright &copy; 2026<br>
+          Prof. José Romualdo da Costa Filho<br><br>
+          Todos os direitos reservados. É expressamente proibida a reprodução, divulgação<br>
+          total ou parcial, deste material acadêmico sem autorização formal,<br>
+          por escrito, do Professor autor da ementa.
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="../assets/js/uninove-quiz.js"></script>
+  <script>
+    Reveal.initialize({
+      width: 1280, height: 720, center: false, margin: 0,
+      hash: true, slideNumber: false,
+      // Os chevrons de navegação caem sobre a footer-bar e sobre o triângulo
+      // azul do canto inferior direito; a barra de progresso encosta no rodapé
+      // e parece um segundo rodapé. Nenhum dos dois é usado na projeção.
+      controls: false, progress: false,
+      // Um slide por página no ?print-pdf, para o PDF bater com o deck.
+      pdfMaxPagesPerSlide: 1,
+      plugins: [RevealHighlight],
+    });
+  </script>
+</body>
+</html>
