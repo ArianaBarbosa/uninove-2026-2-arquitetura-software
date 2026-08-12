@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aula 13, Frameworks para aplicativos web | Uninove</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="../assets/css/uninove-theme.css">
+  <link rel="stylesheet" href="../assets/css/uninove-print.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ==================== SLIDE 1: CAPA ==================== -->
+      <section class="cover-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho" class="uninove-logo-full"
+             style="max-width:400px; background:#FFFFFF; padding:26px 36px; border-radius:10px;">
+        <div style="margin-top:36px; color:#FFFFFF; font-size:0.95em; font-weight:800; letter-spacing:4px; text-transform:uppercase;">Arquitetura de Software</div>
+        <div style="margin-top:12px; color:#C84B31; font-size:0.6em; font-weight:700; letter-spacing:3px; text-transform:uppercase;">Graduação, 2026.2</div>
+      </section>
+
+      <!-- ==================== SLIDE 2: TÍTULO ==================== -->
+      <section class="title-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="title-card">
+          <div class="accent-bar"></div>
+          <h1>Arquitetura de Software</h1>
+          <h2>Frameworks para aplicativos web</h2>
+          <h3>Prof. José Romualdo</h3>
+        </div>
+        <div class="lesson-bar">AULA 13 &nbsp;|&nbsp; Módulo 3, Padrões e frameworks</div>
+      </section>
+
+      <!-- ==================== SLIDE 3: AGENDA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Agenda do encontro de hoje</h2>
+        </div>
+
+        <p class="lead">São 150 minutos corridos, em quatro ciclos. Continua o Módulo 3, Padrões e frameworks.</p>
+
+        <table>
+          <thead>
+            <tr><th style="width:190px;">Horário</th><th style="width:200px;">Bloco</th><th>O que acontece</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>19h30 às 20h05</td><td>Ciclo 1</td><td>Da ARPANET ao HTML, e a tríade Java Web do capítulo</td></tr>
+            <tr><td>20h05 às 20h40</td><td>Ciclo 2</td><td>PUSH e PULL, e a fronteira entre view e regra de negócio</td></tr>
+            <tr><td>20h40 às 20h50</td><td>Quiz de fixação</td><td>O mecanismo de sincronização de dados PUSH</td></tr>
+            <tr><td>20h50 às 21h25</td><td>Ciclo 3</td><td>Laboratório: layout, fragments e o formulário de pedido</td></tr>
+            <tr><td>21h25 às 21h50</td><td>Ciclo 4</td><td>Laboratório: validação, confirmação e o entregável</td></tr>
+            <tr><td>21h50 às 22h00</td><td>Fechamento</td><td>Commit, push e prévia da Aula 14</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Agenda do encontro</div>
+          <div class="footer-page">3</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 4: RETOMADA DA AULA 12 ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Retomada: o que a Aula 12 deixou pronto</h2>
+        </div>
+
+        <p class="lead">Na Aula 12 cada aluno entregou <code>NotificadorDeOcorrencia</code>, com <code>NotificadorDeOcorrenciaConsole</code> para o perfil <code>dev</code> e <code>NotificadorDeOcorrenciaWebhookSimulado</code> para o perfil <code>prod</code>, ligados explicitamente por <code>NotificacaoConfig</code>.</p>
+
+        <div class="callout" style="margin-top:10px;">
+          <p>O log comprovou que o container troca de implementação sozinho conforme o perfil ativo, sem uma linha de <code>if</code> escrita pela Rota Sul. Até aqui, porém, a aplicação inteira só devolve JSON: nenhuma tela existe.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Retomada</div>
+          <div class="footer-page">4</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 5: A PROMESSA DA AULA 06 ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>A promessa de sete aulas atrás</h2>
+        </div>
+
+        <p class="lead">A tabela da Aula 06, que compara o capítulo com a stack da Rota Sul.</p>
+
+        <table style="margin-top:4px; font-size:0.68em;">
+          <thead>
+            <tr><th>Capítulo</th><th>Na Rota Sul</th><th>Papel</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Visão</td><td>Thymeleaf, desde hoje, e o JSON devolvido pela API</td><td>Apresentação</td></tr>
+            <tr><td>Controle</td><td><code>PedidoController</code> e, a partir de hoje, <code>PedidoFormController</code></td><td>Recebe a requisição, valida formato, delega</td></tr>
+            <tr><td>Modelo, regra</td><td><code>PedidoService</code>, inalterado desde a Aula 06</td><td>Regra de negócio</td></tr>
+            <tr><td>Modelo, dados</td><td><code>PedidoRepository</code> e a implementação</td><td>Acesso aos dados</td></tr>
+          </tbody>
+        </table>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">A linha Visão vence hoje</span>
+          <p>Ela dizia "Thymeleaf, a partir da Aula 13" desde a Aula 06. A Rota Sul ganha sua primeira tela de verdade, e o <code>PedidoService</code> vai atender essa tela sem que uma linha de regra de negócio precise ser reescrita.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 A promessa da Aula 06</div>
+          <div class="footer-page">5</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 6: CICLO 1, DA ARPANET AO HTML ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Da ARPANET ao HTML, e a chegada da interação <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Nos anos 1960, militares norte-americanos idealizaram uma base de informações descentralizada, para que um ataque não apagasse dados de toda a rede; nasceu a ARPANET, construída por um consórcio de universidades, que evoluiu para a Internet.</p>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>No início bastava apresentar informação, e para organizar essa apresentação surgiu o HTML, HyperText Markup Language, interpretada da mesma forma por qualquer navegador. Com o uso comercial da Internet nos anos 1990, foi preciso deixar o usuário interagir com a página: surgiram o CSS, para o leiaute, e o JavaScript, definido pela W3C para controlar dinamicamente o conteúdo a partir da interação do usuário.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Antes do JavaScript</span>
+          <p>Formulários eram tratados por Applets escritos em Java, logo substituídos por Servlets e por CGI, rotinas de servidor escritas em C ou C++.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Da ARPANET ao HTML</div>
+          <div class="footer-page">6</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 7: CICLO 1, SITE ESTÁTICO X ORIENTADO A SERVIÇOS ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>De site estático a site orientado a serviços <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Até o início dos anos 2000, um site podia ser puramente de conteúdo estático, apresentando informação de uma empresa.</p>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>O outro tipo, orientado a serviços, muda o conteúdo conforme a interação do usuário. Hoje é raro encontrar um site puramente estático.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Os exemplos do capítulo</span>
+          <p>Redes sociais, portais de notícia e comércio eletrônico são citados como exemplos de site orientado a serviços. A tela de hoje coloca a Rota Sul nesse segundo grupo: o conteúdo muda conforme o atendente preenche o formulário.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Site estático ou orientado a serviços</div>
+          <div class="footer-page">7</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 8: CICLO 1, A TRÍADE JAVA WEB ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>A tríade Java Web do capítulo <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Para sistemas de alta complexidade, o capítulo descreve o subconjunto Java Web da plataforma Java EE, formado por três peças.</p>
+
+        <div class="concept-cards" style="margin-top:6px;">
+          <div class="concept-card">
+            <h4>JSP</h4>
+            <p>Misturado ao HTML, em arquivos de extensão <code>.jsp</code>, controla o conteúdo apresentado ao usuário.</p>
+          </div>
+          <div class="concept-card">
+            <h4>Servlet</h4>
+            <p>Classe que trata requisições e gera respostas, controla a navegação entre páginas e o uso das classes JavaBeans.</p>
+          </div>
+          <div class="concept-card">
+            <h4>JavaBeans</h4>
+            <p>Classes que executam a regra de negócio e as tarefas de infraestrutura, como o acesso à base de dados.</p>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Para funcionar, uma aplicação Java Web precisa do Descritor de Deployment, <code>web.xml</code>, que configura como os Servlets são mapeados e como o Servlet Container deve operar.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 A tríade Java Web</div>
+          <div class="footer-page">8</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 9: CICLO 1, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: o equivalente de hoje para a tríade</h2>
+        </div>
+
+        <p class="lead">Ler as três definições do capítulo e escrever ao lado o que a Rota Sul constrói hoje.</p>
+
+        <table style="margin-top:4px; font-size:0.7em;">
+          <thead>
+            <tr><th>Tríade do capítulo</th><th>Na Rota Sul, hoje</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>JSP, controla o que é apresentado</td><td>Thymeleaf, os templates em <code>pedidos/</code></td></tr>
+            <tr><td>Servlet, recebe a requisição e decide a navegação</td><td><code>PedidoFormController</code>, um <code>@Controller</code> novo</td></tr>
+            <tr><td>JavaBeans, regra de negócio e infraestrutura</td><td><code>PedidoService</code> e <code>Pedido</code>, já existentes desde a Aula 06</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>O <code>web.xml</code> do capítulo não tem equivalente direto: o Spring Boot resolve o mapeamento de URLs por anotação, sem descritor de deployment separado.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Demonstração, a tríade de hoje</div>
+          <div class="footer-page">9</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 10: EXERCÍCIO CURTO DO CICLO 1 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício individual: quem guarda a regra "pedido sem cliente"?</h2>
+        </div>
+
+        <p class="lead">Cinco minutos, por escrito, sobre a tríade JSP, Servlet e JavaBeans do capítulo.</p>
+
+        <div class="exercise-container">
+          <h3>Responder</h3>
+          <ol class="exercise-steps">
+            <li>Na tríade do capítulo, qual das três teria a regra "pedido sem cliente é recusado", herdada da Aula 06?</li>
+            <li>Na versão da Rota Sul, em qual classe essa mesma regra continua morando hoje?</li>
+          </ol>
+        </div>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><strong>Gabarito.</strong> Na tríade do capítulo, a regra pertence à JavaBean; na Rota Sul, ela continua em <code>PedidoService</code>, e vai continuar lá mesmo depois que a tela de hoje existir, porque trocar a porta de entrada não muda onde a regra de negócio mora.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Exercício, quem guarda a regra</div>
+          <div class="footer-page">10</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 11: CICLO 2, PUSH E PULL ==================== -->
+      <!-- Nota para o professor, fora da tela: o capítulo cita o Hibernate como
+           framework para aplicativos web, ao lado de BootStrap, jQuery e Ajax,
+           descrevendo-o como algo que conecta interfaces gráficas às classes de
+           persistência. Essa classificação mistura camadas: apresentação e
+           persistência não são a mesma coisa, e o Hibernate volta com mais
+           precisão na Aula 15. Dizer isso à turma sem corrigir o capítulo na
+           frente dela: o texto do AVA é a fonte, e esta observação é só para o
+           professor não repetir a mistura em sala. -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>PUSH e PULL, a classificação do capítulo <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">O capítulo descreve dois modos de sincronizar dados entre cliente e servidor.</p>
+
+        <div class="side-by-side" style="margin-top:4px;">
+          <div class="side">
+            <h4>PUSH</h4>
+            <p style="margin:0; font-size:0.68em;">Os componentes do lado do servidor enviam os dados já prontos para o lado do cliente. Frameworks mais conhecidos: Struts, Ruby on Rails e Spring MVC, citado nominalmente pelo capítulo.</p>
+          </div>
+          <div class="side">
+            <h4>PULL</h4>
+            <p style="margin:0; font-size:0.68em;">Os componentes do lado do cliente solicitam a componentes de controle do servidor que lhes enviem as informações a mostrar. Frameworks mais conhecidos: JavaServer Faces, Struts2, ASP.Net Web Forms e Laravel.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">O laboratório de hoje é PUSH</span>
+          <p>O <code>PedidoFormController</code> já monta a página inteira, com os dados prontos, antes de enviá-la ao navegador.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 PUSH e PULL</div>
+          <div class="footer-page">11</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 12: CICLO 2, A FRONTEIRA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>A fronteira entre view e regra de negócio, o ponto central de hoje</h2>
+        </div>
+
+        <p class="lead">O formulário de hoje vai validar que o campo <code>cliente</code> foi preenchido, antes mesmo de qualquer dado chegar ao <code>PedidoService</code>.</p>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Essa validação de tela não substitui a regra "pedido sem cliente é recusado" que o <code>PedidoService</code> já aplica desde a Aula 06; ela apenas antecipa o mesmo problema, numa camada mais barata de errar.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Se alguém pular a tela</span>
+          <p>E chamar <code>POST /pedidos</code> direto, sem passar pelo formulário, o <code>PedidoService</code> continua sendo a última linha de defesa, porque é ele quem carrega a regra, não o Thymeleaf.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 A fronteira view e regra</div>
+          <div class="footer-page">12</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 13: CICLO 2, LAYOUT E FRAGMENTS ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Layout e fragments, o padrão de composição de hoje</h2>
+        </div>
+
+        <p class="lead">Em vez de repetir cabeçalho e rodapé em cada página, o Thymeleaf permite marcar um trecho de um arquivo com <code>th:fragment</code> e incluí-lo em outra página com <code>th:replace</code> ou <code>th:insert</code>.</p>
+
+        <div class="takeaway" style="margin-top:10px;">
+          <span class="takeaway-label">Composição, não herança</span>
+          <p>A página final é montada colando pedaços marcados, o mesmo princípio de reuso que já apareceu nos componentes de software desde a Aula 06, agora aplicado à camada de visão.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Layout e fragments</div>
+          <div class="footer-page">13</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 14: CICLO 2, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: o esqueleto de um fragment</h2>
+        </div>
+
+        <p class="lead">Esqueleto mínimo, para mostrar a mecânica antes de escrever o layout de verdade.</p>
+
+        <pre class="code-compact"><code class="language-html" data-trim>&lt;header th:fragment="cabecalho(titulo)"&gt;
+  &lt;h1 th:text="${titulo}"&gt;Título da página&lt;/h1&gt;
+&lt;/header&gt;</code></pre>
+
+        <pre class="code-compact"><code class="language-html" data-trim>&lt;div th:replace="~{fragments/layout :: cabecalho(titulo='Novo pedido')}"&gt;&lt;/div&gt;</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>O parâmetro <code>titulo</code> entra pelo fragment, como um parâmetro de método. <code>th:replace</code> troca a própria <code>div</code> pelo conteúdo do fragment; <code>th:insert</code> inseriria o conteúdo dentro da <code>div</code>, mantendo a tag. A aula de hoje usa <code>th:replace</code> nos dois casos, cabeçalho e rodapé.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Demonstração, fragment</div>
+          <div class="footer-page">14</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 15: EXERCÍCIO CURTO DO CICLO 2 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício em duplas: view ou regra de negócio?</h2>
+        </div>
+
+        <p class="lead">Cinco minutos, em duplas. Decidir, para cada situação, se a validação pertence à view ou à regra de negócio, e por quê.</p>
+
+        <div class="exercise-container">
+          <h3>Situações</h3>
+          <ol class="exercise-steps">
+            <li>Impedir que o formulário seja enviado sem o campo <code>cliente</code> preenchido.</li>
+            <li>Recusar um pedido cujo lojista está na lista de bloqueados, herdada da Aula 07.</li>
+            <li>Mostrar uma mensagem de erro em português perto do campo vazio.</li>
+          </ol>
+        </div>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><strong>Gabarito.</strong> (a) e (c) são view, cuidam da experiência de quem preenche o formulário; (b) é regra de negócio, porque depende de dado que só o domínio conhece e precisa valer para qualquer porta de entrada, tela ou API.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Exercício, view ou regra</div>
+          <div class="footer-page">15</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 16: QUIZ DE FIXAÇÃO ==================== -->
+      <section class="quiz-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area"><div class="accent-bar"></div><h2>Quiz de fixação</h2></div>
+        <div class="quiz-container">
+          <div class="quiz-question">O servidor já gera a página HTML pronta, com os dados atualizados, e a envia ao navegador sem que ele precise pedir mais nada. Segundo a classificação do capítulo, esse mecanismo é:</div>
+          <ul class="quiz-options">
+            <li data-correct="true"><span class="option-letter">A</span> PUSH, implementado por frameworks como Struts, Ruby on Rails e Spring MVC.</li>
+            <li data-correct="false"><span class="option-letter">B</span> PULL, implementado por frameworks como JavaServer Faces e Struts2.</li>
+            <li data-correct="false"><span class="option-letter">C</span> Ajax, técnica de atualização parcial de página, sem recarregá-la por inteiro.</li>
+            <li data-correct="false"><span class="option-letter">D</span> ORM, mapeamento de objetos da aplicação para tabelas do banco de dados.</li>
+          </ul>
+          <div class="quiz-feedback"
+               data-correct-msg="Correto. O servidor envia os dados prontos ao cliente: é PUSH, citando Struts, Ruby on Rails e Spring MVC, o mesmo Spring MVC que sustenta o Thymeleaf de hoje."
+               data-incorrect-msg="Incorreto. B é o oposto: o cliente solicita os dados. C é atualização parcial, não sincronização completa. D é mapeamento objeto-relacional, outro capítulo."></div>
+        </div>
+        <div class="slide-footer"><div class="footer-bar">13 Quiz de fixação</div><div class="footer-page">16</div></div>
+      </section>
+
+      <!-- ==================== SLIDE 17: LABORATÓRIO, INTRODUÇÃO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório de apresentação: layout, fragments e formulário</h2>
+        </div>
+
+        <p class="lead">O laboratório de hoje não é sobre visual: o foco é o papel da camada de apresentação, o padrão de composição por layout e fragments, e a fronteira entre view e regra de negócio. O HTML fica deliberadamente simples, sem framework de CSS.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Ciclo 3, o layout e o formulário</h4>
+            <p style="margin:0; font-size:0.7em;">Seis passos: as duas dependências novas, o layout compartilhado, <code>PedidoForm</code>, o <code>PedidoFormController</code> do <code>GET</code>, o template do formulário e a primeira subida.</p>
+          </div>
+          <div class="side">
+            <h4>Ciclo 4, validação e confirmação</h4>
+            <p style="margin:0; font-size:0.7em;">Cinco passos: o <code>POST</code> com validação, o template de confirmação, o teste sem navegador, a prova da fronteira por <code>curl</code> e a decisão registrada.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Laboratório, introdução</div>
+          <div class="footer-page">17</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 18: LAB PASSO 1, DEPENDÊNCIAS ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 1: acrescentar as dependências</h2>
+        </div>
+
+        <p class="lead">No <code>pom.xml</code>, duas dependências.</p>
+
+        <pre class="code-compact"><code class="language-xml" data-trim>&lt;dependency&gt;
+  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+  &lt;artifactId&gt;spring-boot-starter-thymeleaf&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+  &lt;artifactId&gt;spring-boot-starter-validation&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><code>spring-boot-starter-thymeleaf</code> está fixada no contrato técnico desde a Aula 01 e é usada pela primeira vez hoje. <code>spring-boot-starter-validation</code> é nova, necessária para <code>@NotBlank</code> e <code>@Valid</code> no formulário.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Laboratório, passo 1, dependências</div>
+          <div class="footer-page">18</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 19: LAB PASSO 2, LAYOUT COMPARTILHADO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 2: criar o layout compartilhado</h2>
+        </div>
+
+        <p class="lead">Em <code>templates/fragments/layout.html</code>, dois fragments.</p>
+
+        <pre class="code-compact"><code class="language-html" data-trim>&lt;header th:fragment="cabecalho(titulo)"&gt;
+  &lt;h1 th:text="${titulo}"&gt;Título da página&lt;/h1&gt;
+  &lt;nav&gt;
+    &lt;a href="/pedidos"&gt;Pedidos (API)&lt;/a&gt;
+    &lt;a href="/pedidos/novo"&gt;Novo pedido&lt;/a&gt;
+  &lt;/nav&gt;
+&lt;/header&gt;
+
+&lt;footer th:fragment="rodape"&gt;
+  &lt;p&gt;Painel interno da Rota Sul&lt;/p&gt;
+&lt;/footer&gt;</code></pre>
+
+        <div class="callout" style="margin-top:4px;">
+          <p><code>cabecalho(titulo)</code> mostra o título recebido por parâmetro e um menu com dois links, um para <code>/pedidos</code>, a API REST da Aula 06, e outro para <code>/pedidos/novo</code>, a tela de hoje.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Laboratório, passo 2, layout</div>
+          <div class="footer-page">19</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 20: LAB PASSO 3, MODELO DE FORMULÁRIO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 3: criar o modelo de formulário</h2>
+        </div>
+
+        <p class="lead">Em <code>pedido/web</code>, a classe <code>PedidoForm</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public class PedidoForm {
+
+  @NotBlank(message = "Cliente e obrigatorio")
+  private String cliente;
+
+  private String descricao;
+
+  private String regiao = "PRINCIPAL";
+
+  // getters e setters
+}</code></pre>
+
+        <div class="callout" style="margin-top:4px;">
+          <p>Diferente de <code>Pedido</code>, <code>PedidoForm</code> pode ter anotação de framework: ela pertence à camada <code>web</code>, não ao domínio. <code>regiao</code> repete o atributo que a Aula 11 acrescentou a <code>Pedido</code>, com o mesmo valor padrão.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Laboratório, passo 3, PedidoForm</div>
+          <div class="footer-page">20</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 21: LAB PASSO 4, CONTROLADOR DA TELA (1/2) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 4: escrever o controlador da tela (1/2)</h2>
+        </div>
+
+        <p class="lead"><code>PedidoFormController</code>, em <code>pedido/web</code>, anotado <code>@Controller</code>, não <code>@RestController</code>, mapeado em <code>/pedidos/novo</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Controller
+@RequestMapping("/pedidos/novo")
+public class PedidoFormController {
+
+  public PedidoFormController(PedidoService pedidoService,
+      CalculoDeFreteService calculoDeFreteService) { ... }
+}</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Recebe <code>PedidoService</code> e <code>CalculoDeFreteService</code> pelo construtor, os dois já existentes: nenhuma linha de regra de negócio nova nasce aqui. O método <code>GET</code> entra no próximo slide.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Laboratório, passo 4, controlador (1/2)</div>
+          <div class="footer-page">21</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 22: LAB PASSO 4, CONTROLADOR DA TELA (2/2) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 4: escrever o controlador da tela (2/2)</h2>
+        </div>
+
+        <p class="lead">O método <code>GET</code>, ainda em <code>PedidoFormController</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@GetMapping
+public String novo(Model model) {
+  model.addAttribute("pedidoForm", new PedidoForm());
+  return "pedidos/formulario";
+}</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Monta um <code>PedidoForm</code> vazio, adiciona ao <code>Model</code> com o nome <code>pedidoForm</code> e devolve o nome lógico da view, sem o <code>.html</code>, resolvido pelo Thymeleaf. O <code>POST</code> entra no Ciclo 4.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Laboratório, passo 4, controlador (2/2)</div>
+          <div class="footer-page">22</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 23: LAB PASSO 5, TEMPLATE DO FORMULÁRIO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: escrever o template do formulário</h2>
+        </div>
+
+        <p class="lead">Em <code>templates/pedidos/formulario.html</code>, incluindo o cabeçalho e o rodapé com <code>th:replace</code>.</p>
+
+        <pre class="code-compact"><code class="language-html" data-trim>&lt;div th:replace="~{fragments/layout :: cabecalho(titulo='Novo pedido')}"&gt;&lt;/div&gt;
+&lt;form th:object="${pedidoForm}" method="post"&gt;
+  &lt;input th:field="*{cliente}"&gt;
+  &lt;span th:if="${#fields.hasErrors('cliente')}" th:errors="*{cliente}"&gt;&lt;/span&gt;
+  &lt;input th:field="*{descricao}"&gt;
+  &lt;select th:field="*{regiao}"&gt;
+    &lt;option value="PRINCIPAL"&gt;PRINCIPAL&lt;/option&gt;
+    &lt;option value="ULTIMA_MILHA"&gt;ULTIMA_MILHA&lt;/option&gt;
+  &lt;/select&gt;
+&lt;/form&gt;</code></pre>
+
+        <div class="callout" style="margin-top:4px;">
+          <p><code>th:object</code> liga o formulário ao <code>pedidoForm</code>; <code>th:field</code> escreve <code>name</code>, <code>id</code> e <code>value</code> sozinho; <code>th:errors</code> só aparece quando <code>#fields.hasErrors('cliente')</code> for verdadeiro.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Laboratório, passo 5, formulário</div>
+          <div class="footer-page">23</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 24: LAB PASSO 6, SUBIR E VER A TELA ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 6: subir e ver a tela</h2>
+        </div>
+
+        <p class="lead">Com o terminal na raiz do fork.</p>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>./mvnw spring-boot:run</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Abrir <code>http://localhost:PORTA/pedidos/novo</code>, na porta que o terminal imprimiu. Conferir que o cabeçalho, o formulário e o rodapé aparecem, mesmo sem nenhuma folha de estilo.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Laboratório, passo 6, subir</div>
+          <div class="footer-page">24</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 25: LAB PASSO 7, POST COM VALIDAÇÃO (1/2) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 7: escrever o <code>POST</code> com validação (1/2)</h2>
+        </div>
+
+        <p class="lead">No mesmo <code>PedidoFormController</code>, um método <code>POST</code> em <code>/pedidos/novo</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@PostMapping
+public String registrar(@Valid @ModelAttribute("pedidoForm") PedidoForm form,
+    BindingResult resultado, Model model) {
+  if (resultado.hasErrors()) {
+    return "pedidos/formulario";
+  }
+  // continua no próximo slide
+}</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Se <code>resultado.hasErrors()</code>, devolve de novo <code>pedidos/formulario</code>, sem redirecionar, para o Thymeleaf reconstruir a página com as mensagens de erro ao lado dos campos.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Laboratório, passo 7, POST (1/2)</div>
+          <div class="footer-page">25</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 26: LAB PASSO 7, POST COM VALIDAÇÃO (2/2) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 7: escrever o <code>POST</code> com validação (2/2)</h2>
+        </div>
+
+        <p class="lead">Sem erro, o caminho de sucesso, ainda no mesmo método.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>Pedido pedido = new Pedido(form.getCliente(), form.getDescricao(), form.getRegiao());
+Pedido registrado = pedidoService.registrar(pedido);
+BigDecimal frete = calculoDeFreteService.calcular(registrado);
+
+model.addAttribute("pedido", registrado);
+model.addAttribute("frete", frete);
+return "pedidos/confirmacao";</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Registra o pedido e calcula o frete com <code>CalculoDeFreteService</code>, o Strategy da Aula 11, aplicado pela primeira vez a um fluxo real, não mais só a um teste isolado.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Laboratório, passo 7, POST (2/2)</div>
+          <div class="footer-page">26</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 27: LAB PASSO 8, TEMPLATE DE CONFIRMAÇÃO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 8: escrever o template de confirmação</h2>
+        </div>
+
+        <p class="lead">Em <code>templates/pedidos/confirmacao.html</code>, reaproveitando o cabeçalho e o rodapé do mesmo jeito.</p>
+
+        <pre class="code-compact"><code class="language-html" data-trim>&lt;p&gt;Cliente: &lt;span th:text="${pedido.cliente}"&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;Frete calculado pela estrategia de
+   &lt;span th:text="${pedido.regiao}"&gt;&lt;/span&gt;:
+   R$ &lt;span th:text="${frete}"&gt;&lt;/span&gt;&lt;/p&gt;</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>O texto "Frete calculado pela estratégia de <code>regiao</code>" liga visualmente o formulário de hoje ao Strategy da Aula 11: <code>CalculoDeFreteService</code> escolhe <code>FreteRotaPropria</code> ou <code>FreteTransportadoraParceira</code> olhando a mesma <code>regiao</code> que o formulário acabou de coletar.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Laboratório, passo 8, confirmação</div>
+          <div class="footer-page">27</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 28: LAB PASSO 9, TESTAR SEM NAVEGADOR ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 9: testar a validação sem navegador</h2>
+        </div>
+
+        <p class="lead"><code>PedidoFormControllerTest</code>, anotado <code>@WebMvcTest(PedidoFormController.class)</code>, com <code>PedidoService</code> e <code>CalculoDeFreteService</code> como <code>@MockBean</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Test
+void semClienteDevolveOMesmoFormularioComErroSemRegistrar() throws Exception {
+  mockMvc.perform(post("/pedidos/novo").param("regiao", "PRINCIPAL"))
+      .andExpect(status().isOk())
+      .andExpect(view().name("pedidos/formulario"));
+
+  verify(pedidoService, never()).registrar(any());
+}</code></pre>
+
+        <div class="callout" style="margin-top:4px;">
+          <p>O segundo caso é simétrico: um <code>POST</code> com <code>cliente</code> preenchido devolve a view <code>pedidos/confirmacao</code> e chama <code>pedidoService.registrar</code> exatamente uma vez. Rodar <code>./mvnw test</code>.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Laboratório, passo 9, teste</div>
+          <div class="footer-page">28</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 29: LAB PASSO 10, A FRONTEIRA POR CURL ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 10: confirmar a fronteira em voz alta</h2>
+        </div>
+
+        <p class="lead">Enviar, por <code>curl</code>, um <code>POST /pedidos</code>, a API REST da Aula 06, não a tela de hoje, sem o campo <code>cliente</code>.</p>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>curl -X POST http://localhost:PORTA/pedidos \
+  -H "Content-Type: application/json" \
+  -d '{"descricao":"sem cliente","regiao":"PRINCIPAL"}'</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>O <code>PedidoService</code> recusa do mesmo jeito que recusaria vindo da tela. É a prova de que a regra de negócio não migrou para o Thymeleaf, só ganhou uma segunda porta de entrada na frente dela.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Laboratório, passo 10, fronteira</div>
+          <div class="footer-page">29</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 30: LAB PASSO 11, REGISTRAR AS DECISÕES ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 11: registrar as decisões</h2>
+        </div>
+
+        <p class="lead">Em <code>docs/decisoes.md</code>, duas linhas.</p>
+
+        <pre class="code-compact"><code class="language-markdown" data-trim>Camada de apresentacao: layout e fragments do Thymeleaf em vez
+de repetir cabecalho e rodape em cada pagina.
+
+Validacao de PedidoForm e responsabilidade da view; nao substitui
+a regra de PedidoServicePadrao, que continua recusando pedido
+sem cliente em qualquer porta de entrada.</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Laboratório, passo 11, decisões</div>
+          <div class="footer-page">30</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 31: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- O slide do entregável é o último passo do laboratório e nasce
+           dentro do Ciclo 4, então leva `exercise-slide content-slide` como
+           os demais slides de passo. Ver ADR-008. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Entregável de hoje e critérios de aceitação</h2>
+        </div>
+
+        <p class="lead">A tela de cadastro de pedido em <code>/pedidos/novo</code>, com validação de campo obrigatório e confirmação mostrando o frete calculado.</p>
+
+        <table style="margin-top:4px; font-size:0.58em;">
+          <thead>
+            <tr><th style="width:360px;">Critério de aceitação</th><th>Evidência conferida na correção</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>POST /pedidos/novo</code> sem <code>cliente</code> devolve a mesma tela com erro</td><td>Status 200, view <code>pedidos/formulario</code>, nada registrado</td></tr>
+            <tr><td><code>POST /pedidos/novo</code> com <code>cliente</code> registra e confirma</td><td>View <code>pedidos/confirmacao</code>, com o frete calculado no corpo</td></tr>
+            <tr><td><code>PedidoFormControllerTest</code> passando</td><td><code>./mvnw test</code> verde, os dois casos de <code>MockMvc</code></td></tr>
+            <tr><td>A API REST continua recusando pedido sem cliente</td><td><code>curl POST /pedidos</code> sem <code>cliente</code>, mesma recusa de sempre</td></tr>
+            <tr><td>As decisões estão registradas</td><td><code>docs/decisoes.md</code> com as duas linhas novas</td></tr>
+            <tr><td><code>./mvnw test</code> passando</td><td>Suíte inteira verde, incluindo as Aulas 06 a 12</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Entregável e critérios</div>
+          <div class="footer-page">31</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 32: FECHAMENTO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Commit, push e prévia da Aula 14</h2>
+        </div>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>git add src docs
+git commit -m "feat(pedido): adiciona tela de cadastro em Thymeleaf com layout, fragments e validacao"
+git push</code></pre>
+
+        <div class="side-by-side" style="margin-top:12px;">
+          <div class="side" style="padding:14px 18px;">
+            <h4>O que muda hoje</h4>
+            <p style="margin:0; font-size:0.66em;">A linha Visão da tabela da Aula 06, que dizia "Thymeleaf, a partir da Aula 13", acaba de se cumprir. As outras três linhas, Controle, Modelo com regra e Modelo com dados, não mudaram uma vírgula.</p>
+          </div>
+          <div class="side" style="padding:14px 18px;">
+            <h4>Prévia da Aula 14</h4>
+            <p style="margin:0; font-size:0.66em;">A tela de hoje ainda grava tudo em <code>PedidoRepositoryEmMemoria</code>: fechar a aplicação apaga todo pedido cadastrado. A próxima aula troca o repositório em memória por JDBC puro, e a turma mede, em linhas de código, o preço dessa mudança.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Fechamento</div>
+          <div class="footer-page">32</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 33: REFERÊNCIAS ==================== -->
+      <section id="ref-slide" class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Referências desta aula</h2>
+        </div>
+
+        <p class="lead">Os números entre colchetes nos títulos remetem a esta lista.</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; margin-top:14px;">
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[1] Frameworks para Aplicativos Web</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">MESQUITA, P. R. B. <em>Capítulo 12</em>. Arquitetura de Software. AVA, Uninove. Fonte primária desta aula.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[2] Beginning Hibernate</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">LINWOOD, J.; MINTER, D.; OTTINGER, J. Apress, 2014. Referência indicada pelo capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[3] Getting Started With Bootstrap 3</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">FLORES, R. Smashwords, 2015. Referência indicada pelo capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[4] jQuery, a Biblioteca do Programador JavaScript</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">SILVA, M. S. Novatec, 2013. Referência indicada pelo capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[5] Documentação do Thymeleaf</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">Seção de layout e fragments. Fonte de <code>th:fragment</code> e <code>th:replace</code>, fora do capítulo 12.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[6] Documentação do Spring Framework</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">Seção de validação de formulário, com <code>@Valid</code> e <code>BindingResult</code>.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[7] JUnit 5 User Guide</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;"><code style="font-size:0.9em;">junit.org/junit5/docs/current/user-guide/</code></p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">13 Referências</div>
+          <div class="footer-page">33</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 34: ENCERRAMENTO ==================== -->
+      <section class="end-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
+             style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">
+        <div class="copyright">
+          Copyright &copy; 2026<br>
+          Prof. José Romualdo da Costa Filho<br><br>
+          Todos os direitos reservados. É expressamente proibida a reprodução, divulgação<br>
+          total ou parcial, deste material acadêmico sem autorização formal,<br>
+          por escrito, do Professor autor da ementa.
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="../assets/js/uninove-quiz.js"></script>
+  <script>
+    Reveal.initialize({
+      width: 1280, height: 720, center: false, margin: 0,
+      hash: true, slideNumber: false,
+      // Os chevrons de navegação caem sobre a footer-bar e sobre o triângulo
+      // azul do canto inferior direito; a barra de progresso encosta no rodapé
+      // e parece um segundo rodapé. Nenhum dos dois é usado na projeção.
+      controls: false, progress: false,
+      // Um slide por página no ?print-pdf, para o PDF bater com o deck.
+      pdfMaxPagesPerSlide: 1,
+      plugins: [RevealHighlight],
+    });
+  </script>
+</body>
+</html>
