@@ -416,7 +416,7 @@ quando o Spring monta `PedidoController` sob um perfil sem `PedidoService`.
 $ export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
 $ export PATH="$JAVA_HOME/bin:$PATH"
 $ java -version
-openjdk version "21.0.12" 2026-07-21
+openjdk version "21.0.12"
 $ mvn -version
 Apache Maven 3.9.16, Java version: 21.0.12
 

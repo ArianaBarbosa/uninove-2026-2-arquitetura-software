@@ -726,6 +726,29 @@ perfil, qualquer bean sem restrição de perfil que dependa de um bean **de um
 eixo anterior** precisa ser revisado contra a lista completa de perfis que a
 aplicação já usa, não só contra os perfis que a aula de hoje introduz.
 
+**Quarta armadilha: saída de comando real colada no kit carregando uma data
+literal, no formato ano-mês-dia.** Vale para as sete aulas que ainda serão
+construídas: nenhuma saída de comando colada num kit, para servir de evidência
+de execução real, pode carregar uma data, seja **timestamp de execução** (um
+campo como `timestamp` numa resposta HTTP de erro do Spring Boot, por
+exemplo), seja **data de build de uma ferramenta** (a saída de `java
+-version` inclui, depois da versão, a data em que aquele JDK foi compilado,
+não a data em que o aluno rodou o comando). O segundo caso escapou de uma
+rodada anterior de correção porque não é timestamp de execução, é metadado da
+ferramenta, e passou batido nas Aulas 11, 12 e 13 até uma nova varredura
+achar as três ocorrências, mais uma quarta do primeiro tipo, o campo
+`timestamp` de um erro colado na Aula 07. A correção corta a data sem cortar
+a evidência: em `openjdk version "21.0.12" AAAA-MM-DD`, a versão sozinha, sem
+a data de build, já prova que o aluno está no Java certo; em
+`{"timestamp":"AAAA-MM-DDTHH:mm:ss...","status":500,...}`, reticências no
+lugar do valor datado (`{"timestamp":"...","status":500,...}`) já provam a
+forma do erro, sem fixar quando ele foi capturado. **Dado de domínio não
+entra nessa regra e continua saindo com o valor real**: uma `previsaoEntrega`
+de remessa, por exemplo, é o que o exercício testa, não um metadado de quando
+o comando rodou. Antes de fechar qualquer aula, rodar `grep -rnE
+"[0-9]{4}-[0-9]{2}-[0-9]{2}" aulas-1sem/labs/ aulas-1sem/aulas/` e avaliar
+cada ocorrência por esse critério.
+
 ---
 
 ## 9. O ciclo do artefato

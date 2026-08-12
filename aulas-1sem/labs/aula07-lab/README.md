@@ -455,7 +455,7 @@ $ curl -i -X POST http://localhost:8080/pedidos \
 HTTP/1.1 500
 Content-Type: application/json
 
-{"timestamp":"2026-08-12T06:12:27.623+00:00","status":500,"error":"Internal Server Error","path":"/pedidos"}
+{"timestamp":"...","status":500,"error":"Internal Server Error","path":"/pedidos"}
 
 $ curl -i -X POST http://localhost:8080/pedidos \
   -H "Content-Type: application/json" \
