@@ -4443,8 +4443,10 @@ sem `JdbcTemplate` e sem ORM.
 
 1. **Acrescentar as dependências.** No `pom.xml`:
    `spring-boot-starter-jdbc`, que traz o `DataSource` autoconfigurado pelo
-   Spring Boot; `mysql-connector-j`, o driver JDBC do MySQL; `flyway-core`, já
-   fixado no contrato técnico para controlar a evolução do schema; e
+   Spring Boot; `mysql-connector-j`, o driver JDBC do MySQL; `flyway-core`
+   mais `flyway-mysql`, já fixados no contrato técnico para controlar a
+   evolução do schema (o Flyway 10 separou o suporte a cada SGBD do núcleo,
+   e sem `flyway-mysql` a aplicação não sobe contra o MySQL 8.4); e
    `org.testcontainers:mysql`, para o teste de hoje subir um MySQL descartável
    automaticamente.
 2. **Subir um MySQL local.** `docker run --name rotasul-mysql -e
@@ -4752,8 +4754,8 @@ deixa de ser uma interface escrita à mão para se tornar uma extensão de
 1. **Acrescentar a dependência.** No `pom.xml`, `spring-boot-starter-data-jpa`,
    fixada no contrato técnico desde a Aula 01. Ela traz o Hibernate como
    provedor de JPA (o assunto da Aula 18) e o Spring Data JPA por cima dele.
-   `mysql-connector-j` e `flyway-core`, já presentes desde a Aula 14,
-   continuam.
+   `mysql-connector-j`, `flyway-core` e `flyway-mysql`, já presentes desde a
+   Aula 14, continuam.
 2. **Anotar `Pedido` como entidade.** Em `pedido/domain`, acrescentar
    `@Entity`, `@Table(name = "pedido")` na classe, `@Id` e `@GeneratedValue(strategy
    = GenerationType.IDENTITY)` no atributo `id`, e `@Column(nullable = false)`

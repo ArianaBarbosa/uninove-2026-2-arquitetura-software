@@ -257,7 +257,7 @@
           <h2>Os cinco padrões de projeto para persistência <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
         </div>
 
-        <p class="lead" style="margin-bottom:2px;">O capítulo lista cinco padrões usados no desenvolvimento de frameworks e APIs de persistência.</p>
+        <p class="lead">O capítulo lista cinco padrões usados no desenvolvimento de frameworks e APIs de persistência.</p>
 
         <div class="concept-cards" style="margin-top:4px; grid-template-columns:repeat(5, 1fr); gap:8px;">
           <div class="concept-card" style="padding:8px 10px;">
@@ -414,7 +414,7 @@
           <h2>Laboratório, passo 1: acrescentar as dependências</h2>
         </div>
 
-        <p class="lead">No <code>pom.xml</code>, quatro dependências novas.</p>
+        <p class="lead">No <code>pom.xml</code>, cinco dependências novas.</p>
 
         <pre class="code-compact"><code class="language-xml" data-trim>&lt;artifactId&gt;spring-boot-starter-jdbc&lt;/artifactId&gt;
 &lt;artifactId&gt;mysql-connector-j&lt;/artifactId&gt;
@@ -423,7 +423,7 @@
 &lt;artifactId&gt;mysql&lt;/artifactId&gt; &lt;!-- org.testcontainers --&gt;</code></pre>
 
         <div class="callout" style="margin-top:6px;">
-          <p><code>spring-boot-starter-jdbc</code> traz o <code>DataSource</code> autoconfigurado; <code>mysql-connector-j</code> é o driver; <code>flyway-core</code> mais <code>flyway-mysql</code> controlam a evolução do schema (o Flyway 10 separou o suporte a MySQL do núcleo); <code>org.testcontainers:mysql</code> sobe um MySQL descartável para o teste de hoje.</p>
+          <p><code>spring-boot-starter-jdbc</code> traz o <code>DataSource</code> autoconfigurado; <code>mysql-connector-j</code> é o driver; <code>flyway-core</code> mais <code>flyway-mysql</code> controlam a evolução do schema (o Flyway 10 separou o suporte a MySQL do núcleo); <code>org.testcontainers:mysql</code> sobe um MySQL descartável para o teste de hoje. O <code>pom.xml</code> completo do kit soma uma sexta, <code>org.testcontainers:junit-jupiter</code>, o motor que liga <code>@Testcontainers</code> ao JUnit 5.</p>
         </div>
 
         <div class="slide-footer">
@@ -450,6 +450,11 @@ docker run --name rotasul-mysql -e MYSQL_ROOT_PASSWORD=${DB_PASSWORD} \
 
         <div class="callout" style="margin-top:8px;">
           <p>A porta 3306 é a porta padrão do MySQL, fixada pelo próprio driver JDBC do passo 4, diferente da porta da aplicação Spring Boot, que continua sendo a que o terminal imprimir.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Exigência que vale até a Aula 20</span>
+          <p>Da Aula 14 à Aula 20, qualquer teste <code>@SpringBootTest</code> de contexto completo tenta abrir este <code>DataSource</code> e rodar o Flyway na subida, e quebra sem o container no ar. Três testes herdados sem nada a ver com persistência, <code>ParceiroClientTest</code> (Aula 10), <code>NotificacaoConfigDevTest</code> e <code>NotificacaoConfigProdTest</code> (Aula 12), ganham hoje a exclusão de autoconfiguração explicada no kit, e voltam a rodar sem o container no ar.</p>
         </div>
 
         <div class="slide-footer">
@@ -637,7 +642,7 @@ return pedidos;</code></pre>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 21: LAB PASSO 6, COMPILAR E CONTAR LINHAS ==================== -->
+      <!-- ==================== SLIDE 23: LAB PASSO 6, COMPILAR E CONTAR LINHAS ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -663,7 +668,7 @@ wc -l src/main/java/.../pedido/repository/PedidoRepositoryEmMemoria.java \
         </div>
       </section>
 
-      <!-- ==================== SLIDE 22: LAB PASSO 7, DESATIVAR EM MEMÓRIA ==================== -->
+      <!-- ==================== SLIDE 24: LAB PASSO 7, DESATIVAR EM MEMÓRIA ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -685,7 +690,7 @@ wc -l src/main/java/.../pedido/repository/PedidoRepositoryEmMemoria.java \
         </div>
       </section>
 
-      <!-- ==================== SLIDE 23: LAB PASSO 8, PROVAR PERSISTÊNCIA REAL ==================== -->
+      <!-- ==================== SLIDE 25: LAB PASSO 8, PROVAR PERSISTÊNCIA REAL ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -713,7 +718,7 @@ wc -l src/main/java/.../pedido/repository/PedidoRepositoryEmMemoria.java \
         </div>
       </section>
 
-      <!-- ==================== SLIDE 24: LAB PASSO 9, TESTCONTAINERS ==================== -->
+      <!-- ==================== SLIDE 26: LAB PASSO 9, TESTCONTAINERS ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -745,7 +750,7 @@ static void configurar(DynamicPropertyRegistry registry) {
         </div>
       </section>
 
-      <!-- ==================== SLIDE 25: LAB PASSO 10-11, REGISTRAR ==================== -->
+      <!-- ==================== SLIDE 27: LAB PASSO 10-11, REGISTRAR ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -770,7 +775,7 @@ zero linha em PedidoService: a camada abstrata ja existia desde a Aula 06.</code
         </div>
       </section>
 
-      <!-- ==================== SLIDE 26: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- ==================== SLIDE 28: ENTREGÁVEL E CRITÉRIOS ==================== -->
       <!-- O slide do entregável é o último passo do laboratório e nasce
            dentro do Ciclo 4, então leva `exercise-slide content-slide` como
            os demais slides de passo. Ver ADR-008. -->
@@ -805,7 +810,7 @@ zero linha em PedidoService: a camada abstrata ja existia desde a Aula 06.</code
         </div>
       </section>
 
-      <!-- ==================== SLIDE 27: FECHAMENTO ==================== -->
+      <!-- ==================== SLIDE 29: FECHAMENTO ==================== -->
       <section class="content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -834,7 +839,7 @@ git push</code></pre>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 28: REFERÊNCIAS ==================== -->
+      <!-- ==================== SLIDE 30: REFERÊNCIAS ==================== -->
       <section id="ref-slide" class="content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -883,7 +888,7 @@ git push</code></pre>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 29: ENCERRAMENTO ==================== -->
+      <!-- ==================== SLIDE 31: ENCERRAMENTO ==================== -->
       <section class="end-slide">
         <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
              style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">
