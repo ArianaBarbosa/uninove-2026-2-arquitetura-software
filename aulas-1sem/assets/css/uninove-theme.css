@@ -642,16 +642,13 @@
 
 /* Quebra de linha longa dentro de bloco de código, com !important. Nasceu na
    Aula 04: a linha do proxy do PlantUML dentro de um bloco `language-markdown`
-   é única no arquivo real e larga demais para 1160px de área útil em
-   qualquer tamanho de fonte legível. O `reveal.css` já traz `.hljs {
-   white-space: pre-wrap }`, mas isso só vale depois que o RevealHighlight
-   aplica a classe `hljs` ao `<code>`; no instante em que o Chromium mede o
-   layout, o `<code>` às vezes ainda não passou pelo highlight e é medido
-   como se estivesse em `pre` comum, sem quebra. Fixar aqui, no `<pre>` e no
-   `<code>` do tema, garante o comportamento em qualquer ordem de
-   carregamento, para os 20 decks, em vez de repetir o `style` inline em cada
-   um. A Aula 05 tem o mesmo risco com a URL longa de `dominio.md`. Ver
-   ADR-007. */
+   é larga demais para 1160px de área útil. A regra `.hljs { white-space:
+   pre-wrap }` do `reveal.css` só vale em `@media print`. Na tela, quem vence é
+   `.reveal .code-wrapper code { white-space: pre }` do `white.css` (tema
+   padrão do Reveal.js), e o comportamento pretendido é rolagem horizontal.
+   Como a `section` tem altura e largura travadas aqui, não há barra de
+   rolagem utilizável em sala, então forçamos `pre-wrap` no tema para os 20
+   decks em vez de repetir `style` inline em cada um. Ver ADR-007. */
 .reveal pre,
 .reveal pre code {
   white-space: pre-wrap !important;
