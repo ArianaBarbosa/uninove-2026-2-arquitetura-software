@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aula 03, Sistemas colaborativos | Uninove</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="../assets/css/uninove-theme.css">
+  <link rel="stylesheet" href="../assets/css/uninove-print.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ==================== SLIDE 1: CAPA ==================== -->
+      <section class="cover-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho" class="uninove-logo-full"
+             style="max-width:400px; background:#FFFFFF; padding:26px 36px; border-radius:10px;">
+        <div style="margin-top:36px; color:#FFFFFF; font-size:0.95em; font-weight:800; letter-spacing:4px; text-transform:uppercase;">Arquitetura de Software</div>
+        <div style="margin-top:12px; color:#C84B31; font-size:0.6em; font-weight:700; letter-spacing:3px; text-transform:uppercase;">Graduação, 2026.2</div>
+      </section>
+
+      <!-- ==================== SLIDE 2: TÍTULO ==================== -->
+      <section class="title-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="title-card">
+          <div class="accent-bar"></div>
+          <h1>Arquitetura de Software</h1>
+          <h2>Sistemas colaborativos</h2>
+          <h3>Prof. José Romualdo</h3>
+        </div>
+        <div class="lesson-bar">AULA 03 &nbsp;|&nbsp; Módulo 1, Fundamentos e sistemas colaborativos</div>
+      </section>
+
+      <!-- ==================== SLIDE 3: AGENDA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Agenda do encontro de hoje</h2>
+        </div>
+
+        <p class="lead">São 150 minutos corridos, em quatro ciclos. Não há intervalo formal: a troca de ciclo é o respiro da aula.</p>
+
+        <table>
+          <thead>
+            <tr><th style="width:190px;">Horário</th><th style="width:200px;">Bloco</th><th>O que acontece</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>19h30 às 20h05</td><td>Ciclo 1</td><td>Groupware, aplicação corporativa e sistema colaborativo</td></tr>
+            <tr><td>20h05 às 20h40</td><td>Ciclo 2</td><td>Requisitos do sistema colaborativo e o modelo 3C</td></tr>
+            <tr><td>20h40 às 20h50</td><td>Quiz de fixação</td><td>Os requisitos não funcionais, segundo o capítulo</td></tr>
+            <tr><td>20h50 às 21h25</td><td>Ciclo 3</td><td>Laboratório: criar <code>docs/colaboracao.md</code> e mapear as interações</td></tr>
+            <tr><td>21h25 às 21h50</td><td>Ciclo 4</td><td>Laboratório: requisitos não funcionais, conclusão e entregável</td></tr>
+            <tr><td>21h50 às 22h00</td><td>Fechamento</td><td>Commit, push e prévia da Aula 04</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Agenda do encontro</div>
+          <div class="footer-page">3</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 4: RETOMADA DA AULA 02 ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Retomada: o que a Aula 02 deixou pronto</h2>
+        </div>
+
+        <p class="lead">Na Aula 02 cada aluno entregou <code>docs/decisoes.md</code> no próprio fork, com o inventário de frameworks e padrões de projeto da Rota Sul.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>A linha que volta ao quadro</h4>
+            <p style="margin:0;">A linha de <code>docs/decisoes.md</code> que trata de expor operações para outros sistemas por HTTP. Ela pressupõe que existem <strong>outros sistemas</strong> do lado de fora.</p>
+          </div>
+          <div class="side">
+            <h4>O que muda hoje</h4>
+            <p style="margin:0;">Do lado de fora também existem <strong>outras pessoas</strong>. A aula de hoje é sobre quem são elas e o que a presença delas muda nos requisitos do software.</p>
+          </div>
+        </div>
+
+        <div class="takeaway">
+          <span class="takeaway-label">Quem ficou para trás</span>
+          <p>Quem não fechou as oito linhas de <code>docs/decisoes.md</code> na semana passada usa os cinco minutos de agora com o professor ao lado, antes do Ciclo 1 avançar.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Retomada</div>
+          <div class="footer-page">4</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 5: CICLO 1, APLICAÇÃO CORPORATIVA OU COLABORATIVA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Aplicação corporativa ou sistema colaborativo <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">A diferença entre os dois está no objetivo final do software, na definição do capítulo [1].</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Aplicação corporativa</h4>
+            <p style="margin:0;">Existe para prover um serviço específico. Exemplo do capítulo: o banco, em que o correntista acessa e atualiza a própria conta a qualquer hora, de qualquer lugar.</p>
+          </div>
+          <div class="side">
+            <h4>Groupware, ou sistema colaborativo</h4>
+            <p style="margin:0;">Permite que os usuários compartilhem informação entre si, isolados ou em grupo. Vários usuários editando ao mesmo tempo um texto situado num ponto central é o exemplo direto do capítulo.</p>
+          </div>
+        </div>
+
+        <div class="takeaway">
+          <span class="takeaway-label">Definição do capítulo</span>
+          <p>Um sistema colaborativo é um sistema projetado para auxiliar um grupo de pessoas a realizar um trabalho, ou objetivo, comum a todas elas.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Corporativa ou colaborativa</div>
+          <div class="footer-page">5</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 6: CICLO 1, EXEMPLOS DE GROUPWARE ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Quatro exemplos de sistema colaborativo <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Além das redes sociais, o capítulo lista mais quatro famílias de exemplo, todas apoiadas nas mesmas tecnologias de interação.</p>
+
+        <div class="concept-cards" style="margin-top:14px;">
+          <div class="concept-card">
+            <h4>Controle de versão</h4>
+            <p>Vários programadores em cópias particulares enviam alterações a um servidor central, que sempre guarda uma versão consolidada. É o que a turma faz toda semana com o fork.</p>
+          </div>
+          <div class="concept-card">
+            <h4>Telemedicina</h4>
+            <p>Um médico no interior atende o paciente em viagem, e o médico da capital participa do exame e do diagnóstico à distância.</p>
+          </div>
+          <div class="concept-card">
+            <h4>Educação a distância</h4>
+            <p>O aluno acompanha remotamente o conteúdo e se reúne a outras pessoas para desenvolver atividades em conjunto.</p>
+          </div>
+          <div class="concept-card">
+            <h4>Teletrabalho</h4>
+            <p>Um grupo opera de vários locais remotos, em contato permanente para troca de informação e atualização do trabalho.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:14px;">
+          <span class="takeaway-label">No projetor</span>
+          <p>Página de commits de dois forks lado a lado, e do repositório-esqueleto original: cada aluno trabalha na própria cópia, e o servidor guarda o histórico consolidado da turma inteira.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Exemplos de groupware</div>
+          <div class="footer-page">6</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 7: EXERCÍCIO CURTO DO CICLO 1 ==================== -->
+      <!-- O enunciado fica projetado durante os cinco minutos em que a turma
+           escreve no caderno, por isso é slide próprio e não um bloco no pé
+           do slide anterior. Ver ADR-008. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício individual: a Rota Sul é as duas coisas?</h2>
+        </div>
+
+        <p class="lead">Cinco minutos, individual, por escrito. Responder pelo critério do capítulo: o objetivo final do software.</p>
+
+        <div class="exercise-container">
+          <h3>O que escrever nos cinco minutos</h3>
+          <ol class="exercise-steps">
+            <li>A Rota Sul é uma aplicação corporativa ou um sistema colaborativo? Justificar pelo objetivo final do software, não pela tecnologia usada.</li>
+            <li>Se a resposta envolver as duas coisas, explicar em que momento cada uma aparece.</li>
+            <li>Duas ou três leituras em voz alta antes de seguir para o Ciclo 2.</li>
+          </ol>
+        </div>
+
+        <div class="callout">
+          <p><strong>Resposta esperada:</strong> as duas coisas ao mesmo tempo. Ela presta um serviço específico ao lojista, o que é corporativo, e ao mesmo tempo apoia expedidor, motorista, atendente e parceiro trabalhando sobre a mesma entrega, o que é colaborativo.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Exercício, corporativa ou colaborativa</div>
+          <div class="footer-page">7</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 8: CICLO 2, REQUISITOS DO SISTEMA COLABORATIVO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>O que um sistema colaborativo exige <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">O capítulo separa o que o aplicativo deve fazer, os requisitos funcionais, da infraestrutura que sustenta esse fazer, os requisitos não funcionais [1].</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Funcionais</h4>
+            <ul style="margin:0; padding-left:18px;">
+              <li>Alta disponibilidade de comunicação em tempo real</li>
+              <li>Acesso remoto de usuários</li>
+              <li>Evitar sobrecarga de processamento nos servidores</li>
+              <li>Gerenciar as bases de dados garantindo integridade</li>
+            </ul>
+          </div>
+          <div class="side">
+            <h4>Não funcionais, infraestrutura</h4>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 10px; font-size:0.75em;">
+              <ul style="margin:0; padding-left:18px;">
+                <li>Balanceamento de carga</li>
+                <li>Transparência a falhas</li>
+                <li>Controle de transações de acesso</li>
+                <li>Gerenciamento de clusters</li>
+                <li>Reinstalação dinâmica</li>
+                <li>Desligamento limpo</li>
+              </ul>
+              <ul style="margin:0; padding-left:18px;">
+                <li>Serviços de log e auditoria</li>
+                <li>Gerenciamento de sistemas</li>
+                <li>Uso de threads</li>
+                <li>Pool de recursos</li>
+                <li>Segurança de acesso</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:4px;">
+          <span class="takeaway-label">A regra mais importante do ciclo</span>
+          <p>A lista de não funcionais é regra geral: o correto é considerar apenas os essenciais ao aplicativo em questão, e desconsiderar os demais.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Requisitos do sistema colaborativo</div>
+          <div class="footer-page">8</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 9: CICLO 2, O MODELO 3C ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>O modelo 3C: comunicação, coordenação, cooperação <a href="#/ref-slide" class="ref-badge" title="Ver referências">[2]</a></h2>
+        </div>
+
+        <p class="lead">Para classificar as interações da Rota Sul de forma disciplinada, o laboratório de hoje usa o modelo 3C, de Pimentel e Fucks [2].</p>
+
+        <div class="concept-cards" style="margin-top:12px;">
+          <div class="concept-card">
+            <h4>Comunicação</h4>
+            <p>Troca de mensagens e informação entre pessoas. Na Rota Sul: o atendente liga para o motorista perguntando onde está o volume.</p>
+          </div>
+          <div class="concept-card">
+            <h4>Coordenação</h4>
+            <p>Gestão de pessoas, tarefas e recursos ao longo do tempo. Na Rota Sul: a ordem em que as remessas entram no caminhão.</p>
+          </div>
+          <div class="concept-card">
+            <h4>Cooperação</h4>
+            <p>Atuação conjunta sobre um artefato compartilhado. Na Rota Sul: o painel de ocorrências que várias pessoas veem e alimentam.</p>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top:12px;">
+          <p><strong>Nota desta aula:</strong> o modelo 3C não está no capítulo 02 do AVA. Ele vem da bibliografia que o próprio capítulo indica, Pimentel e Fucks [2]. O quiz de hoje cobra o capítulo, não o 3C.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Modelo 3C</div>
+          <div class="footer-page">9</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 10: CICLO 2, DEMONSTRAÇÃO NO FLUXO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: três interações do fluxo da Rota Sul</h2>
+        </div>
+
+        <p class="lead">Retomando o fluxo da Aula 01, etiquetar três interações ao vivo e marcar cada uma como síncrona ou assíncrona: a resposta precisa vir agora, ou pode esperar?</p>
+
+        <div class="flow-diagram" style="margin-top:22px;">
+          <div class="flow-item">Atendente liga para o motorista<br>Comunicação, síncrona</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-item">Planilha da ordem de carregamento<br>Coordenação, assíncrona</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-item">Painel de ocorrências compartilhado<br>Cooperação, síncrona</div>
+        </div>
+
+        <div class="takeaway" style="margin-top:26px;">
+          <span class="takeaway-label">O que fica para a Aula 04</span>
+          <p>Hoje a classificação é operacional, pelo critério "a resposta precisa vir agora?". A formalização de síncrono e assíncrono, com sistemas distribuídos, vem na próxima aula.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Demonstração, 3C no fluxo</div>
+          <div class="footer-page">10</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 11: EXERCÍCIO CURTO DO CICLO 2 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício em duplas: precisa ou não precisa</h2>
+        </div>
+
+        <p class="lead">Cinco minutos, em duplas. Treinar o descarte justificado, que é o que o entregável de hoje vai exigir.</p>
+
+        <div class="exercise-container">
+          <h3>O que decidir nos cinco minutos</h3>
+          <ol class="exercise-steps">
+            <li>Escolher três dos onze requisitos não funcionais listados pelo capítulo.</li>
+            <li>Para cada um, decidir se a Rota Sul precisa dele agora.</li>
+            <li>Responder com uma frase de justificativa, nunca só com sim ou não.</li>
+          </ol>
+        </div>
+
+        <div class="callout">
+          <p><strong>Modelo de resposta:</strong> "gerenciamento de clusters fica fora porque o sistema roda em um processo só até a Aula 19" é justificativa aceitável. "Não precisa" não é.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Exercício, requisitos não funcionais</div>
+          <div class="footer-page">11</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 12: QUIZ DE FIXAÇÃO ==================== -->
+      <section class="quiz-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area"><div class="accent-bar"></div><h2>Quiz de fixação</h2></div>
+        <div class="quiz-container">
+          <div class="quiz-question">Segundo o capítulo, qual afirmação está correta sobre os requisitos não funcionais de um sistema colaborativo?</div>
+          <ul class="quiz-options">
+            <li data-correct="false"><span class="option-letter">A</span> Todo sistema colaborativo precisa atender aos onze requisitos de infraestrutura listados, sob pena de não ser considerado colaborativo.</li>
+            <li data-correct="false"><span class="option-letter">B</span> Requisitos não funcionais só se aplicam a redes sociais, porque só elas têm muitos usuários simultâneos.</li>
+            <li data-correct="true"><span class="option-letter">C</span> A lista é uma regra geral, e o desenvolvedor deve considerar apenas os requisitos essenciais ao seu aplicativo, desconsiderando os demais.</li>
+            <li data-correct="false"><span class="option-letter">D</span> Requisitos não funcionais são exclusivos dos sistemas colaborativos e não aparecem em aplicações corporativas.</li>
+          </ul>
+          <div class="quiz-feedback"
+               data-correct-msg="Correto. O capítulo enuncia a lista e adverte que ela é regra geral: o correto é considerar somente os requisitos essenciais ao aplicativo em questão."
+               data-incorrect-msg="Incorreto. A alternativa A transforma um catálogo de referência em obrigação, a B restringe o conceito às redes sociais e a D contraria a aproximação que o capítulo faz entre sistema colaborativo e aplicação corporativa. Reveja o slide dos requisitos."></div>
+        </div>
+        <div class="slide-footer"><div class="footer-bar">03 Quiz de fixação</div><div class="footer-page">12</div></div>
+      </section>
+
+      <!-- ==================== SLIDE 13: LAB PASSO 1 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 1 de 3: o arquivo e as interações</h2>
+        </div>
+
+        <p class="lead">Sem código. O mapeamento de hoje é o que a Aula 04 transforma em diagrama de componentes.</p>
+
+        <pre class="code-compact"><code class="language-markdown" data-trim># A Rota Sul como sistema colaborativo
+
+(um parágrafo: qual é o trabalho comum a todos os atores)</code></pre>
+
+        <div class="exercise-container">
+          <h3>O que fazer agora</h3>
+          <ol class="exercise-steps">
+            <li>Criar <code>docs/colaboracao.md</code> no fork, com o título acima e um parágrafo aplicando a definição do capítulo ao case.</li>
+            <li>Listar no mínimo nove interações reais entre os cinco atores, no formato "quem faz o quê com quem".</li>
+          </ol>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Laboratório, passo 1, arquivo e interações</div>
+          <div class="footer-page">13</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 14: LAB PASSO 2 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 2 de 3: a tabela do 3C</h2>
+        </div>
+
+        <pre class="code-compact"><code class="language-markdown" data-trim>| Interação | Dimensão 3C | Síncrona ou assíncrona | Por quê |
+|---|---|---|---|</code></pre>
+
+        <div class="exercise-container">
+          <h3>O que fazer agora</h3>
+          <ol class="exercise-steps">
+            <li>Montar a tabela com as quatro colunas. <strong>Dimensão 3C</strong> só aceita comunicação, coordenação ou cooperação, com pelo menos duas interações em cada.</li>
+            <li>Discussão dirigida, seis minutos: três alunos leem uma linha de cooperação e debatem se não é coordenação disfarçada.</li>
+          </ol>
+        </div>
+
+        <div class="callout">
+          <p><strong>Critério de desempate:</strong> existe um artefato compartilhado que as duas pessoas alteram? Se existe, é cooperação; se o que existe é ordem e responsabilidade, é coordenação.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Laboratório, passo 2, tabela e discussão</div>
+          <div class="footer-page">14</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 15: LAB PASSO 3 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 3: requisitos e conclusão</h2>
+        </div>
+
+        <p class="lead">No mesmo arquivo, a seção <code>## Requisitos não funcionais</code> e o parágrafo final de conclusão.</p>
+
+        <div class="exercise-container">
+          <h3>O que fazer agora</h3>
+          <ol class="exercise-steps">
+            <li>Duas listas: <strong>Necessários</strong>, ligando cada requisito a uma interação da tabela, e <strong>Descartados nesta etapa</strong>, com no mínimo três e a justificativa do descarte.</li>
+            <li>Um parágrafo final: a Rota Sul é aplicação corporativa, sistema colaborativo, ou as duas coisas, e por quê.</li>
+          </ol>
+        </div>
+
+        <div class="takeaway">
+          <span class="takeaway-label">Justificativa aceitável</span>
+          <p>"Gerenciamento de clusters fica fora porque o sistema roda em um processo só até a Aula 19" é aceitável. "Não precisa" não é.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Laboratório, passo 3, requisitos e conclusão</div>
+          <div class="footer-page">15</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 16: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- O slide do entregável é o último passo do laboratório e nasce
+           dentro do Ciclo 4, então leva `exercise-slide content-slide` como
+           os demais slides de passo. O `exercise-container` fica reservado
+           para lista de passos a executar; aqui o conteúdo é a tabela de
+           critérios. Ver ADR-008. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Entregável de hoje e critérios de aceitação</h2>
+        </div>
+
+        <p class="lead"><code>docs/colaboracao.md</code> com no mínimo nove interações, as três dimensões do 3C presentes e a seção de requisitos não funcionais.</p>
+
+        <table style="margin-top:6px;">
+          <thead>
+            <tr><th style="width:380px;">Critério de aceitação</th><th>Evidência conferida na correção</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>No mínimo nove interações na tabela</td><td>Cada linha no formato "quem faz o quê com quem"</td></tr>
+            <tr><td>As três dimensões do 3C aparecem</td><td>Pelo menos duas interações em comunicação, coordenação e cooperação</td></tr>
+            <tr><td>Nenhuma linha sem a coluna "Por quê"</td><td>As quatro colunas preenchidas em toda linha</td></tr>
+            <tr><td>No mínimo três requisitos descartados</td><td>Seção "Descartados nesta etapa" com justificativa por item</td></tr>
+            <tr><td>Conclusão presente</td><td>Parágrafo final classificando a Rota Sul</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Entregável e critérios</div>
+          <div class="footer-page">16</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 17: FECHAMENTO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Commit, push e prévia da Aula 04</h2>
+        </div>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>git add docs/colaboracao.md
+git commit -m "docs(colaboracao): mapeia as interações da Rota Sul no modelo 3C"
+git push</code></pre>
+
+        <div class="side-by-side" style="margin-top:12px;">
+          <div class="side" style="padding:14px 18px;">
+            <h4>Confira antes de sair</h4>
+            <p style="margin:0; font-size:0.7em;">As três dimensões precisam aparecer, com pelo menos duas interações cada, e nenhuma linha pode ficar sem a coluna "Por quê".</p>
+          </div>
+          <div class="side" style="padding:14px 18px;">
+            <h4>Prévia da Aula 04</h4>
+            <p style="margin:0; font-size:0.7em;">Hoje a turma descreveu o que as pessoas fazem juntas. A próxima aula trata de como o software se organiza para sustentar isso: síncrono e assíncrono com definição formal, e três modelos de arquitetura distribuída.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:14px;">
+          <span class="takeaway-label">As duas ideias de hoje</span>
+          <p>Sistema colaborativo apoia um grupo a realizar um trabalho comum; e o modelo 3C separa comunicação, coordenação e cooperação, vindo da bibliografia do capítulo, não do capítulo em si.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Fechamento</div>
+          <div class="footer-page">17</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 18: REFERÊNCIAS ==================== -->
+      <section id="ref-slide" class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Referências desta aula</h2>
+        </div>
+
+        <p class="lead">Os números entre colchetes nos títulos remetem a esta lista.</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px 20px; margin-top:16px;">
+          <div class="concept-card" style="padding:12px 16px;">
+            <h4 style="margin:0 0 4px 0;">[1] Sistemas colaborativos</h4>
+            <p style="font-size:0.68em; color:#444444; margin:0;">MESQUITA, P. R. B. <em>Capítulo 02</em>. Arquitetura de Software. AVA, Uninove. Fonte primária desta aula.</p>
+          </div>
+          <div class="concept-card" style="padding:12px 16px;">
+            <h4 style="margin:0 0 4px 0;">[2] O modelo 3C</h4>
+            <p style="font-size:0.68em; color:#444444; margin:0;">PIMENTEL, M.; FUCKS, H. <em>Sistemas Colaborativos</em>. Rio de Janeiro: Campus, 2011. Referência indicada pelo próprio capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:12px 16px;">
+            <h4 style="margin:0 0 4px 0;">[3] O case Rota Sul</h4>
+            <p style="font-size:0.68em; color:#444444; margin:0;"><code style="font-size:0.9em;">PLANO_DE_ENSINO.md</code>, seção 5, com os cinco atores e as nove entidades usados no mapeamento.</p>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top:24px;">
+          <p><strong>Nota para o professor:</strong> o modelo 3C não está no capítulo 02 do AVA. Ele entra pela referência [2], citada pelo próprio capítulo. Ver também a nota no slide 9.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">03 Referências</div>
+          <div class="footer-page">18</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 19: ENCERRAMENTO ==================== -->
+      <section class="end-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
+             style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">
+        <div class="copyright">
+          Copyright &copy; 2026<br>
+          Prof. José Romualdo da Costa Filho<br><br>
+          Todos os direitos reservados. É expressamente proibida a reprodução, divulgação<br>
+          total ou parcial, deste material acadêmico sem autorização formal,<br>
+          por escrito, do Professor autor da ementa.
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="../assets/js/uninove-quiz.js"></script>
+  <script>
+    Reveal.initialize({
+      width: 1280, height: 720, center: false, margin: 0,
+      hash: true, slideNumber: false,
+      // Os chevrons de navegação caem sobre a footer-bar e sobre o triângulo
+      // azul do canto inferior direito; a barra de progresso encosta no rodapé
+      // e parece um segundo rodapé. Nenhum dos dois é usado na projeção.
+      controls: false, progress: false,
+      // Um slide por página no ?print-pdf, para o PDF bater com o deck.
+      pdfMaxPagesPerSlide: 1,
+      plugins: [RevealHighlight],
+    });
+  </script>
+</body>
+</html>
