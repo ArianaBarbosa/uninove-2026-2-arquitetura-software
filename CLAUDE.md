@@ -35,7 +35,12 @@ Existem hoje, de fato, em disco:
 - `PLANO_DE_ENSINO.md`, na raiz.
 - `PLANEJAMENTO_AULA_A_AULA.md`, na raiz, com as 20 seções e 6247 linhas.
 - `aulas-1sem/SKILL.md`, a metodologia e o padrão de construção de deck e kit.
-- Os seis ADRs em `docs/adrs/` (ADR-001 a ADR-006).
+- Os oito ADRs em `docs/adrs/` (ADR-001 a ADR-008, sem buraco de numeração).
+  ADR-007 e ADR-008 nasceram da revisão da Task 13: a 007 registra a classe de
+  defeito de tema que passa nos quatro validadores e só aparece na projeção,
+  citada em nove pontos de `tools/check_decks.py` e de
+  `aulas-1sem/assets/css/uninove-theme.css`; a 008, as convenções de molde do
+  deck padrão-ouro.
 - A suíte `tests/` com `test_publicacao.py` e `test_tema.py`, 7 testes.
 
 **Ainda não existem, apesar de citados no planejamento e no SKILL.md:**

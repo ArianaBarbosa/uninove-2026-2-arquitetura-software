@@ -4,13 +4,6 @@
 **Status:** Aceita
 **Decisores:** Prof. José Romualdo
 
-> O número 007 está reservado: `tools/check_decks.py` e
-> `aulas-1sem/assets/css/uninove-theme.css` citam "ADR-007" em cinco lugares,
-> a respeito do contexto de flex da alternativa de quiz e do
-> `max-height` do `pre code`, mas o arquivo correspondente ainda não foi
-> escrito. Esta ADR recebe o número seguinte para não colidir com aquelas
-> citações.
-
 ## Contexto
 
 `aulas-1sem/aulas/aula01.html` é o deck padrão-ouro do acervo: as Tasks 15 a 33
@@ -100,3 +93,6 @@ e todo slide dos Ciclos 3 e 4, inclusive o do entregável, é
 
 - ADR-002: sem resolução de turma e sem data no deck
 - ADR-004: case Rota Sul e repositório-esqueleto único
+- ADR-007: defeitos de tema invisíveis aos validadores, que é a mesma situação
+  vista do outro lado, quando o defeito existe e nenhum validador o vê; aqui a
+  convenção existe e nenhum validador a cobra
