@@ -268,10 +268,10 @@ Notificador ativo: NotificadorDeOcorrenciaConsole
 Saída de referência, obtida rodando este mesmo gabarito:
 
 ```
-2026-08-12T14:21:23.089-03:00  INFO ... Starting RotaSulApplication using Java 21.0.12 ...
-2026-08-12T14:21:23.090-03:00  INFO ... The following 1 profile is active: "dev"
-2026-08-12T14:21:23.961-03:00  INFO ... Started RotaSulApplication in 1.036 seconds
-2026-08-12T14:21:23.962-03:00  INFO b.u.r.r.service.NotificacaoConfig : Notificador ativo: NotificadorDeOcorrenciaConsole
+INFO ... Starting RotaSulApplication using Java 21.0.12 ...
+INFO ... The following 1 profile is active: "dev"
+INFO ... Started RotaSulApplication in 1.036 seconds
+INFO b.u.r.r.service.NotificacaoConfig : Notificador ativo: NotificadorDeOcorrenciaConsole
 ```
 
 ### 3.9 Subir com o perfil `prod`
@@ -291,7 +291,7 @@ Notificador ativo: NotificadorDeOcorrenciaWebhookSimulado
 Saída de referência, obtida rodando este mesmo gabarito:
 
 ```
-2026-08-12T14:21:58.309-03:00  INFO b.u.r.r.service.NotificacaoConfig : Notificador ativo: NotificadorDeOcorrenciaWebhookSimulado
+INFO b.u.r.r.service.NotificacaoConfig : Notificador ativo: NotificadorDeOcorrenciaWebhookSimulado
 ```
 
 As duas capturas de log, `dev` e `prod`, são a evidência literal que o
