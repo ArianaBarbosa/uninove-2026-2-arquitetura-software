@@ -435,12 +435,16 @@ CalculoDeFreteService o-- CalculadoraDeFrete</code></pre>
         <div class="side-by-side" style="margin-top:6px;">
           <div class="side">
             <h4>Ciclo 3, Strategy no frete</h4>
-            <p style="margin:0; font-size:0.7em;">Seis passos: o contrato <code>CalculadoraDeFrete</code>, o atributo <code>regiao</code> em <code>Pedido</code>, as duas estratégias, o contexto <code>CalculoDeFreteService</code> e o teste.</p>
+            <p style="margin:0; font-size:0.7em;">Seis passos: instalar o kit da camada <code>pedido</code> (<code>Pedido</code> já com <code>regiao</code>), o contrato <code>CalculadoraDeFrete</code>, as duas estratégias, o contexto <code>CalculoDeFreteService</code> e o teste.</p>
           </div>
           <div class="side">
             <h4>Ciclo 4, Factory Method na ocorrência</h4>
-            <p style="margin:0; font-size:0.7em;">Cinco passos: o contexto <code>rastreamento</code>, a hierarquia de <code>Ocorrencia</code>, a hierarquia de criadores, o teste, e as duas decisões em <code>docs/decisoes.md</code>.</p>
+            <p style="margin:0; font-size:0.7em;">Quatro passos: o contexto <code>rastreamento</code>, com a hierarquia de <code>Ocorrencia</code> pronta no kit, a hierarquia de criadores, o teste, e as duas decisões em <code>docs/decisoes.md</code>.</p>
           </div>
+        </div>
+
+        <div class="callout" style="margin-top:8px;">
+          <p><strong>Dois padrões, nove arquivos digitados.</strong> A hierarquia de <code>Ocorrencia</code> e o próprio <code>Pedido</code> chegam prontos no kit: nenhum dos dois é o padrão que a aula ensina.</p>
         </div>
 
         <div class="slide-footer">
@@ -449,14 +453,43 @@ CalculoDeFreteService o-- CalculadoraDeFrete</code></pre>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 17: LAB PASSO 1, CONTRATO ==================== -->
+      <!-- ==================== SLIDE 17: LAB PASSO 1, INSTALAR O KIT ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
         <div class="decor-coral"></div>
         <div class="slide-title-area">
           <div class="accent-bar"></div>
-          <h2>Laboratório, passo 1: o contrato da estratégia</h2>
+          <h2>Laboratório, passo 1: instalar o kit da camada <code>pedido</code></h2>
+        </div>
+
+        <p class="lead">Copiar do kit: <code>Pedido.java</code>, já com o atributo <code>regiao</code> e o construtor de três argumentos, mais duas classes de teste ajustadas a essa mudança.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public Pedido(String cliente, String descricao, String regiao) {
+  this.cliente = cliente;
+  this.descricao = descricao;
+  this.situacao = "RECEBIDO";
+  this.regiao = regiao;
+}</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><strong>Mudar a assinatura de um construtor público tem custo.</strong> <code>Pedido</code> é domínio, usado em toda a Rota Sul; as chamadas de dois argumentos em <code>PedidoServiceTest</code> (Aula 06) e <code>PedidoServiceContratoTest</code> (Aula 07, o arquivo do slide 4 de hoje) deixariam de compilar sem ajuste. O kit já traz as duas corrigidas: numa base maior, ou num contrato externo ao time, esse levantamento de impacto é trabalho real.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, passo 1, kit</div>
+          <div class="footer-page">17</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 18: LAB PASSO 2, CONTRATO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 2: o contrato da estratégia</h2>
         </div>
 
         <p class="lead">Em <code>pedido/domain</code>, a interface <code>CalculadoraDeFrete</code>, com um único método. Sem anotação de framework: é domínio.</p>
@@ -470,40 +503,7 @@ CalculoDeFreteService o-- CalculadoraDeFrete</code></pre>
         </div>
 
         <div class="slide-footer">
-          <div class="footer-bar">11 Laboratório, passo 1, contrato</div>
-          <div class="footer-page">17</div>
-        </div>
-      </section>
-
-      <!-- ==================== SLIDE 18: LAB PASSO 2, A REGIÃO DO PEDIDO ==================== -->
-      <section class="exercise-slide content-slide">
-        <div class="top-bar"></div>
-        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
-        <div class="decor-coral"></div>
-        <div class="slide-title-area">
-          <div class="accent-bar"></div>
-          <h2>Laboratório, passo 2: a região do pedido</h2>
-        </div>
-
-        <p class="lead">Em <code>pedido/domain/Pedido</code>, criado na Aula 06, acrescentar o atributo <code>regiao</code>, mais o getter e o ajuste no construtor.</p>
-
-        <pre class="code-compact"><code class="language-java" data-trim>public Pedido(String cliente, String descricao, String regiao) {
-  this.cliente = cliente;
-  this.descricao = descricao;
-  this.situacao = "RECEBIDO";
-  this.regiao = regiao;
-}
-
-public String getRegiao() {
-  return regiao;
-}</code></pre>
-
-        <div class="callout" style="margin-top:6px;">
-          <p>Valores possíveis: <code>"PRINCIPAL"</code> e <code>"ULTIMA_MILHA"</code>. É a primeira vez que <code>Pedido</code> muda desde que nasceu, e ela continua sem depender de nada do Spring.</p>
-        </div>
-
-        <div class="slide-footer">
-          <div class="footer-bar">11 Laboratório, passo 2, região</div>
+          <div class="footer-bar">11 Laboratório, passo 2, contrato</div>
           <div class="footer-page">18</div>
         </div>
       </section>
@@ -680,7 +680,7 @@ void calculaTarifaFixaParaPedidoDaRotaPrincipal() {
     └── domain/</code></pre>
 
         <div class="callout" style="margin-top:6px;">
-          <p>A Aula 10 já havia acrescentado o pacote <code>parceiro</code>, fora desse trio original, para simular o parceiro legado por SOAP.</p>
+          <p>A Aula 10 já havia acrescentado o pacote <code>parceiro</code>, fora desse trio original, para simular o parceiro legado por SOAP. Copiar também os três arquivos do kit para <code>rastreamento/domain</code>: <code>Ocorrencia</code>, <code>OcorrenciaAtraso</code> e <code>OcorrenciaExtravio</code>, a hierarquia de produto que o Factory Method do próximo passo decide instanciar. É herança simples, que a turma já domina desde a Aula 06; não é o padrão de hoje.</p>
         </div>
 
         <div class="slide-footer">
@@ -689,46 +689,14 @@ void calculaTarifaFixaParaPedidoDaRotaPrincipal() {
         </div>
       </section>
 
-      <!-- ==================== SLIDE 25: LAB PASSO 8, HIERARQUIA DE OCORRENCIA ==================== -->
+      <!-- ==================== SLIDE 25: LAB PASSO 8, O FACTORY METHOD ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
         <div class="decor-coral"></div>
         <div class="slide-title-area">
           <div class="accent-bar"></div>
-          <h2>Laboratório, passo 8: a hierarquia de <code>Ocorrencia</code></h2>
-        </div>
-
-        <p class="lead">Em <code>rastreamento/domain</code>, a classe abstrata <code>Ocorrencia</code>, com <code>codigoRastreio</code>, <code>registradaEm</code> e o método abstrato <code>getTipo()</code>.</p>
-
-        <pre class="code-compact"><code class="language-java" data-trim>public abstract class Ocorrencia {
-  private final String codigoRastreio;
-  private final LocalDateTime registradaEm;
-  protected Ocorrencia(String codigoRastreio, LocalDateTime registradaEm) {
-    this.codigoRastreio = codigoRastreio;
-    this.registradaEm = registradaEm;
-  }
-  public abstract String getTipo();
-}</code></pre>
-
-        <div class="callout" style="margin-top:6px;">
-          <p>Duas subclasses: <code>OcorrenciaAtraso</code> (<code>horasDeAtraso</code>, <code>getTipo()</code> = <code>"ATRASO"</code>) e <code>OcorrenciaExtravio</code> (<code>ultimaLocalizacaoConhecida</code>, <code>getTipo()</code> = <code>"EXTRAVIO"</code>).</p>
-        </div>
-
-        <div class="slide-footer">
-          <div class="footer-bar">11 Laboratório, passo 8, Ocorrência</div>
-          <div class="footer-page">25</div>
-        </div>
-      </section>
-
-      <!-- ==================== SLIDE 26: LAB PASSO 9, O FACTORY METHOD ==================== -->
-      <section class="exercise-slide content-slide">
-        <div class="top-bar"></div>
-        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
-        <div class="decor-coral"></div>
-        <div class="slide-title-area">
-          <div class="accent-bar"></div>
-          <h2>Laboratório, passo 9: a hierarquia de criadores</h2>
+          <h2>Laboratório, passo 8: a hierarquia de criadores</h2>
         </div>
 
         <p class="lead">Também em <code>rastreamento/domain</code>, a classe abstrata <code>OcorrenciaCreator</code>. <code>registrar</code> é final; <code>criarOcorrencia</code> é o Factory Method, abstrato.</p>
@@ -750,19 +718,19 @@ void calculaTarifaFixaParaPedidoDaRotaPrincipal() {
         </div>
 
         <div class="slide-footer">
-          <div class="footer-bar">11 Laboratório, passo 9, Factory Method</div>
-          <div class="footer-page">26</div>
+          <div class="footer-bar">11 Laboratório, passo 8, Factory Method</div>
+          <div class="footer-page">25</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 27: LAB PASSO 10, TESTAR O FACTORY METHOD ==================== -->
+      <!-- ==================== SLIDE 26: LAB PASSO 9, TESTAR O FACTORY METHOD ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
         <div class="decor-coral"></div>
         <div class="slide-title-area">
           <div class="accent-bar"></div>
-          <h2>Laboratório, passo 10: testar o Factory Method</h2>
+          <h2>Laboratório, passo 9: testar o Factory Method</h2>
         </div>
 
         <p class="lead"><code>OcorrenciaCreatorTest</code>, com três casos.</p>
@@ -784,19 +752,19 @@ void registrarComCodigoDeRastreioVazioLancaExcecao() {
         </div>
 
         <div class="slide-footer">
-          <div class="footer-bar">11 Laboratório, passo 10, teste</div>
-          <div class="footer-page">27</div>
+          <div class="footer-bar">11 Laboratório, passo 9, teste</div>
+          <div class="footer-page">26</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 28: LAB PASSO 11, REGISTRAR AS DECISÕES ==================== -->
+      <!-- ==================== SLIDE 27: LAB PASSO 10, REGISTRAR AS DECISÕES ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
         <div class="decor-coral"></div>
         <div class="slide-title-area">
           <div class="accent-bar"></div>
-          <h2>Laboratório, passo 11: registrar as duas decisões</h2>
+          <h2>Laboratório, passo 10: registrar as duas decisões</h2>
         </div>
 
         <p class="lead">Em <code>docs/decisoes.md</code>, duas linhas novas, uma para cada padrão aplicado hoje.</p>
@@ -808,12 +776,12 @@ Criacao de Ocorrencia: Factory Method, porque o codigo que recebe
 a ligacao do atendente nao deve conhecer as subclasses concretas.</code></pre>
 
         <div class="slide-footer">
-          <div class="footer-bar">11 Laboratório, passo 11, decisões</div>
-          <div class="footer-page">28</div>
+          <div class="footer-bar">11 Laboratório, passo 10, decisões</div>
+          <div class="footer-page">27</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 29: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- ==================== SLIDE 28: ENTREGÁVEL E CRITÉRIOS ==================== -->
       <!-- O slide do entregável é o último passo do laboratório e nasce
            dentro do Ciclo 4, então leva `exercise-slide content-slide` como
            os demais slides de passo. Ver ADR-008. -->
@@ -843,11 +811,11 @@ a ligacao do atendente nao deve conhecer as subclasses concretas.</code></pre>
 
         <div class="slide-footer">
           <div class="footer-bar">11 Entregável e critérios</div>
-          <div class="footer-page">29</div>
+          <div class="footer-page">28</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 30: FECHAMENTO ==================== -->
+      <!-- ==================== SLIDE 29: FECHAMENTO ==================== -->
       <section class="content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -874,11 +842,11 @@ git push</code></pre>
 
         <div class="slide-footer">
           <div class="footer-bar">11 Fechamento</div>
-          <div class="footer-page">30</div>
+          <div class="footer-page">29</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 31: REFERÊNCIAS ==================== -->
+      <!-- ==================== SLIDE 30: REFERÊNCIAS ==================== -->
       <section id="ref-slide" class="content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -897,7 +865,7 @@ git push</code></pre>
           </div>
           <div class="concept-card" style="padding:10px 16px;">
             <h4 style="margin:0 0 4px 0;">[2] Design Patterns: Elements of Reusable Object-Oriented Software</h4>
-            <p style="font-size:0.66em; color:#444444; margin:0;">GAMMA, E.; HELM, R.; JOHNSON, R.; VLISSIDES, J. Addison-Wesley, 1994. Referência indicada pelo capítulo, e a fonte do catálogo das três famílias.</p>
+            <p style="font-size:0.66em; color:#444444; margin:0;">GAMMA, E.; HELM, R.; JOHNSON, R.; VLISSIDES, J. Addison-Wesley, 1994. Fonte do catálogo das três famílias, fora do capítulo 10. Ver a nota no slide 9.</p>
           </div>
           <div class="concept-card" style="padding:10px 16px;">
             <h4 style="margin:0 0 4px 0;">[3] Utilizando UML e Padrões</h4>
@@ -919,11 +887,11 @@ git push</code></pre>
 
         <div class="slide-footer">
           <div class="footer-bar">11 Referências</div>
-          <div class="footer-page">31</div>
+          <div class="footer-page">30</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 32: ENCERRAMENTO ==================== -->
+      <!-- ==================== SLIDE 31: ENCERRAMENTO ==================== -->
       <section class="end-slide">
         <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
              style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">

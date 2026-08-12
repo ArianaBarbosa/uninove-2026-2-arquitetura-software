@@ -3166,6 +3166,35 @@ nenhuma classe fora dos pacotes `pedido.domain`, `pedido.service` e
 `rastreamento.domain` instanciando diretamente uma das quatro implementações
 concretas.
 
+**Dimensionamento do laboratório: nove arquivos digitados, três entregues
+prontos no kit.** A primeira versão deste laboratório pedia doze arquivos
+novos digitados à mão, mais a edição de `Pedido`, volume maior que o da Aula
+10 (que precisou ser reduzida) e perto do que forçou a reescrita da Aula 19.
+Seguindo o precedente da Aula 10 (`parceiro.xsd` e `WebServiceConfig.java`
+entregues prontos), o kit de hoje passa a entregar prontos: a hierarquia de
+produto `Ocorrencia`, `OcorrenciaAtraso` e `OcorrenciaExtravio` (herança
+simples, que a turma já domina desde a Aula 06; o padrão do dia é
+`OcorrenciaCreator`, não a hierarquia de produto); e `Pedido.java` já
+acrescido do atributo `regiao` e do construtor de três argumentos. O
+laboratório e o deck precisam dizer explicitamente quais arquivos chegam
+prontos, como a Aula 10 faz, para que o aluno não tente digitar tudo.
+
+**A quebra de compatibilidade do construtor de `Pedido`, e como ela é
+resolvida.** O passo que acrescenta `regiao` como terceiro parâmetro
+obrigatório do construtor de `Pedido` quebra duas chamadas pré-existentes no
+fork: `PedidoServiceTest` (Aula 06) e `PedidoServiceContratoTest` (Aula 07,
+o mesmo arquivo que a retomada de hoje projeta na tela a propósito de
+Template Method), ambas com `new Pedido(cliente, descricao)`, de dois
+argumentos. Sem ajuste, `./mvnw test` para de compilar o projeto inteiro, não
+só o código de hoje, e o critério de aceitação que exige a suíte inteira
+verde fica desonesto: o aluno precisaria caçar, sob pressão de tempo, todo
+lugar do fork que chama o construtor, um trabalho real e não contabilizado
+em nenhum dos passos. A resolução é dupla: o kit entrega as duas classes já
+ajustadas ao novo construtor, junto com `Pedido.java`, para que a suíte
+nasça verde; e o passo do deck que introduz `regiao` diz isso explicitamente,
+aproveitando o momento para ensinar, em uma frase, que mudar a assinatura de
+um construtor público tem custo, porque quebra quem já dependia dela.
+
 ### Retomada, 5 minutos
 
 Na Aula 10 cada aluno entregou o cliente SOAP em `br.uni9.rotasul.parceiro`,
@@ -3381,14 +3410,19 @@ Strategy entra na camada `domain` e `service` do contexto `pedido`, e o
 Factory Method abre o contexto `rastreamento`, reservado desde o diagrama de
 pacotes da Aula 05 e ainda sem nenhuma linha de código.
 
-1. **Criar o contrato da estratégia.** Em `pedido/domain`, criar a interface
+1. **Instalar o kit da camada `pedido`.** Copiar `Pedido.java`, já com o
+   atributo `regiao` (valores possíveis `"PRINCIPAL"` e `"ULTIMA_MILHA"`) e o
+   construtor de três argumentos, mais `PedidoServiceTest` (Aula 06) e
+   `PedidoServiceContratoTest` (Aula 07) já ajustados a essa mudança. Dizer à
+   turma: o construtor de `Pedido` ganhou um terceiro parâmetro obrigatório, e
+   isso quebra qualquer chamada de dois argumentos que já existisse no fork,
+   como as duas que o kit acabou de corrigir. Mudar a assinatura de um
+   construtor público tem custo: quebra quem já dependia dela, e levantar
+   esse impacto é trabalho real, às vezes grande, numa base maior ou num
+   contrato exposto fora do time.
+2. **Criar o contrato da estratégia.** Em `pedido/domain`, criar a interface
    `CalculadoraDeFrete`, com um único método, `BigDecimal calcular(Pedido
    pedido)`. Sem anotação de framework: é domínio.
-2. **Acrescentar a região ao `Pedido`.** Em `pedido/domain/Pedido`, criado na
-   Aula 06, acrescentar o atributo `regiao`, do tipo `String`, com os valores
-   possíveis `"PRINCIPAL"` e `"ULTIMA_MILHA"`, mais o getter e o ajuste no
-   construtor. É a primeira vez que a classe `Pedido` muda desde que nasceu, e
-   ela continua sem depender de nada do Spring.
 3. **Escrever a primeira estratégia.** `FreteRotaPropria implements
    CalculadoraDeFrete`, em `pedido/domain`, com uma tarifa fixa de `new
    BigDecimal("15.00")` para qualquer pedido, representando o custo da frota
@@ -3413,19 +3447,19 @@ pacotes da Aula 05 e ainda sem nenhuma linha de código.
 
 ### Ciclo 4, 21h25 às 21h50
 
-7. **Criar o contexto `rastreamento`.** Dentro de
-   `src/main/java/br/uni9/rotasul/`, criar `rastreamento/domain`. É o
-   primeiro código do terceiro contexto reservado desde o diagrama de
+7. **Criar o contexto `rastreamento` e instalar a hierarquia de produtos.**
+   Dentro de `src/main/java/br/uni9/rotasul/`, criar `rastreamento/domain`. É
+   o primeiro código do terceiro contexto reservado desde o diagrama de
    pacotes da Aula 05, ao lado de `pedido` e `expedicao`; a Aula 10 já havia
    acrescentado o pacote `parceiro`, fora desse trio original, para simular
-   o parceiro legado por SOAP.
-8. **Escrever a hierarquia de produtos.** Em `rastreamento/domain`, a classe
-   abstrata `Ocorrencia`, com os atributos `codigoRastreio` e `registradaEm`
-   (`LocalDateTime`) e o método abstrato `String getTipo()`. Duas subclasses:
-   `OcorrenciaAtraso`, com o atributo extra `horasDeAtraso` e `getTipo()`
-   devolvendo `"ATRASO"`, e `OcorrenciaExtravio`, com o atributo extra
-   `ultimaLocalizacaoConhecida` e `getTipo()` devolvendo `"EXTRAVIO"`.
-9. **Escrever a hierarquia de criadores, o Factory Method.** Também em
+   o parceiro legado por SOAP. Em seguida, copiar do kit `Ocorrencia`, com os
+   atributos `codigoRastreio` e `registradaEm` (`LocalDateTime`) e o método
+   abstrato `String getTipo()`, e as duas subclasses, `OcorrenciaAtraso`
+   (`horasDeAtraso`, `getTipo()` devolve `"ATRASO"`) e `OcorrenciaExtravio`
+   (`ultimaLocalizacaoConhecida`, `getTipo()` devolve `"EXTRAVIO"`). É
+   herança simples, que a turma já domina desde a Aula 06; não é o padrão que
+   a aula ensina, e por isso vem pronta, não digitada.
+8. **Escrever a hierarquia de criadores, o Factory Method.** Também em
    `rastreamento/domain`, a classe abstrata `OcorrenciaCreator`:
 
    ```java
@@ -3452,27 +3486,29 @@ pacotes da Aula 05 e ainda sem nenhuma linha de código.
    construtor e devolvendo `new OcorrenciaAtraso(...)`, e
    `ExtravioOcorrenciaCreator`, recebendo `ultimaLocalizacaoConhecida` pelo
    construtor e devolvendo `new OcorrenciaExtravio(...)`.
-10. **Testar o Factory Method.** `OcorrenciaCreatorTest`, em
-    `src/test/java/br/uni9/rotasul/rastreamento/domain/`, com três casos:
-    `new AtrasoOcorrenciaCreator(3).registrar("RS12345")` devolve uma
-    instância de `OcorrenciaAtraso` com `getTipo()` igual a `"ATRASO"`; `new
-    ExtravioOcorrenciaCreator("Galpao Osasco").registrar("RS99999")` devolve
-    uma instância de `OcorrenciaExtravio` com `getTipo()` igual a
-    `"EXTRAVIO"`; e chamar `registrar("")` em qualquer um dos dois criadores
-    lança `IllegalArgumentException`. Rodar `./mvnw test`.
-11. **Registrar as duas decisões.** Em `docs/decisoes.md`, duas linhas novas:
+9. **Testar o Factory Method.** `OcorrenciaCreatorTest`, em
+   `src/test/java/br/uni9/rotasul/rastreamento/domain/`, com três casos:
+   `new AtrasoOcorrenciaCreator(3).registrar("RS12345")` devolve uma
+   instância de `OcorrenciaAtraso` com `getTipo()` igual a `"ATRASO"`; `new
+   ExtravioOcorrenciaCreator("Galpao Osasco").registrar("RS99999")` devolve
+   uma instância de `OcorrenciaExtravio` com `getTipo()` igual a
+   `"EXTRAVIO"`; e chamar `registrar("")` em qualquer um dos dois criadores
+   lança `IllegalArgumentException`. Rodar `./mvnw test`.
+10. **Registrar as duas decisões.** Em `docs/decisoes.md`, duas linhas novas:
     uma explicando que o cálculo de frete usa Strategy porque a fórmula
     precisa variar por pedido, em tempo de execução, e outra explicando que a
     criação de `Ocorrencia` usa Factory Method porque o código que recebe a
     ligação do atendente não deve conhecer as subclasses concretas.
 
-**Entregável do dia:** `CalculadoraDeFrete` com `FreteRotaPropria` e
-`FreteTransportadoraParceira`, mais `CalculoDeFreteService` escolhendo entre
-elas; `OcorrenciaCreator` com `AtrasoOcorrenciaCreator` e
-`ExtravioOcorrenciaCreator`, mais as duas subclasses de `Ocorrencia`. Critério
-de aceitação: `CalculoDeFreteServiceTest` e `OcorrenciaCreatorTest` passando
-com `./mvnw test`, nenhuma anotação de framework em `Ocorrencia` nem em suas
-subclasses, e as duas decisões registradas em `docs/decisoes.md`.
+**Entregável do dia:** pronto no kit, `Pedido` já com `regiao` e a hierarquia
+de `Ocorrencia`/`OcorrenciaAtraso`/`OcorrenciaExtravio`; escrito hoje,
+`CalculadoraDeFrete` com `FreteRotaPropria` e `FreteTransportadoraParceira`,
+mais `CalculoDeFreteService` escolhendo entre elas, e `OcorrenciaCreator` com
+`AtrasoOcorrenciaCreator` e `ExtravioOcorrenciaCreator`. Nove arquivos
+digitados ao todo. Critério de aceitação: `CalculoDeFreteServiceTest` e
+`OcorrenciaCreatorTest` passando com `./mvnw test`, nenhuma anotação de
+framework em `Ocorrencia` nem em suas subclasses, e as duas decisões
+registradas em `docs/decisoes.md`.
 
 ### Fechamento, 21h50 às 22h00
 

@@ -4,6 +4,47 @@ Disciplina Arquitetura de Software, Uninove, Prof. José Romualdo. Roteiro dos
 Ciclos 3 e 4 do encontro: dois padrões de projeto do catálogo GoF entram no
 código da Rota Sul, cada um com teste JUnit. Nenhum endpoint novo nasce hoje.
 
+## 0. O que chega pronto neste kit
+
+Seis arquivos são andaime ou correção, não o conteúdo que a aula ensina, e
+chegam prontos para o aluno copiar:
+
+| Arquivo | Onde entra no fork | Papel |
+|---|---|---|
+| [`src/main/java/br/uni9/rotasul/pedido/domain/Pedido.java`](src/main/java/br/uni9/rotasul/pedido/domain/Pedido.java) | `pedido/domain/Pedido.java` (substitui a versão da Aula 06) | Já com o atributo `regiao` e o construtor de três argumentos que o Strategy de hoje usa |
+| [`src/test/java/br/uni9/rotasul/pedido/service/PedidoServiceTest.java`](src/test/java/br/uni9/rotasul/pedido/service/PedidoServiceTest.java) | `pedido/service/PedidoServiceTest.java` (substitui a versão da Aula 06) | Chamada ao construtor de `Pedido` corrigida para três argumentos |
+| [`src/test/java/br/uni9/rotasul/pedido/service/PedidoServiceContratoTest.java`](src/test/java/br/uni9/rotasul/pedido/service/PedidoServiceContratoTest.java) | `pedido/service/PedidoServiceContratoTest.java` (substitui a versão da Aula 07) | Chamada ao construtor de `Pedido` corrigida para três argumentos |
+| [`src/main/java/br/uni9/rotasul/rastreamento/domain/Ocorrencia.java`](src/main/java/br/uni9/rotasul/rastreamento/domain/Ocorrencia.java) | `rastreamento/domain/Ocorrencia.java` | Produto abstrato do Factory Method |
+| [`src/main/java/br/uni9/rotasul/rastreamento/domain/OcorrenciaAtraso.java`](src/main/java/br/uni9/rotasul/rastreamento/domain/OcorrenciaAtraso.java) | `rastreamento/domain/OcorrenciaAtraso.java` | Subclasse concreta do produto |
+| [`src/main/java/br/uni9/rotasul/rastreamento/domain/OcorrenciaExtravio.java`](src/main/java/br/uni9/rotasul/rastreamento/domain/OcorrenciaExtravio.java) | `rastreamento/domain/OcorrenciaExtravio.java` | Subclasse concreta do produto |
+
+**Por que a hierarquia de `Ocorrencia` vem pronta.** `Ocorrencia`,
+`OcorrenciaAtraso` e `OcorrenciaExtravio` são herança simples, que a turma já
+domina desde a Aula 06: uma classe abstrata com dois atributos e duas
+subclasses que acrescentam um atributo cada. Não é o padrão que a aula
+ensina. O padrão do dia, o Factory Method, mora em `OcorrenciaCreator` e nas
+suas duas subclasses, no passo 3.8 abaixo: é ali que o aluno escreve código
+novo. Digitar a hierarquia de produto não ensinaria nada sobre Factory
+Method e consumiria tempo do laboratório.
+
+**Por que `Pedido.java` e os dois testes vêm prontos.** O passo 3.2 de hoje
+acrescenta `regiao` como terceiro parâmetro obrigatório do construtor de
+`Pedido`. Trocar a assinatura de um construtor público quebra qualquer
+chamada existente com dois argumentos, e duas já existem no fork desde antes
+de hoje: `PedidoServiceTest` (Aula 06) e `PedidoServiceContratoTest` (Aula
+07). Sem o ajuste, `./mvnw test` para de compilar o projeto inteiro, não só
+os testes de hoje. O kit já entrega as duas classes corrigidas, para que a
+suíte nasça verde e o critério de aceitação 6 (seção 5) seja honesto: o
+aluno não precisa caçar, sob pressão de tempo, todo lugar do fork que chama
+`new Pedido(...)`. `PedidoServiceTest` recebe um segundo ajuste, não ligado a
+hoje: desde a Aula 07, `PedidoService` é uma interface, e a instanciação
+usa `PedidoServicePadrao`, a implementação concreta que a substituiu naquela
+aula.
+
+Todo o código dos passos 3.2 a 3.6, 3.8, 3.9 e 3.10 abaixo é o que o aluno
+escreve; os passos 3.1 e 3.7 usam os seis arquivos prontos, copiando-os sem
+alteração.
+
 ## 1. O passo do case que esta aula resolve
 
 Na Aula 10 cada aluno entregou o cliente SOAP em `br.uni9.rotasul.parceiro`,
@@ -36,12 +77,32 @@ Strategy só precisa provar que calcula o valor certo, isolado, com teste.
 - **Java 21 LTS** e **Maven** ativos, conferidos na Aula 01.
 - **`Pedido`, `PedidoRepository`, `PedidoService`** da Aula 06/07, em
   `pedido.domain`, `pedido.repository` e `pedido.service`.
+- **Os seis arquivos da seção 0**, copiados para as posições indicadas.
 - Nenhuma dependência nova no `pom.xml`: os dois padrões de hoje são código de
   domínio e serviço puro, sem biblioteca externa.
 
 ## 3. Passo a passo
 
-### 3.1 Criar o contrato da estratégia (Ciclo 3)
+### 3.1 Instalar o kit da camada `pedido` (Ciclo 3)
+
+Copiar os três primeiros arquivos da seção 0 para as posições
+correspondentes no fork, substituindo os que já existem:
+`pedido/domain/Pedido.java`, `pedido/service/PedidoServiceTest.java` e
+`pedido/service/PedidoServiceContratoTest.java`.
+
+> **Mudar a assinatura de um construtor público tem custo.** `Pedido` é
+> domínio, usado por toda a Rota Sul; qualquer código externo que já
+> chamasse `new Pedido(cliente, descricao)`, com dois argumentos, deixa de
+> compilar assim que `regiao` vira o terceiro parâmetro obrigatório. É
+> exatamente o que aconteceu aqui: `PedidoServiceTest`, da Aula 06, e
+> `PedidoServiceContratoTest`, da Aula 07 (o mesmo arquivo que o slide 4 de
+> hoje projeta na tela, a propósito de Template Method), chamavam o
+> construtor de duas posições. Mudar um contrato público sempre exige
+> revisitar quem depende dele; hoje o kit já traz essa revisão pronta, mas
+> em um sistema maior, ou num contrato exposto fora do próprio time, esse
+> levantamento de impacto é trabalho real, e às vezes grande.
+
+### 3.2 Criar o contrato da estratégia
 
 Em `pedido/domain`, criar a interface `CalculadoraDeFrete`, com um único
 método. Sem anotação de framework: é domínio.
@@ -60,71 +121,9 @@ public interface CalculadoraDeFrete {
 }
 ```
 
-### 3.2 Acrescentar a região ao `Pedido`
-
-Em `pedido/domain/Pedido`, criado na Aula 06, acrescentar o atributo
-`regiao`, do tipo `String`, com os valores possíveis `"PRINCIPAL"` e
-`"ULTIMA_MILHA"`, mais o getter e o ajuste no construtor. É a primeira vez
-que a classe `Pedido` muda desde que nasceu, e ela continua sem depender de
-nada do Spring.
-
-```java
-package br.uni9.rotasul.pedido.domain;
-
-// Classe de domínio. Sem anotação de framework nenhuma: o domínio não
-// depende de Spring, e essa independência vai importar na Aula 12, quando
-// a injeção de dependência explícita entrar em pauta. Primeira mudança
-// desde que a classe nasceu na Aula 06: o atributo regiao, que o Strategy
-// de hoje usa para decidir qual estratégia de frete aplicar.
-public class Pedido {
-
-    private Long id;
-    private final String cliente;
-    private final String descricao;
-    private String situacao;
-    private final String regiao;
-
-    public Pedido(String cliente, String descricao, String regiao) {
-        this.cliente = cliente;
-        this.descricao = descricao;
-        this.situacao = "RECEBIDO";
-        this.regiao = regiao;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getCliente() {
-        return cliente;
-    }
-
-    public String getDescricao() {
-        return descricao;
-    }
-
-    public String getSituacao() {
-        return situacao;
-    }
-
-    public void setSituacao(String situacao) {
-        this.situacao = situacao;
-    }
-
-    public String getRegiao() {
-        return regiao;
-    }
-}
-```
-
-> **Compatibilidade com quem já tinha `Pedido` na Aula 06/07.** O construtor
-> ganha um terceiro parâmetro obrigatório. Qualquer código que ainda chame
-> `new Pedido(cliente, descricao)` (duas posições) deixa de compilar; ajustar
-> as chamadas existentes para informar a região é parte deste passo.
+`Pedido` já chegou pronto no passo 3.1, com o atributo `regiao` que o
+Strategy de hoje usa para decidir qual estratégia aplicar; os valores
+possíveis são `"PRINCIPAL"` e `"ULTIMA_MILHA"`.
 
 ### 3.3 Escrever a primeira estratégia
 
@@ -292,7 +291,7 @@ Saída de referência, obtida rodando este mesmo gabarito:
 [INFO] BUILD SUCCESS
 ```
 
-### 3.7 Criar o contexto `rastreamento` (Ciclo 4)
+### 3.7 Criar o contexto `rastreamento` e instalar a hierarquia de produtos (Ciclo 4)
 
 Dentro de `src/main/java/br/uni9/rotasul/`, criar `rastreamento/domain`. É
 o primeiro código do terceiro contexto reservado desde o diagrama de
@@ -309,97 +308,16 @@ src/main/java/br/uni9/rotasul/
     └── domain/
 ```
 
-### 3.8 Escrever a hierarquia de produtos
+Em seguida, copiar os três últimos arquivos da seção 0 para
+`rastreamento/domain/`: `Ocorrencia.java`, `OcorrenciaAtraso.java` e
+`OcorrenciaExtravio.java`. `Ocorrencia` é a classe abstrata com os
+atributos `codigoRastreio` e `registradaEm` (`LocalDateTime`) e o método
+abstrato `String getTipo()`; `OcorrenciaAtraso` acrescenta `horasDeAtraso`
+e devolve `"ATRASO"`; `OcorrenciaExtravio` acrescenta
+`ultimaLocalizacaoConhecida` e devolve `"EXTRAVIO"`. É herança simples, o
+"produto" do Factory Method que o passo 3.8 constrói.
 
-Em `rastreamento/domain`, a classe abstrata `Ocorrencia`, com os atributos
-`codigoRastreio` e `registradaEm` (`LocalDateTime`) e o método abstrato
-`String getTipo()`. Duas subclasses: `OcorrenciaAtraso`, com o atributo
-extra `horasDeAtraso` e `getTipo()` devolvendo `"ATRASO"`, e
-`OcorrenciaExtravio`, com o atributo extra `ultimaLocalizacaoConhecida` e
-`getTipo()` devolvendo `"EXTRAVIO"`.
-
-```java
-package br.uni9.rotasul.rastreamento.domain;
-
-import java.time.LocalDateTime;
-
-// Primeiro código do contexto rastreamento, reservado desde o diagrama de
-// pacotes da Aula 05. O "produto" do padrão Factory Method: a hierarquia
-// que OcorrenciaCreator decide qual subclasse instanciar. Sem anotação de
-// framework, igual ao domínio de pedido e expedicao.
-public abstract class Ocorrencia {
-
-    private final String codigoRastreio;
-    private final LocalDateTime registradaEm;
-
-    protected Ocorrencia(String codigoRastreio, LocalDateTime registradaEm) {
-        this.codigoRastreio = codigoRastreio;
-        this.registradaEm = registradaEm;
-    }
-
-    public String getCodigoRastreio() {
-        return codigoRastreio;
-    }
-
-    public LocalDateTime getRegistradaEm() {
-        return registradaEm;
-    }
-
-    public abstract String getTipo();
-}
-```
-
-```java
-package br.uni9.rotasul.rastreamento.domain;
-
-import java.time.LocalDateTime;
-
-public class OcorrenciaAtraso extends Ocorrencia {
-
-    private final int horasDeAtraso;
-
-    public OcorrenciaAtraso(String codigoRastreio, LocalDateTime registradaEm, int horasDeAtraso) {
-        super(codigoRastreio, registradaEm);
-        this.horasDeAtraso = horasDeAtraso;
-    }
-
-    public int getHorasDeAtraso() {
-        return horasDeAtraso;
-    }
-
-    @Override
-    public String getTipo() {
-        return "ATRASO";
-    }
-}
-```
-
-```java
-package br.uni9.rotasul.rastreamento.domain;
-
-import java.time.LocalDateTime;
-
-public class OcorrenciaExtravio extends Ocorrencia {
-
-    private final String ultimaLocalizacaoConhecida;
-
-    public OcorrenciaExtravio(String codigoRastreio, LocalDateTime registradaEm, String ultimaLocalizacaoConhecida) {
-        super(codigoRastreio, registradaEm);
-        this.ultimaLocalizacaoConhecida = ultimaLocalizacaoConhecida;
-    }
-
-    public String getUltimaLocalizacaoConhecida() {
-        return ultimaLocalizacaoConhecida;
-    }
-
-    @Override
-    public String getTipo() {
-        return "EXTRAVIO";
-    }
-}
-```
-
-### 3.9 Escrever a hierarquia de criadores, o Factory Method
+### 3.8 Escrever a hierarquia de criadores, o Factory Method
 
 Também em `rastreamento/domain`, a classe abstrata `OcorrenciaCreator`:
 
@@ -473,7 +391,7 @@ public class ExtravioOcorrenciaCreator extends OcorrenciaCreator {
 }
 ```
 
-### 3.10 Testar o Factory Method
+### 3.9 Testar o Factory Method
 
 `OcorrenciaCreatorTest`, em
 `src/test/java/br/uni9/rotasul/rastreamento/domain/`, com três casos: `new
@@ -538,7 +456,7 @@ Saída de referência, obtida rodando este mesmo gabarito:
 [INFO] BUILD SUCCESS
 ```
 
-### 3.11 Registrar as duas decisões
+### 3.10 Registrar as duas decisões
 
 Em `docs/decisoes.md`, duas linhas novas:
 
@@ -552,17 +470,23 @@ Em `docs/decisoes.md`, duas linhas novas:
 
 ## 4. Entregável
 
-No fork do aluno:
+**Chega pronto no kit** (seção 0), copiado para o fork sem alteração:
+
+- `Pedido` (Aula 06), acrescido do atributo `regiao` e do construtor de três
+  argumentos.
+- `PedidoServiceTest` (Aula 06) e `PedidoServiceContratoTest` (Aula 07),
+  ajustados à nova assinatura do construtor de `Pedido`.
+- `Ocorrencia`, `OcorrenciaAtraso` e `OcorrenciaExtravio`, em
+  `rastreamento.domain`.
+
+**O aluno escreve hoje:**
 
 - `CalculadoraDeFrete`, `FreteRotaPropria` e `FreteTransportadoraParceira`,
   em `pedido.domain`.
-- `Pedido` (Aula 06) acrescido do atributo `regiao`.
 - `CalculoDeFreteService`, em `pedido.service`, anotada `@Service`.
 - `CalculoDeFreteServiceTest`, com os dois casos de região, passando.
-- `Ocorrencia`, `OcorrenciaAtraso` e `OcorrenciaExtravio`, em
-  `rastreamento.domain`.
 - `OcorrenciaCreator`, `AtrasoOcorrenciaCreator` e
-  `ExtravioOcorrenciaCreator`, também em `rastreamento.domain`.
+  `ExtravioOcorrenciaCreator`, em `rastreamento.domain`.
 - `OcorrenciaCreatorTest`, com os três casos, passando.
 - `docs/decisoes.md` com as duas linhas novas.
 
@@ -575,7 +499,7 @@ No fork do aluno:
 | Nenhuma anotação de framework nas classes de domínio envolvidas | Inspeção de `Pedido`, `CalculadoraDeFrete`, `FreteRotaPropria`, `FreteTransportadoraParceira`, `Ocorrencia`, `OcorrenciaAtraso`, `OcorrenciaExtravio`, `OcorrenciaCreator`, `AtrasoOcorrenciaCreator` e `ExtravioOcorrenciaCreator`: nenhuma tem anotação; só `CalculoDeFreteService` leva `@Service` |
 | Nenhuma classe fora de `pedido.domain`, `pedido.service` e `rastreamento.domain` instancia diretamente uma das quatro implementações concretas | Busca por `new FreteRotaPropria`, `new FreteTransportadoraParceira`, `new AtrasoOcorrenciaCreator` e `new ExtravioOcorrenciaCreator` fora desses três pacotes |
 | As duas decisões estão registradas | `docs/decisoes.md` com as duas linhas novas, Strategy e Factory Method |
-| `./mvnw test` passando | Suíte inteira verde, incluindo os dois testes de hoje |
+| `./mvnw test` passando | Suíte inteira verde, incluindo os dois testes de hoje e os testes das Aulas 06 e 07 que o kit já ajustou ao novo construtor de `Pedido` |
 | O commit da aula existe | `git log` do fork mostra o commit `feat(padroes): aplica Strategy no calculo de frete e Factory Method na criacao de Ocorrencia` |
 
 ## 6. Commit e push esperados
@@ -589,19 +513,46 @@ git push
 ## 7. Ambiente em que este gabarito foi verificado
 
 Java 21 (`openjdk version "21.0.12"`) e Maven 3.9.16, com
-`spring-boot-starter-parent` 3.3.4. Todo o código deste `README.md` foi
-montado como projeto Maven, compilado e testado: `mvn clean compile`
-(`BUILD SUCCESS`) e `mvn test`, com os cinco testes verdes (dois de
-`CalculoDeFreteServiceTest`, três de `OcorrenciaCreatorTest`):
+`spring-boot-starter-parent` 3.3.4. Desta vez o gabarito montado para
+verificação não isolou só o código novo de hoje: incluiu também `Pedido`,
+`PedidoRepository`, `PedidoRepositoryEmMemoria`, a interface `PedidoService`
+com as duas implementações da Aula 07 (`PedidoServicePadrao`,
+`PedidoServiceComAnaliseDeRisco`) e as quatro classes de teste que dependem
+do construtor de `Pedido` (`PedidoServiceTest`, `PedidoServiceContratoTest`
+e as suas duas subclasses concretas), exatamente para confirmar que os seis
+arquivos do kit (seção 0) fazem a suíte inteira do fork nascer verde, não só
+o código de hoje isolado.
 
 ```
+$ export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+$ export PATH="$JAVA_HOME/bin:$PATH"
+$ java -version
+openjdk version "21.0.12" 2026-07-21
+$ mvn -version
+Apache Maven 3.9.16, Java version: 21.0.12
+
+$ mvn clean compile
+BUILD SUCCESS   (sem warning nem erro)
+
+$ mvn test
+[INFO] Running br.uni9.rotasul.pedido.service.PedidoServiceTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Running br.uni9.rotasul.pedido.service.PedidoServiceComAnaliseDeRiscoContratoTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
 [INFO] Running br.uni9.rotasul.pedido.service.CalculoDeFreteServiceTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Running br.uni9.rotasul.pedido.service.PedidoServicePadraoContratoTest
 [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
 [INFO] Running br.uni9.rotasul.rastreamento.domain.OcorrenciaCreatorTest
 [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
 [INFO]
 [INFO] Results:
 [INFO]
-[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0
 [INFO] BUILD SUCCESS
 ```
+
+Os cinco testes de hoje (dois de `CalculoDeFreteServiceTest`, três de
+`OcorrenciaCreatorTest`) mais os seis testes pré-existentes que o construtor
+de `Pedido` afeta, todos verdes. `ps aux` confirmou que nenhum processo Java
+ficou para trás.
