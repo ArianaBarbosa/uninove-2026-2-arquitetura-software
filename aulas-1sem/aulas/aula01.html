@@ -46,7 +46,7 @@
           <h2>Agenda do encontro de hoje</h2>
         </div>
 
-        <p style="font-size:0.76em; margin-top:0;">São 150 minutos corridos, em quatro ciclos. Não há intervalo formal: a troca de ciclo é o respiro da aula.</p>
+        <p class="lead">São 150 minutos corridos, em quatro ciclos. Não há intervalo formal: a troca de ciclo é o respiro da aula.</p>
 
         <table>
           <thead>
@@ -107,8 +107,9 @@
           <div class="flow-item">M5 Projeto<br>final</div>
         </div>
 
-        <div class="callout" style="margin-top:18px;">
-          <p><strong>A ementa em uma tela:</strong> padrões de projeto e frameworks, sistemas colaborativos e o modelo 3C, representação em UML, arquitetura em três camadas e MVC, SOA e Java EE, XML e JSON, RMI, SOAP e REST, catálogo de design patterns, inversão de controle, JPA, EJB, Hibernate e JSF, e a montagem da aplicação distribuída.</p>
+        <div class="takeaway" style="margin-top:22px;">
+          <span class="takeaway-label">Como ler o mapa</span>
+          <p>Os cinco módulos avançam em espiral: cada um retoma o anterior e acrescenta uma camada. O conteúdo de cada módulo é apresentado na aula em que ele entra, e o percurso teórico completo está na referência [2].</p>
         </div>
 
         <div class="slide-footer">
@@ -127,7 +128,7 @@
           <h2>Metodologia: como cada encontro funciona <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
         </div>
 
-        <p style="font-size:0.76em; margin-top:0;">Cada aula tem quatro ciclos de 35, 35, 35 e 25 minutos, mais quiz e fechamento de 10 cada. Nos ciclos 1 e 2 o professor apresenta o conceito, demonstra no projetor e o aluno reproduz num exercício curto. Nos ciclos 3 e 4 o aluno constrói o entregável do dia.</p>
+        <p class="lead">Nos ciclos 1 e 2 o professor apresenta o conceito, demonstra no projetor e o aluno reproduz num exercício curto. Nos ciclos 3 e 4 o aluno constrói o entregável do dia.</p>
 
         <div class="concept-cards" style="grid-template-columns: repeat(4, 1fr); margin-top:10px;">
           <div class="concept-card">
@@ -216,7 +217,7 @@
           <h2>O case do semestre: Rota Sul</h2>
         </div>
 
-        <p style="font-size:0.74em; margin-top:0;">Transportadora de médio porte com quatro peças: pedidos de lojistas, um armazém que monta remessas, frota própria na rota principal e transportadoras parceiras na última milha. Cada peça tem o seu próprio sistema, e a integração é feita por planilha e telefone.</p>
+        <p class="lead">Transportadora de médio porte com quatro peças: pedidos de lojistas, um armazém que monta remessas, frota própria na rota principal e transportadoras parceiras na última milha. Cada peça tem o seu próprio sistema, e a integração é feita por planilha e telefone.</p>
 
         <div class="slide-figure" style="margin-top:0;">
           <svg viewBox="0 0 1140 250" role="img" aria-label="Fluxo atual da Rota Sul, com quatro pontos em que a informação é redigitada por um humano">
@@ -289,7 +290,7 @@
           <h2>Rota Sul: os cinco atores e as nove entidades</h2>
         </div>
 
-        <p style="font-size:0.74em; margin-top:0;">Estes nomes valem o semestre inteiro. Eles reaparecem no modelo 3C do Módulo 1, nos diagramas UML, nas classes de domínio e nos quatro serviços do projeto final.</p>
+        <p class="lead">Estes nomes valem o semestre inteiro. Eles reaparecem no modelo 3C do Módulo 1, nos diagramas UML, nas classes de domínio e nos quatro serviços do projeto final.</p>
 
         <div class="concept-cards" style="grid-template-columns: repeat(5, 1fr); gap:12px; margin-top:10px;">
           <div class="concept-card" style="padding:14px 16px;">
@@ -329,7 +330,41 @@
         </div>
       </section>
 
-      <!-- ==================== SLIDE 9: O QUE A ARQUITETURA RESOLVE ==================== -->
+      <!-- ==================== SLIDE 9: EXERCÍCIO CURTO DO CICLO 2 ==================== -->
+      <!-- O enunciado fica projetado durante os três minutos em que a sala
+           trabalha, por isso é slide próprio e não um bloco no pé do slide
+           anterior. Este é o molde do exercício curto dos ciclos 1 e 2. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício em duplas: a informação de que cada ator precisa</h2>
+        </div>
+
+        <p class="lead">Três minutos, em duplas. O objetivo não é acertar, é fixar os nomes dos cinco atores, que reaparecem em todas as aulas do Módulo 1.</p>
+
+        <div class="exercise-container">
+          <h3>O que fazer nos três minutos</h3>
+          <ol class="exercise-steps">
+            <li>Escolham <strong>um</strong> dos cinco atores: lojista, expedidor, motorista, atendente ou parceiro.</li>
+            <li>Escrevam uma frase respondendo <strong>de que informação esse ator precisa e de quem ela vem hoje</strong>.</li>
+            <li>Três duplas leem a frase em voz alta antes do quiz.</li>
+          </ol>
+        </div>
+
+        <div class="callout">
+          <p><strong>Modelo de resposta:</strong> o atendente precisa saber em que ponto da rota o volume está, e hoje essa informação vem de uma ligação para o motorista. A frase precisa nomear a informação e a origem dela.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">01 Exercício em duplas</div>
+          <div class="footer-page">9</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 10: O QUE A ARQUITETURA RESOLVE ==================== -->
       <section class="content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -339,7 +374,7 @@
           <h2>O que a arquitetura de software resolve <a href="#/ref-slide" class="ref-badge" title="Ver referências">[2]</a></h2>
         </div>
 
-        <p style="font-size:0.74em; margin-top:0;">Nenhum dos sintomas da Rota Sul é erro de programação. Todos vêm de decisões sobre <strong>como as partes do sistema estão separadas e como conversam entre si</strong>. Esse conjunto de decisões é o que se chama de arquitetura.</p>
+        <p class="lead">Nenhum dos sintomas da Rota Sul é erro de programação. Todos vêm de decisões sobre <strong>como as partes do sistema estão separadas e como conversam entre si</strong>. Esse conjunto de decisões é o que se chama de arquitetura.</p>
 
         <table>
           <thead>
@@ -360,11 +395,11 @@
 
         <div class="slide-footer">
           <div class="footer-bar">01 O que a arquitetura resolve</div>
-          <div class="footer-page">9</div>
+          <div class="footer-page">10</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 10: O CUSTO DE NÃO DECIDIR ==================== -->
+      <!-- ==================== SLIDE 11: O CUSTO DE NÃO DECIDIR ==================== -->
       <section class="content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -374,7 +409,7 @@
           <h2>O custo de não decidir <a href="#/ref-slide" class="ref-badge" title="Ver referências">[2]</a></h2>
         </div>
 
-        <p style="font-size:0.74em; margin-top:0;">Nem toda mudança custa o mesmo. Quanto mais a decisão define a fronteira entre as partes, mais cara ela é de desfazer depois que o sistema está em operação.</p>
+        <p class="lead">Nem toda mudança custa o mesmo. Quanto mais a decisão define a fronteira entre as partes, mais cara ela é de desfazer depois que o sistema está em operação.</p>
 
         <div class="slide-figure" style="margin-top:0;">
           <svg viewBox="0 0 1120 220" role="img" aria-label="Comparação do custo de mudança: renomear variável em minutos, trocar implementação em dias, trocar a forma de integração em meses">
@@ -402,11 +437,11 @@
 
         <div class="slide-footer">
           <div class="footer-bar">01 O custo de não decidir</div>
-          <div class="footer-page">10</div>
+          <div class="footer-page">11</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 11: CONTRATO TÉCNICO ==================== -->
+      <!-- ==================== SLIDE 12: CONTRATO TÉCNICO ==================== -->
       <section class="content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -416,7 +451,7 @@
           <h2>O contrato técnico do semestre <a href="#/ref-slide" class="ref-badge" title="Ver referências">[3]</a></h2>
         </div>
 
-        <p style="font-size:0.74em; margin-top:0;">Os nomes abaixo estão fixados desde o fork de hoje e não mudam ao longo do semestre.</p>
+        <p class="lead">Os nomes abaixo estão fixados desde o fork de hoje e não mudam ao longo do semestre.</p>
 
         <table>
           <thead>
@@ -428,7 +463,6 @@
             <tr><td>Framework</td><td>Spring Boot 3.x</td><td>Sobe vazio hoje, com código na Aula 06</td></tr>
             <tr><td>Pacote raiz</td><td><code>br.uni9.rotasul</code></td><td>Fixado desde o fork</td></tr>
             <tr><td>Banco e persistência</td><td>MySQL 8.4, schema <code>rotasul</code>, Spring Data JPA</td><td>Módulo 4</td></tr>
-            <tr><td>Repositório-esqueleto</td><td><code>josercf/uninove-2026-2-rota-sul</code></td><td>Forkado hoje</td></tr>
           </tbody>
         </table>
 
@@ -439,11 +473,11 @@
 
         <div class="slide-footer">
           <div class="footer-bar">01 Contrato técnico</div>
-          <div class="footer-page">11</div>
+          <div class="footer-page">12</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 12: O FORK ÚNICO E A ESPIRAL ==================== -->
+      <!-- ==================== SLIDE 13: O FORK ÚNICO E A ESPIRAL ==================== -->
       <section class="content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -453,7 +487,7 @@
           <h2>Git e o fork do repositório-esqueleto</h2>
         </div>
 
-        <p style="font-size:0.74em; margin-top:0;">O fork criado hoje é o único repositório do semestre. O entregável de uma aula é o ponto de partida da seguinte, e é o histórico de commits desse fork que o professor avalia.</p>
+        <p class="lead">O fork de <code>josercf/uninove-2026-2-rota-sul</code>, criado hoje, é o único repositório do semestre. O entregável de uma aula é o ponto de partida da seguinte, e é o histórico de commits desse fork que o professor avalia.</p>
 
         <div class="flow-diagram" style="margin:14px 0 0 0; font-size:0.85em; gap:8px;">
           <div class="flow-item">Aula 01<br>ambiente e fork</div>
@@ -485,11 +519,11 @@
 
         <div class="slide-footer">
           <div class="footer-bar">01 Fork e espiral</div>
-          <div class="footer-page">12</div>
+          <div class="footer-page">13</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 13: QUIZ DE FIXAÇÃO ==================== -->
+      <!-- ==================== SLIDE 14: QUIZ DE FIXAÇÃO ==================== -->
       <section class="quiz-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -507,10 +541,10 @@
                data-correct-msg="Correto. O sintoma aparece na operação, mas a causa está em como o sistema foi partido: enquanto a responsabilidade de receber o pedido não estiver atribuída a um componente único, qualquer correção pontual apenas adia o problema."
                data-incorrect-msg="Incorreto. As alternativas A e D confundem sintoma com causa, e a C ignora que o sistema permite a duplicação por construção, não por descuido. Reveja a tabela de sintomas e decisões."></div>
         </div>
-        <div class="slide-footer"><div class="footer-bar">01 Quiz de fixação</div><div class="footer-page">13</div></div>
+        <div class="slide-footer"><div class="footer-bar">01 Quiz de fixação</div><div class="footer-page">14</div></div>
       </section>
 
-      <!-- ==================== SLIDE 14: LAB PASSO 1 ==================== -->
+      <!-- ==================== SLIDE 15: LAB PASSO 1 ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -520,28 +554,27 @@
           <h2>Laboratório, passo 1 de 3: JDK 21 e Maven <a href="#/ref-slide" class="ref-badge" title="Ver referências">[4]</a></h2>
         </div>
 
-        <p style="font-size:0.74em; margin-top:0;">Nenhuma linha de código de aplicação é escrita hoje. O objetivo dos próximos 60 minutos é o ambiente pronto e versionado.</p>
+        <p class="lead">Nenhuma linha de código de aplicação é escrita hoje. O objetivo dos próximos 60 minutos é o ambiente pronto e versionado.</p>
 
         <pre><code class="language-bash" data-trim>java -version
-
 mvn -v</code></pre>
 
         <div class="exercise-container">
           <h3>O que conferir em cada saída</h3>
           <ol class="exercise-steps">
-            <li>A saída de <code>java -version</code> precisa indicar a versão 21. Quem tiver outra versão instala o JDK 21 LTS agora, seguindo o roteiro do kit para o seu sistema operacional.</li>
-            <li>Quem tiver mais de um JDK instalado confere qual está ativo no <code>PATH</code>, porque é esse que o Maven vai usar.</li>
-            <li>Na saída de <code>mvn -v</code>, a linha <code>Java version</code> precisa mostrar o mesmo 21. Divergência entre os dois é a causa mais comum de erro de compilação nas próximas aulas.</li>
+            <li>A saída de <code>java -version</code> precisa indicar a versão 21. Quem tiver outra instala o JDK 21 LTS agora, pelo roteiro do kit.</li>
+            <li>Quem tiver mais de um JDK confere qual está ativo no <code>PATH</code>, porque é esse que o Maven vai usar.</li>
+            <li>Em <code>mvn -v</code>, a linha <code>Java version</code> precisa mostrar o mesmo 21. Divergência entre os dois é a causa mais comum de erro de compilação nas próximas aulas.</li>
           </ol>
         </div>
 
         <div class="slide-footer">
           <div class="footer-bar">01 Laboratório, passo 1, JDK e Maven</div>
-          <div class="footer-page">14</div>
+          <div class="footer-page">15</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 15: LAB PASSO 2 ==================== -->
+      <!-- ==================== SLIDE 16: LAB PASSO 2 ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -562,7 +595,6 @@ mvn -v</code></pre>
         <pre class="code-compact" style="margin-top:12px;"><code class="language-bash" data-trim>git --version
 git config --global user.name "Nome Sobrenome"
 git config --global user.email "email@exemplo.com"
-
 git clone https://github.com/SEU-USUARIO/uninove-2026-2-rota-sul.git
 cd uninove-2026-2-rota-sul
 git remote -v</code></pre>
@@ -573,11 +605,11 @@ git remote -v</code></pre>
 
         <div class="slide-footer">
           <div class="footer-bar">01 Laboratório, passo 2, fork e clone</div>
-          <div class="footer-page">15</div>
+          <div class="footer-page">16</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 16: LAB PASSO 3 ==================== -->
+      <!-- ==================== SLIDE 17: LAB PASSO 3 ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -587,15 +619,17 @@ git remote -v</code></pre>
           <h2>Laboratório, passo 3 de 3: subir o projeto vazio <a href="#/ref-slide" class="ref-badge" title="Ver referências">[3]</a></h2>
         </div>
 
-        <p style="font-size:0.74em; margin-top:0;">Dentro da pasta clonada, o wrapper do Maven baixa as dependências e sobe a aplicação. A primeira execução demora.</p>
+        <p class="lead">Dentro da pasta clonada, o wrapper do Maven baixa as dependências e sobe a aplicação. A primeira execução demora.</p>
 
         <pre><code class="language-bash" data-trim>./mvnw spring-boot:run
+# no fim do log: Tomcat started on port XXXX (http) with context path '/'</code></pre>
 
-# no fim do log, a linha que informa a porta:
-# Tomcat started on port XXXX (http) with context path '/'</code></pre>
-
-        <div class="callout" style="margin-top:6px;">
-          <p>Abra <strong>a porta que o seu terminal imprimiu</strong>, não uma porta decorada. A resposta esperada no navegador é a página de erro padrão do Spring Boot, e isso é sucesso: ainda não existe nenhuma rota mapeada.</p>
+        <div class="exercise-container" style="margin-top:6px;">
+          <h3>Com a aplicação no ar</h3>
+          <ol class="exercise-steps">
+            <li>Abra <strong>a porta que o seu terminal imprimiu</strong>, não uma porta decorada. A página de erro padrão do Spring Boot é a resposta esperada, e isso é sucesso: ainda não existe rota mapeada.</li>
+            <li>Abra o <code>.gitignore</code> do fork e confirme que <code>.env</code> está listado. Se não estiver, acrescente a linha <code>.env</code> e salve o arquivo.</li>
+          </ol>
         </div>
 
         <div class="takeaway">
@@ -605,12 +639,16 @@ git remote -v</code></pre>
 
         <div class="slide-footer">
           <div class="footer-bar">01 Laboratório, passo 3, subir o projeto</div>
-          <div class="footer-page">16</div>
+          <div class="footer-page">17</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 17: ENTREGÁVEL E CRITÉRIOS ==================== -->
-      <section class="content-slide">
+      <!-- ==================== SLIDE 18: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- O slide do entregável é o passo 8 do laboratório e nasce dentro do
+           Ciclo 4, então leva `exercise-slide content-slide` como os três
+           slides de passo. O `exercise-container` fica reservado para lista de
+           passos a executar; aqui o conteúdo é a tabela de critérios. -->
+      <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
         <div class="decor-coral"></div>
@@ -619,7 +657,7 @@ git remote -v</code></pre>
           <h2>Entregável de hoje e critérios de aceitação</h2>
         </div>
 
-        <p style="font-size:0.72em; margin-top:0;">Crie <code>docs/ambiente.md</code> no fork, com três seções, colando em cada uma a saída literal do comando correspondente, mais uma linha final com o sistema operacional usado.</p>
+        <p class="lead">Crie <code>docs/ambiente.md</code> no fork, com três seções, colando em cada uma a saída literal do comando correspondente, mais uma linha final com o sistema operacional usado.</p>
 
         <pre class="code-compact"><code class="language-markdown" data-trim># Ambiente
 
@@ -641,11 +679,11 @@ git remote -v</code></pre>
 
         <div class="slide-footer">
           <div class="footer-bar">01 Entregável e critérios</div>
-          <div class="footer-page">17</div>
+          <div class="footer-page">18</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 18: FECHAMENTO ==================== -->
+      <!-- ==================== SLIDE 19: FECHAMENTO ==================== -->
       <section class="content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -677,11 +715,11 @@ git push</code></pre>
 
         <div class="slide-footer">
           <div class="footer-bar">01 Fechamento</div>
-          <div class="footer-page">18</div>
+          <div class="footer-page">19</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 19: REFERÊNCIAS ==================== -->
+      <!-- ==================== SLIDE 20: REFERÊNCIAS ==================== -->
       <section id="ref-slide" class="content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -691,7 +729,7 @@ git push</code></pre>
           <h2>Referências desta aula</h2>
         </div>
 
-        <p style="font-size:0.72em; margin-top:0;">Os números entre colchetes ao lado dos títulos remetem a esta lista. Esta aula não tem capítulo correspondente no AVA: é a abertura do semestre.</p>
+        <p class="lead">Os números entre colchetes nos títulos remetem a esta lista.</p>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px 30px; margin-top:6px;">
           <div class="concept-card">
@@ -716,16 +754,16 @@ git push</code></pre>
         </div>
 
         <div class="callout" style="margin-top:16px;">
-          <p>O repositório-esqueleto do case fica em <code>github.com/josercf/uninove-2026-2-rota-sul</code>. É dele que sai o fork do laboratório de hoje, e é ele que evolui até a Aula 20.</p>
+          <p>Esta aula não tem capítulo correspondente no AVA: é a abertura do semestre. O repositório-esqueleto do case fica em <code>github.com/josercf/uninove-2026-2-rota-sul</code>, e é ele que evolui até a Aula 20.</p>
         </div>
 
         <div class="slide-footer">
           <div class="footer-bar">01 Referências</div>
-          <div class="footer-page">19</div>
+          <div class="footer-page">20</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 20: ENCERRAMENTO ==================== -->
+      <!-- ==================== SLIDE 21: ENCERRAMENTO ==================== -->
       <section class="end-slide">
         <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
              style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">

@@ -5,9 +5,11 @@ RAIZ = pathlib.Path(__file__).resolve().parents[1]
 ASSETS = RAIZ / "aulas-1sem" / "assets"
 TEMA = ASSETS / "css" / "uninove-theme.css"
 
-# As 47 classes do bloco "Produces" desta task, sem exceção. Este teste é o que
-# guarda o contrato que os 20 decks consomem: classe de fora da lista pode sumir
-# do tema sem ninguém perceber, e o deck quebra só na projeção.
+# As 47 classes do bloco "Produces" da task do tema, mais `lead`, criada na
+# revisão da Aula 01 para tirar o corpo do parágrafo de abertura de dentro de
+# `style` inline. São 48, sem exceção. Este teste é o que guarda o contrato que
+# os 20 decks consomem: classe de fora da lista pode sumir do tema sem ninguém
+# perceber, e o deck quebra só na projeção.
 CLASSES_OBRIGATORIAS = [
     "cover-slide", "title-slide", "content-slide", "section-slide",
     "quiz-slide", "exercise-slide", "end-slide", "slide-title-area",
@@ -19,7 +21,7 @@ CLASSES_OBRIGATORIAS = [
     "flow-diagram", "flow-item", "flow-arrow", "exercise-container",
     "exercise-steps", "code-compact", "ref-badge", "decor-coral",
     "quiz-container", "quiz-question", "quiz-options", "option-letter",
-    "option-text", "quiz-feedback",
+    "option-text", "quiz-feedback", "lead",
 ]
 
 ARQUIVOS_OBRIGATORIOS = [

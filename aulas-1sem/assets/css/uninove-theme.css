@@ -596,6 +596,20 @@
 .reveal ul, .reveal ol { font-size: 0.85em; line-height: 1.6; }
 .reveal li { margin-bottom: 8px; }
 
+/* Parágrafo de abertura do slide de conteúdo: a frase que enquadra o problema,
+   logo abaixo do `slide-title-area`. Existe como classe porque são cerca de 15
+   por deck e 300 no acervo de 20 decks; sem classe, mudar o corpo da abertura
+   é uma varredura de 300 declarações `style` inline.
+
+   0.74em equivale a 20,7px na projeção, que é o piso de legibilidade da última
+   fileira da sala. Quem precisar desviar por altura sobrescreve com `style`
+   inline no slide e escreve um comentário HTML dizendo por quê; encolher a
+   fonte para caber conteúdo continua proibido. */
+.reveal .lead {
+  font-size: 0.74em;
+  margin-top: 0;
+}
+
 /* --- Blocos de Código --- */
 .reveal pre {
   background: var(--uninove-code-bg);
