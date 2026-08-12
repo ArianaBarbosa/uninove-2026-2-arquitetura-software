@@ -73,6 +73,13 @@ python3 -m pytest tests/ -v
 # repositório ainda (ver "Estado atual"). Listados aqui porque são o padrão
 # definido em aulas-1sem/SKILL.md, seção 10, para quando tools/ for criado.
 
+# Preparação de ambiente: instale as dependências do requirements.txt e o
+# Chromium do Playwright antes de rodar qualquer comando abaixo; sem isso,
+# os três validadores que abrem navegador (check_slides.py,
+# check_canto_coral.py, check_portal.py) não rodam.
+python3 -m pip install -r requirements.txt
+python3 -m playwright install --with-deps chromium
+
 # Validação de layout dos decks (estouro de 1280x720 e sobreposição)
 python3 tools/check_slides.py
 
