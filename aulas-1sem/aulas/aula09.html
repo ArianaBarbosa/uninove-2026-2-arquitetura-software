@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aula 09, Metadados para troca de dados: XML e JSON | Uninove</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="../assets/css/uninove-theme.css">
+  <link rel="stylesheet" href="../assets/css/uninove-print.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ==================== SLIDE 1: CAPA ==================== -->
+      <section class="cover-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho" class="uninove-logo-full"
+             style="max-width:400px; background:#FFFFFF; padding:26px 36px; border-radius:10px;">
+        <div style="margin-top:36px; color:#FFFFFF; font-size:0.95em; font-weight:800; letter-spacing:4px; text-transform:uppercase;">Arquitetura de Software</div>
+        <div style="margin-top:12px; color:#C84B31; font-size:0.6em; font-weight:700; letter-spacing:3px; text-transform:uppercase;">Graduação, 2026.2</div>
+      </section>
+
+      <!-- ==================== SLIDE 2: TÍTULO ==================== -->
+      <section class="title-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="title-card">
+          <div class="accent-bar"></div>
+          <h1>Arquitetura de Software</h1>
+          <h2>Metadados para troca de dados: XML e JSON</h2>
+          <h3>Prof. José Romualdo</h3>
+        </div>
+        <div class="lesson-bar">AULA 09 &nbsp;|&nbsp; Módulo 2, Integração e serviços distribuídos</div>
+      </section>
+
+      <!-- ==================== SLIDE 3: AGENDA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Agenda do encontro de hoje</h2>
+        </div>
+
+        <p class="lead">São 150 minutos corridos, em quatro ciclos. Não há intervalo formal: a troca de ciclo é o respiro da aula.</p>
+
+        <table>
+          <thead>
+            <tr><th style="width:190px;">Horário</th><th style="width:200px;">Bloco</th><th>O que acontece</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>19h30 às 20h05</td><td>Ciclo 1</td><td>Metadados, o padrão XML e o custo em bytes das tags</td></tr>
+            <tr><td>20h05 às 20h40</td><td>Ciclo 2</td><td>O padrão JSON e a negociação de conteúdo pelo cabeçalho <code>Accept</code></td></tr>
+            <tr><td>20h40 às 20h50</td><td>Quiz de fixação</td><td>Os princípios corretos sobre o uso de JSON, segundo o capítulo</td></tr>
+            <tr><td>20h50 às 21h25</td><td>Ciclo 3</td><td>Laboratório: nasce o contexto <code>expedicao</code>, com domínio, repositório, serviço e o módulo Jackson XML</td></tr>
+            <tr><td>21h25 às 21h50</td><td>Ciclo 4</td><td>Laboratório: o controlador respondendo em JSON e em XML, e o teste</td></tr>
+            <tr><td>21h50 às 22h00</td><td>Fechamento</td><td>Commit, push e prévia da Aula 10</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Agenda do encontro</div>
+          <div class="footer-page">3</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 4: RETOMADA DA AULA 08 ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Retomada: o que a Aula 08 deixou pronto</h2>
+        </div>
+
+        <p class="lead">Na Aula 08 cada aluno entregou o <code>.jar</code> executável rodando com <code>java -jar</code>, mais <code>docs/empacotamento.md</code>, comparando esse modelo com o WAR do capítulo.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>O que ficou pronto</h4>
+            <p style="margin:0;">A aplicação já roda sozinha, com o servidor embarcado no próprio <code>.jar</code>, sem servidor de aplicações administrado à parte.</p>
+          </div>
+          <div class="side">
+            <h4>A pergunta de hoje</h4>
+            <p style="margin:0;">Quando essa aplicação responde a quem pediu alguma coisa, em que formato ela responde, e quem decide isso, ela ou quem perguntou?</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Retomada</div>
+          <div class="footer-page">4</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 5: CICLO 1, METADADOS ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Metadados: o que são, e por que existem <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Um metadado, ou metainformação, é informação a respeito de outros dados, e existe desde os anos 1970.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>A trajetória, segundo o capítulo</h4>
+            <p style="margin:0;">Nos anos 1970, usado para armazenar dados dos próprios aplicativos. Depois, para comunicação entre aplicativos e compartilhamento de informação. Nos anos 1990, a Internet trouxe XML e JSON, baseados em padrões abertos.</p>
+          </div>
+          <div class="side">
+            <h4>Por que texto simples</h4>
+            <p style="margin:0;">É o formato mais fácil de processar e transmitir pela rede. XML e JSON podem ser escritos e lidos por rotinas de qualquer linguagem de programação, e deixam os nomes dos metadados livres para o desenvolvedor escolher.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">O gancho com a Aula 07</span>
+          <p>O capítulo já afirma que arquivos JSON ou XML "podem ser usados como protocolos ou interfaces de comunicação": é a mesma ideia de contrato de serviço da SOA, aplicada ao formato dos dados.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Metadados</div>
+          <div class="footer-page">5</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 6: CICLO 1, XML PRINCÍPIOS E ESTRUTURA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>XML, eXtensible Markup Language <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Recomendação do consórcio W3C: linguagem de marcação projetada segundo cinco princípios.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Os cinco princípios do capítulo</h4>
+            <ul style="margin:0; padding-left:18px; font-size:0.7em;">
+              <li>Separar o conteúdo da formatação, em arquivos DTD</li>
+              <li>Ser entendível por máquinas e por seres humanos</li>
+              <li>Não ter limite na quantidade de tags criadas</li>
+              <li>Servir de agente de transporte entre sistemas distintos</li>
+              <li>Manter o foco no conteúdo, não na aparência</li>
+            </ul>
+          </div>
+          <div class="side">
+            <h4>Estrutura</h4>
+            <p style="margin:0;">Uma tag inicial declara a versão do XML e a codificação de caractere. As demais tags são hierárquicas, sempre em pares de abertura e fechamento, e podem representar coleções de dados repetidas.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 XML, princípios e estrutura</div>
+          <div class="footer-page">6</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 7: CICLO 1, DESVANTAGEM DO XML ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>A desvantagem que o capítulo aponta <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">A quantidade de bytes gasta com o nome das tags, comparada ao conteúdo que elas carregam.</p>
+
+        <pre class="code-compact"><code class="language-xml" data-trim>&lt;nome&gt;Bilbo Bolseiro&lt;/nome&gt;</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><strong>A contagem do capítulo:</strong> treze bytes para as tags de abertura e fechamento, contra catorze bytes de conteúdo. Dos vinte e sete bytes do trecho, quase metade é informação que o aplicativo descarta rapidamente, o que pesa quando a tarifação é por volume de bytes transmitido.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Segunda desvantagem</span>
+          <p>Abrir e fechar cada tag também deixa mais lento tanto gerar quanto ler arquivos XML.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 A desvantagem do XML</div>
+          <div class="footer-page">7</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 8: CICLO 1, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: contando bytes num XML da Rota Sul</h2>
+        </div>
+
+        <p class="lead">Repetir, com a turma, a mesma contagem do capítulo, agora com um <code>Volume</code> da Rota Sul.</p>
+
+        <pre class="code-compact" style="margin:6px 0;"><code class="language-xml" data-trim>&lt;volume&gt;&lt;etiqueta&gt;VOL-001&lt;/etiqueta&gt;&lt;pesoKg&gt;12.5&lt;/pesoKg&gt;&lt;/volume&gt;</code></pre>
+
+        <div class="exercise-container">
+          <h3>No quadro</h3>
+          <ol class="exercise-steps">
+            <li>Escrever o XML acima.</li>
+            <li>Contar, com a turma, quantos bytes são de tag e quantos são de conteúdo.</li>
+          </ol>
+        </div>
+
+        <div class="callout" style="margin-top:8px;">
+          <p><strong>O resultado da contagem:</strong> 55 dos 66 bytes do trecho são tag, 11 são conteúdo, quase 83% em tags, bem acima dos 48% do exemplo do capítulo. A causa: <code>etiqueta</code> e <code>pesoKg</code> são nomes mais longos do que os valores curtos que carregam, o que piora ainda mais a mesma desvantagem.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Demonstração, contando bytes</div>
+          <div class="footer-page">8</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 9: EXERCÍCIO CURTO DO CICLO 1 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício individual: XML de uma <code>Remessa</code></h2>
+        </div>
+
+        <p class="lead">Cinco minutos, individual. Escrever à mão um XML e contar os bytes de tag e de conteúdo.</p>
+
+        <div class="exercise-container">
+          <h3>O que escrever</h3>
+          <ol class="exercise-steps">
+            <li>Um XML para uma <code>Remessa</code>, com <code>codigoRastreio</code> e <code>previsaoEntrega</code>.</li>
+            <li>Contar quantos bytes são de tag e quantos são de conteúdo.</li>
+            <li>Decidir se o resultado fica acima ou abaixo da proporção vista na demonstração.</li>
+          </ol>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Exercício, XML da Remessa</div>
+          <div class="footer-page">9</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 10: CICLO 2, JSON ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>JSON, JavaScript Object Notation <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Alternativa popular ao XML, criada como padrão de baixo custo de processamento para o cliente e o servidor web trocarem informação.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Três características do capítulo</h4>
+            <ul style="margin:0; padding-left:18px; font-size:0.72em;">
+              <li>Coleção de dados <code>nome : valor</code>, tratada como vetor</li>
+              <li>Estrutura entendida por seres humanos e por máquinas</li>
+              <li>Subconjunto do JavaScript, mas independente da linguagem</li>
+            </ul>
+          </div>
+          <div class="side">
+            <h4>Estrutura</h4>
+            <p style="margin:0;"><code>{</code> e <code>}</code> delimitam o escopo dos dados, <code>[</code> e <code>]</code> delimitam coleções repetidas, sempre com o par <code>"nome": "valor"</code> separado por vírgula.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">A vantagem sobre o XML</span>
+          <p>As mesmas vantagens do XML, mas com uso menor de bytes, por não depender de tags, e mais simples de escrever um interpretador para ele.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 JSON</div>
+          <div class="footer-page">10</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 11: CICLO 2, NEGOCIAÇÃO DE CONTEÚDO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Negociação de conteúdo: como um endpoint fala dois formatos</h2>
+        </div>
+
+        <p class="lead">O capítulo apresenta XML e JSON como dois formatos, mas não trata de como um mesmo endpoint escolhe entre eles: isto é técnica de HTTP e do framework web, posterior ao material, e é a aplicação prática do que o próprio capítulo já estabelece.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>O cabeçalho <code>Accept</code></h4>
+            <p style="margin:0;">O cliente que chama a API da Rota Sul diz em que formato quer a resposta, <code>application/json</code> ou <code>application/xml</code>.</p>
+          </div>
+          <div class="side">
+            <h4>Os dois conversores do Spring</h4>
+            <p style="margin:0;">O conversor para JSON, via Jackson, já vem com o <code>spring-boot-starter-web</code>. Acrescentando <code>jackson-dataformat-xml</code> ao classpath, um segundo conversor fica disponível, e o Spring escolhe entre os dois comparando o <code>Accept</code> com o que o endpoint declara que produz.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Negociação de conteúdo</div>
+          <div class="footer-page">11</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 12: CICLO 2, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: os dois arquivos da mesma <code>Remessa</code></h2>
+        </div>
+
+        <p class="lead">Sem o código ainda pronto, o que a Rota Sul vai gerar ao final do Ciclo 4 para a mesma <code>Remessa</code>.</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:6px;">
+          <pre class="code-compact" style="margin:0;"><code class="language-json" data-trim>{
+  "id": 1,
+  "codigoRastreio": "RS-0001",
+  "previsaoEntrega": "2026-08-20",
+  "situacao": "EM_TRANSITO"
+}</code></pre>
+          <pre class="code-compact" style="margin:0;"><code class="language-xml" data-trim>&lt;remessa&gt;
+  &lt;id&gt;1&lt;/id&gt;
+  &lt;codigoRastreio&gt;RS-0001&lt;/codigoRastreio&gt;
+  &lt;previsaoEntrega&gt;2026-08-20&lt;/previsaoEntrega&gt;
+  &lt;situacao&gt;EM_TRANSITO&lt;/situacao&gt;
+&lt;/remessa&gt;</code></pre>
+        </div>
+
+        <div class="takeaway" style="margin-top:10px;">
+          <span class="takeaway-label">O que muda, e o que não muda</span>
+          <p>O conteúdo é idêntico nos dois; só a casca muda.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Demonstração, JSON e XML</div>
+          <div class="footer-page">12</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 13: EXERCÍCIO CURTO DO CICLO 2 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício em duplas: um <code>Volume</code> nos dois formatos</h2>
+        </div>
+
+        <p class="lead">Cinco minutos, em duplas. Dado um <code>Volume</code> com <code>etiqueta</code>, <code>pesoKg</code> e <code>remessaId</code>.</p>
+
+        <div class="exercise-container">
+          <h3>O que escrever</h3>
+          <ol class="exercise-steps">
+            <li>A representação do <code>Volume</code> em JSON.</li>
+            <li>A mesma informação, em seguida, em XML.</li>
+            <li>Comparar o total de bytes das duas representações.</li>
+          </ol>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Exercício, Volume nos dois formatos</div>
+          <div class="footer-page">13</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 14: QUIZ DE FIXAÇÃO ==================== -->
+      <section class="quiz-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area"><div class="accent-bar"></div><h2>Quiz de fixação</h2></div>
+        <div class="quiz-container">
+          <div class="quiz-question">Segundo o capítulo, qual das afirmações a seguir NÃO é um princípio correto sobre o uso de JSON?</div>
+          <ul class="quiz-options">
+            <li data-correct="false"><span class="option-letter">A</span> É facilmente entendido tanto por seres humanos quanto por máquinas.</li>
+            <li data-correct="true"><span class="option-letter">B</span> Usa um número maior de bytes do que o XML para representar os mesmos metadados.</li>
+            <li data-correct="false"><span class="option-letter">C</span> Pode ser gerado e interpretado em qualquer linguagem de programação.</li>
+            <li data-correct="false"><span class="option-letter">D</span><span class="option-text">O escopo das coleções de dados é delimitado por caracteres simples, <code>{</code> e <code>}</code>, e <code>[</code> e <code>]</code>.</span></li>
+          </ul>
+          <div class="quiz-feedback"
+               data-correct-msg="Correto. O capítulo é explícito: o JSON permite um uso menor de bytes para transmissão da informação, por não ser baseado em tags, justamente o oposto do que a alternativa afirma."
+               data-incorrect-msg="Incorreto. A, C e D reproduzem características que o capítulo atribui corretamente ao JSON: fácil entendimento por humanos e máquinas, independência de linguagem, e delimitação de escopo por chaves e colchetes."></div>
+        </div>
+        <div class="slide-footer"><div class="footer-bar">09 Quiz de fixação</div><div class="footer-page">14</div></div>
+      </section>
+
+      <!-- ==================== SLIDE 15: LABORATÓRIO, INTRODUÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório: nasce o contexto <code>expedicao</code></h2>
+        </div>
+
+        <p class="lead">Hoje nasce o segundo contexto do case, <code>expedicao</code>, já previsto no diagrama de pacotes da Aula 05.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>O que já existe</h4>
+            <p style="margin:0; font-size:0.72em;">O contexto <code>pedido</code>, com <code>PedidoController</code>, a interface <code>PedidoService</code> e <code>PedidoRepository</code>, herdado sem alteração desde a Aula 07.</p>
+          </div>
+          <div class="side">
+            <h4>O que nasce hoje</h4>
+            <p style="margin:0; font-size:0.72em;">O contexto <code>expedicao</code>, com as mesmas quatro camadas, <code>domain</code>, <code>repository</code>, <code>service</code> e <code>web</code>, seguindo a convenção contexto primeiro, camada depois, fixada na Aula 05.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Laboratório, introdução</div>
+          <div class="footer-page">15</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 16: LAB PASSO 1, CRIAR O PACOTE ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 1: criar o pacote de expedição</h2>
+        </div>
+
+        <p class="lead">Dentro de <code>src/main/java/br/uni9/rotasul/</code>, criar as quatro camadas do novo contexto.</p>
+
+        <pre class="code-compact"><code class="language-text" data-trim>src/main/java/br/uni9/rotasul/
+└── expedicao/
+    ├── domain/
+    ├── repository/
+    ├── service/
+    └── web/</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Mesma convenção contexto primeiro, camada depois, do <code>pacotes.puml</code> da Aula 05.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Laboratório, passo 1, pacote</div>
+          <div class="footer-page">16</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 17: LAB PASSO 2, O DOMÍNIO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 2: escrever o domínio</h2>
+        </div>
+
+        <p class="lead">Em <code>expedicao/domain</code>, a classe <code>Remessa</code>, com <code>id</code>, <code>codigoRastreio</code>, <code>previsaoEntrega</code> e <code>situacao</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@JacksonXmlRootElement(localName = "remessa")
+public class Remessa {
+  private Long id;
+  private final String codigoRastreio;
+  private final LocalDate previsaoEntrega;
+  private String situacao;
+  // construtor, getters e o setter de situacao no kit
+}</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p><strong>A única exceção à regra da Aula 06.</strong> Sem <code>@JacksonXmlRootElement</code>, a tag raiz do XML sairia com o nome da classe Java, <code>Remessa</code>, em vez do nome de domínio em português. É anotação de serialização, não de persistência nem de web: a exceção fica registrada aqui e não vira regra geral.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Laboratório, passo 2, domínio</div>
+          <div class="footer-page">17</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 18: LAB PASSO 3, O REPOSITÓRIO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 3: escrever o repositório</h2>
+        </div>
+
+        <p class="lead">Interface primeiro, implementação depois, a mesma convenção da Aula 06 para o contexto <code>pedido</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public interface RemessaRepository {
+  Remessa buscarPorId(Long id);
+}</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p><code>RemessaRepositoryEmMemoria</code>, anotada <code>@Repository</code>, pré-carregada com duas ou três remessas de exemplo.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Laboratório, passo 3, repositório</div>
+          <div class="footer-page">18</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 19: LAB PASSO 4, O SERVIÇO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 4: escrever o serviço</h2>
+        </div>
+
+        <p class="lead"><code>RemessaService</code>, anotada <code>@Service</code>, delegando ao repositório.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Service
+public class RemessaService {
+  private final RemessaRepository remessaRepository;
+  public RemessaService(RemessaRepository remessaRepository) {
+    this.remessaRepository = remessaRepository;
+  }
+  public Remessa buscarPorId(Long id) {
+    return remessaRepository.buscarPorId(id);
+  }
+}</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Laboratório, passo 4, serviço</div>
+          <div class="footer-page">19</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 20: LAB PASSO 5, MÓDULO JACKSON XML ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: adicionar o módulo Jackson XML</h2>
+        </div>
+
+        <p class="lead">No <code>pom.xml</code>, a dependência que dá ao Spring o segundo conversor de mensagem HTTP.</p>
+
+        <pre class="code-compact"><code class="language-xml" data-trim>&lt;dependency&gt;
+  &lt;groupId&gt;com.fasterxml.jackson.dataformat&lt;/groupId&gt;
+  &lt;artifactId&gt;jackson-dataformat-xml&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Sem ela, o Spring só tem o conversor de JSON disponível, e qualquer pedido de XML recebe <code>406 Not Acceptable</code>.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Laboratório, passo 5, Jackson XML</div>
+          <div class="footer-page">20</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 21: LAB PASSO 6, O CONTROLADOR ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 6: escrever o controlador</h2>
+        </div>
+
+        <p class="lead"><code>RemessaController</code>, mapeado em <code>/remessas</code>, declarando os dois formatos que produz.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@RestController
+@RequestMapping("/remessas")
+public class RemessaController {
+  private final RemessaService remessaService;
+  public RemessaController(RemessaService remessaService) {
+    this.remessaService = remessaService;
+  }
+
+  @GetMapping(value = "/{id}",
+      produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+  public Remessa buscarPorId(@PathVariable Long id) {
+    return remessaService.buscarPorId(id);
+  }
+}</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Laboratório, passo 6, controlador</div>
+          <div class="footer-page">21</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 22: LAB PASSO 7, SUBIR E TESTAR ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 7: subir e testar manualmente</h2>
+        </div>
+
+        <p class="lead"><code>./mvnw spring-boot:run</code>, e então as duas chamadas, trocando a porta pela que o terminal imprimiu.</p>
+
+        <pre class="code-compact"><code class="language-bash" data-trim># trocando 8080 pela porta que o seu terminal imprimiu
+curl -H "Accept: application/json" http://localhost:8080/remessas/1
+curl -H "Accept: application/xml" http://localhost:8080/remessas/1</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Saída real deste gabarito: a primeira chamada devolve <code>{"id":1,"codigoRastreio":"RS-0001",...}</code>, a segunda devolve <code>&lt;remessa&gt;&lt;id&gt;1&lt;/id&gt;...&lt;/remessa&gt;</code>, com o mesmo conteúdo nos dois.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Laboratório, passo 7, subir e testar</div>
+          <div class="footer-page">22</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 23: LAB PASSO 8, O TESTE ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 8: escrever o teste</h2>
+        </div>
+
+        <p class="lead"><code>RemessaControllerTest</code>, com <code>@WebMvcTest</code> e <code>MockMvc</code>, um método por formato.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@WebMvcTest(RemessaController.class)
+class RemessaControllerTest {
+  @Autowired MockMvc mockMvc;
+  @MockBean RemessaService remessaService;
+
+  @Test
+  void respondeEmJsonQuandoOAcceptPedeJson() throws Exception {
+    mockMvc.perform(get("/remessas/1").accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+  }
+  // respondeEmXmlQuandoOAcceptPedeXml: mesmo teste, com Accept e
+  // contentType em application/xml</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Laboratório, passo 8, teste</div>
+          <div class="footer-page">23</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 24: LAB PASSO 9, REGISTRAR A DECISÃO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 9: registrar a decisão</h2>
+        </div>
+
+        <p class="lead">Em <code>docs/decisoes.md</code>, uma linha explicando a escolha de um único endpoint com negociação de conteúdo.</p>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">O que a linha precisa dizer</span>
+          <p>Um único endpoint respondendo nos dois formatos, em vez de dois endpoints separados, porque um único recurso deve ter uma única URI, princípio que a Aula 10, sobre REST, vai formalizar.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Laboratório, passo 9, decisão</div>
+          <div class="footer-page">24</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 25: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- O slide do entregável é o último passo do laboratório e nasce
+           dentro do Ciclo 4, então leva `exercise-slide content-slide` como
+           os demais slides de passo. Ver ADR-008. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Entregável de hoje e critérios de aceitação</h2>
+        </div>
+
+        <p class="lead"><code>RemessaController</code> respondendo <code>GET /remessas/{id}</code> em JSON e em XML conforme o <code>Accept</code>, mais <code>RemessaControllerTest</code> cobrindo os dois formatos.</p>
+
+        <table style="margin-top:4px; font-size:0.62em;">
+          <thead>
+            <tr><th style="width:380px;">Critério de aceitação</th><th>Evidência conferida na correção</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Accept: application/json</code> devolvendo JSON</td><td>Saída do <code>curl</code> colada no commit</td></tr>
+            <tr><td><code>Accept: application/xml</code> devolvendo XML válido</td><td>Saída do <code>curl</code> colada no commit, com a tag raiz <code>&lt;remessa&gt;</code></td></tr>
+            <tr><td>Os dois com os mesmos dados da <code>Remessa</code></td><td>Comparação visual das duas saídas</td></tr>
+            <tr><td>Nenhum endpoint duplicado por formato</td><td>Um único <code>GET /remessas/{id}</code> no controlador</td></tr>
+            <tr><td><code>./mvnw test</code> passando</td><td>Os dois métodos de <code>RemessaControllerTest</code> verdes</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Entregável e critérios</div>
+          <div class="footer-page">25</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 26: FECHAMENTO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Commit, push e prévia da Aula 10</h2>
+        </div>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>git add src/main/java/br/uni9/rotasul/expedicao src/test/java/br/uni9/rotasul/expedicao pom.xml docs
+git commit -m "feat(expedicao): remessa em JSON e em XML por negociação de conteúdo"
+git push</code></pre>
+
+        <div class="side-by-side" style="margin-top:12px;">
+          <div class="side" style="padding:14px 18px;">
+            <h4>O que o Módulo 2 comparou hoje</h4>
+            <p style="margin:0; font-size:0.68em;">A Rota Sul aprendeu a falar dois formatos para quem pergunta: o mesmo dado, duas cascas diferentes, escolhidas pelo <code>Accept</code>.</p>
+          </div>
+          <div class="side" style="padding:14px 18px;">
+            <h4>Prévia da Aula 10</h4>
+            <p style="margin:0; font-size:0.68em;">Amanhã a Rota Sul se conecta com quem só fala um formato antigo, o parceiro legado, que só entende SOAP, e documenta formalmente a própria API REST de remessas. É a última aula do Módulo 2.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Fechamento</div>
+          <div class="footer-page">26</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 27: REFERÊNCIAS ==================== -->
+      <section id="ref-slide" class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Referências desta aula</h2>
+        </div>
+
+        <p class="lead">Os números entre colchetes nos títulos remetem a esta lista.</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; margin-top:14px;">
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[1] Metadados para Troca de Dados</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">MESQUITA, P. R. B. <em>Capítulo 08</em>. Arquitetura de Software. AVA, Uninove. Fonte primária desta aula.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[2] JAX: Java APIs for XML</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">CHOWDHURY, A.; CHAUDHARY, P. Sams Publishing, 2002. Referência indicada pelo capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[3] Java XML and JSON</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">FRIESEN, F. Apress, 2016. Referência indicada pelo capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[4] Negociação de conteúdo, Spring</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;"><code style="font-size:0.9em;">docs.spring.io/spring-framework/reference/web/webmvc/mvc-config/content-negotiation.html</code></p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[5] Jackson-dataformat-xml</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;"><code style="font-size:0.9em;">github.com/FasterXML/jackson-dataformat-xml</code></p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">09 Referências</div>
+          <div class="footer-page">27</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 28: ENCERRAMENTO ==================== -->
+      <section class="end-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
+             style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">
+        <div class="copyright">
+          Copyright &copy; 2026<br>
+          Prof. José Romualdo da Costa Filho<br><br>
+          Todos os direitos reservados. É expressamente proibida a reprodução, divulgação<br>
+          total ou parcial, deste material acadêmico sem autorização formal,<br>
+          por escrito, do Professor autor da ementa.
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="../assets/js/uninove-quiz.js"></script>
+  <script>
+    Reveal.initialize({
+      width: 1280, height: 720, center: false, margin: 0,
+      hash: true, slideNumber: false,
+      // Os chevrons de navegação caem sobre a footer-bar e sobre o triângulo
+      // azul do canto inferior direito; a barra de progresso encosta no rodapé
+      // e parece um segundo rodapé. Nenhum dos dois é usado na projeção.
+      controls: false, progress: false,
+      // Um slide por página no ?print-pdf, para o PDF bater com o deck.
+      pdfMaxPagesPerSlide: 1,
+      plugins: [RevealHighlight],
+    });
+  </script>
+</body>
+</html>
