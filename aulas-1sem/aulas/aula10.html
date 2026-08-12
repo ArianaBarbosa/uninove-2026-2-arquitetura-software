@@ -620,14 +620,14 @@ curl http://localhost:8080/ws/parceiro.wsdl</code></pre>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 22: LAB PASSO 7, TESTAR O CLIENTE ==================== -->
+      <!-- ==================== SLIDE 22: LAB PASSO 7, TESTAR O CLIENTE (1/2) ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
         <div class="decor-coral"></div>
         <div class="slide-title-area">
           <div class="accent-bar"></div>
-          <h2>Laboratório, passo 7: testar o cliente</h2>
+          <h2>Laboratório, passo 7: testar o cliente (1/2)</h2>
         </div>
 
         <p class="lead"><code>ParceiroClientTest</code>, com a porta de <code>@LocalServerPort</code> e o cliente apontado para ela antes da chamada.</p>
@@ -650,12 +650,41 @@ class ParceiroClientTest {
         </div>
 
         <div class="slide-footer">
-          <div class="footer-bar">10 Laboratório, passo 7, teste</div>
+          <div class="footer-bar">10 Laboratório, passo 7, teste (1/2)</div>
           <div class="footer-page">22</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 23: LAB PASSO 8, FECHAR PELO REST ==================== -->
+      <!-- ==================== SLIDE 23: LAB PASSO 7, TESTAR O CLIENTE (2/2) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 7: testar o cliente (2/2)</h2>
+        </div>
+
+        <p class="lead">Mesma <code>ParceiroClientTest</code>: um segundo método cobre o outro ramo do <code>@Endpoint</code> do passo 4, o código fora do padrão <code>RS</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Test
+void devolveDesconhecidoParaCodigoForaDoPadrao() {
+  parceiroClient.apontarPara("http://localhost:" + porta + "/ws");
+  var resposta = parceiroClient.consultarEntrega("XX999");
+  assertEquals("DESCONHECIDO", resposta.getSituacao());
+}</code></pre>
+
+        <div class="callout" style="margin-top:4px;">
+          <p><strong>Cobertura das duas ramificações.</strong> O <code>@Endpoint</code> do passo 4 devolve <code>EM_TRANSITO</code> para código com prefixo <code>RS</code> e <code>DESCONHECIDO</code> para qualquer outro; testar só um ramo deixaria o outro sem cobertura.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Laboratório, passo 7, teste (2/2)</div>
+          <div class="footer-page">23</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 24: LAB PASSO 8, FECHAR PELO REST ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -680,11 +709,11 @@ public ConsultaEntregaResponse situacaoNoParceiro(@PathVariable Long id) {
 
         <div class="slide-footer">
           <div class="footer-bar">10 Laboratório, passo 8, REST</div>
-          <div class="footer-page">23</div>
+          <div class="footer-page">24</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 24: LAB PASSO 9, DOCUMENTAR ==================== -->
+      <!-- ==================== SLIDE 25: LAB PASSO 9, DOCUMENTAR ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -707,11 +736,11 @@ public ConsultaEntregaResponse situacaoNoParceiro(@PathVariable Long id) {
 
         <div class="slide-footer">
           <div class="footer-bar">10 Laboratório, passo 9, springdoc</div>
-          <div class="footer-page">24</div>
+          <div class="footer-page">25</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 25: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- ==================== SLIDE 26: ENTREGÁVEL E CRITÉRIOS ==================== -->
       <!-- O slide do entregável é o último passo do laboratório e nasce
            dentro do Ciclo 4, então leva `exercise-slide content-slide` como
            os demais slides de passo. Ver ADR-008. -->
@@ -741,11 +770,11 @@ public ConsultaEntregaResponse situacaoNoParceiro(@PathVariable Long id) {
 
         <div class="slide-footer">
           <div class="footer-bar">10 Entregável e critérios</div>
-          <div class="footer-page">25</div>
+          <div class="footer-page">26</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 26: FECHAMENTO ==================== -->
+      <!-- ==================== SLIDE 27: FECHAMENTO ==================== -->
       <section class="content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -772,11 +801,11 @@ git push</code></pre>
 
         <div class="slide-footer">
           <div class="footer-bar">10 Fechamento</div>
-          <div class="footer-page">26</div>
+          <div class="footer-page">27</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 27: REFERÊNCIAS ==================== -->
+      <!-- ==================== SLIDE 28: REFERÊNCIAS ==================== -->
       <section id="ref-slide" class="content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -813,11 +842,11 @@ git push</code></pre>
 
         <div class="slide-footer">
           <div class="footer-bar">10 Referências</div>
-          <div class="footer-page">27</div>
+          <div class="footer-page">28</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 28: ENCERRAMENTO ==================== -->
+      <!-- ==================== SLIDE 29: ENCERRAMENTO ==================== -->
       <section class="end-slide">
         <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
              style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">

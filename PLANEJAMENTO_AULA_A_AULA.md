@@ -3036,7 +3036,10 @@ parceiro de verdade; só o endereço muda.
    ConsultaEntregaRequest` e devolvendo `@ResponsePayload
    ConsultaEntregaResponse`. Regra simples para simular o parceiro: se o
    `codigoRastreio` começar com "RS", devolve situação `EM_TRANSITO`; caso
-   contrário, `DESCONHECIDO`.
+   contrário, `DESCONHECIDO`. **Atenção ao tipo de `previsaoEntrega`**: o
+   `jaxb2-maven-plugin` gera `XMLGregorianCalendar` para o `xs:date` do XSD,
+   não `LocalDate`; sem uma conversão via `DatatypeFactory`, o endpoint não
+   compila.
 
 ### Ciclo 4, 21h25 às 21h50
 
