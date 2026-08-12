@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aula 10, Objetos remotos: RMI, SOAP e REST | Uninove</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="../assets/css/uninove-theme.css">
+  <link rel="stylesheet" href="../assets/css/uninove-print.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ==================== SLIDE 1: CAPA ==================== -->
+      <section class="cover-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho" class="uninove-logo-full"
+             style="max-width:400px; background:#FFFFFF; padding:26px 36px; border-radius:10px;">
+        <div style="margin-top:36px; color:#FFFFFF; font-size:0.95em; font-weight:800; letter-spacing:4px; text-transform:uppercase;">Arquitetura de Software</div>
+        <div style="margin-top:12px; color:#C84B31; font-size:0.6em; font-weight:700; letter-spacing:3px; text-transform:uppercase;">Graduação, 2026.2</div>
+      </section>
+
+      <!-- ==================== SLIDE 2: TÍTULO ==================== -->
+      <section class="title-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="title-card">
+          <div class="accent-bar"></div>
+          <h1>Arquitetura de Software</h1>
+          <h2>Objetos remotos: RMI, SOAP e REST</h2>
+          <h3>Prof. José Romualdo</h3>
+        </div>
+        <div class="lesson-bar">AULA 10 &nbsp;|&nbsp; Módulo 2, Integração e serviços distribuídos</div>
+      </section>
+
+      <!-- ==================== SLIDE 3: AGENDA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Agenda do encontro de hoje</h2>
+        </div>
+
+        <p class="lead">São 150 minutos corridos, em quatro ciclos. É o capítulo mais longo do AVA, e fecha o Módulo 2.</p>
+
+        <table>
+          <thead>
+            <tr><th style="width:190px;">Horário</th><th style="width:200px;">Bloco</th><th>O que acontece</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>19h30 às 20h05</td><td>Ciclo 1</td><td>RMI, a origem histórica da comunicação remota, como leitura</td></tr>
+            <tr><td>20h05 às 20h40</td><td>Ciclo 2</td><td>SOAP e REST, os dois modelos que o laboratório de hoje usa de verdade</td></tr>
+            <tr><td>20h40 às 20h50</td><td>Quiz de fixação</td><td>Qual dos três modelos não permite dados em formato XML</td></tr>
+            <tr><td>20h50 às 21h25</td><td>Ciclo 3</td><td>Laboratório: contrato pronto no kit, endpoint que simula o parceiro SOAP</td></tr>
+            <tr><td>21h25 às 21h50</td><td>Ciclo 4</td><td>Laboratório: cliente SOAP, teste, e a API REST documentada</td></tr>
+            <tr><td>21h50 às 22h00</td><td>Fechamento</td><td>Commit, push e prévia da Aula 11, fechando o Módulo 2</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Agenda do encontro</div>
+          <div class="footer-page">3</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 4: RETOMADA DA AULA 09 ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Retomada: o que a Aula 09 deixou pronto</h2>
+        </div>
+
+        <p class="lead">Na Aula 09 cada aluno entregou <code>RemessaController</code>, respondendo <code>GET /remessas/{id}</code> em JSON ou em XML conforme o cabeçalho <code>Accept</code>.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>O que ficou pronto</h4>
+            <p style="margin:0;">A Rota Sul já sabe falar dois formatos com quem pergunta em português, por assim dizer: o mesmo protocolo HTTP que ela usa desde a Aula 06.</p>
+          </div>
+          <div class="side">
+            <h4>A pergunta de hoje</h4>
+            <p style="margin:0;">E quando quem pergunta é um sistema mais antigo, que só fala um protocolo específico, com regras próprias de envelope e assinatura?</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Retomada</div>
+          <div class="footer-page">4</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 5: CICLO 1, ORIGEM HISTÓRICA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>A origem histórica da comunicação remota <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">O primeiro sistema com necessidade de comunicação remota, e a solução genérica que a Internet passou a exigir duas décadas depois.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>SABRE, anos 1950</h4>
+            <p style="margin:0; font-size:0.72em;">Desenvolvido pela IBM para a American Airlines gerenciar reservas. Um servidor central numa pequena cidade de Nova Iorque, acessado por terminais espalhados pelos Estados Unidos, processando cerca de 83 mil chamadas por dia. Abriu caminho para soluções proprietárias (IBM, Unisys, NCR, Honeywell), até a ARPANET virar Internet e exigir padrões abertos.</p>
+          </div>
+          <div class="side">
+            <h4>RPC, Remote Procedure Call, 1976</h4>
+            <p style="margin:0; font-size:0.72em;">Implementação de software para compartilhamento remoto de recursos: um programa chama e executa outro, em outro computador da rede, como se a chamada fosse local. Popularizou-se com pacotes dos fabricantes Unix. As plataformas de desenvolvimento incorporaram: RMI para Java, DCOM para .Net.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Gancho</span>
+          <p>RMI é a implementação de RPC para a plataforma Java, o assunto do próximo slide.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Origem histórica</div>
+          <div class="footer-page">5</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 6: CICLO 1, RMI ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>RMI, Remote Method Invocation <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">O cliente invoca um aplicativo no servidor, envia uma mensagem com os dados e espera a resposta. O servidor precisa estar sempre em execução.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Cinco cuidados que o capítulo exige</h4>
+            <ul style="margin:0; padding-left:18px; font-size:0.66em;">
+              <li>Tratar falha de rede, no cliente e no servidor</li>
+              <li>Considerar falha no aplicativo do servidor</li>
+              <li>Trocar informação só por mensagens, nunca por referência de memória</li>
+              <li>Aceitar queda de desempenho</li>
+              <li>Servidor saber sempre quem pediu, de modo seguro</li>
+            </ul>
+          </div>
+          <div class="side">
+            <h4>Vantagem e desvantagem</h4>
+            <p style="margin:0; font-size:0.68em;">O objeto remoto se usa como instância local, e a segurança é reforçada porque o acesso só acontece pela interface. Mas o software inteiro precisa ser Java, e mudanças na política de segurança da JVM podem exigir atualizar classes já escritas.</p>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top:8px;">
+          <p><strong>RMI entra hoje como leitura, não como laboratório:</strong> o exercício prático da aula é sobre SOAP e REST, que é o que a Rota Sul de fato vai construir daqui a pouco.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 RMI</div>
+          <div class="footer-page">6</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 7: CICLO 1, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: o preço da transparência de localização</h2>
+        </div>
+
+        <p class="lead">Ler em voz alta a interface <code>ServicoPotencia</code> do capítulo, e comparar com <code>PedidoService</code> da Aula 07.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public interface ServicoPotencia extends Remote {
+  BigInteger quadrado(int numero) throws RemoteException;
+  BigInteger potencia(int numero, int potencia) throws RemoteException;
+}</code></pre>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">A diferença de assinatura</span>
+          <p>Toda chamada remota pode falhar por rede, e a linguagem obriga o desenvolvedor a admitir isso já na assinatura do método; <code>PedidoService</code>, uma chamada local, não precisa admitir isso, porque não atravessa rede nenhuma.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Demonstração, RMI</div>
+          <div class="footer-page">7</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 8: EXERCÍCIO CURTO DO CICLO 1 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício individual: o <code>rmiregistry</code></h2>
+        </div>
+
+        <p class="lead">Cinco minutos, individual. Diante do trecho do capítulo que registra o serviço no <code>rmiregistry</code>, responder por escrito.</p>
+
+        <div class="exercise-container">
+          <h3>Perguntas</h3>
+          <ol class="exercise-steps">
+            <li>O que aconteceria se o <code>rmiregistry</code> não estivesse em execução no momento em que o servidor tentasse <code>registry.bind</code>?</li>
+            <li>Por que o <code>main</code> do servidor precisa capturar tanto <code>RemoteException</code> quanto <code>AlreadyBoundException</code>?</li>
+          </ol>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Exercício, RMI</div>
+          <div class="footer-page">8</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 9: CICLO 2, SOAP ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>SOAP, Simple Object Access Protocol <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1,2]</a></h2>
+        </div>
+
+        <p class="lead">Especificação para troca de dados estruturados entre aplicativos, começada na Microsoft e hoje coordenada pela W3C. Exemplo do capítulo: a consulta de CEP dos Correios.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Estrutura fixa da mensagem</h4>
+            <p style="margin:0; font-size:0.7em;"><code>Envelope</code> identifica o XML como mensagem SOAP; <code>Header</code>, opcional, leva informação da aplicação, como autenticação; <code>Body</code> traz o conteúdo real; <code>Fault</code>, dentro do <code>Body</code>, carrega erro e status.</p>
+          </div>
+          <div class="side">
+            <h4><code>mustUnderstand</code> e JAX-WS</h4>
+            <p style="margin:0; font-size:0.7em;">O atributo diz se um elemento do cabeçalho é obrigatório (1) ou opcional (0) para quem recebe. Em Java, a API JAX-WS, com <code>@WebService</code>, <code>@WebMethod</code> e <code>@WebParam</code>, substitui a escrita manual do XML.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 SOAP</div>
+          <div class="footer-page">9</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 10: CICLO 2, REST ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>REST, Representational State Transfer <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Ao contrário do SOAP, que troca arquivos XML, o REST foca o protocolo HTTP e as URIs: recursos identificados por URI, manipulados pela interface padrão do próprio HTTP.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>JAX-RS, na plataforma Java EE</h4>
+            <p style="margin:0; font-size:0.72em;">Anotações como <code>@Path</code>, <code>@GET</code> e <code>@Produces(MediaType.APPLICATION_JSON)</code> declaram o que cada recurso responde. A resposta chega direto na barra de endereço do navegador, sem envelope.</p>
+          </div>
+          <div class="side">
+            <h4>Nota para o professor</h4>
+            <p style="margin:0; font-size:0.72em;">O capítulo não fala de <code>springdoc-openapi</code>: a ferramenta é posterior ao material. Mas resolve o mesmo problema que o capítulo chama, na Aula 07, de Descrição de Serviço, gerando a descrição de <code>/remessas</code> a partir do código, o mesmo papel que o WSDL cumpre para o SOAP.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 REST</div>
+          <div class="footer-page">10</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 11: CONTRASTE DOS TRÊS MODELOS ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Contraste dos três modelos, para fechar o ciclo</h2>
+        </div>
+
+        <p class="lead">RMI só funciona entre aplicativos Java; SOAP e REST são neutros quanto a linguagem e sistema operacional.</p>
+
+        <table style="margin-top:4px;">
+          <thead>
+            <tr><th>Modelo</th><th>Formato de dado</th><th>Protocolo de transporte</th><th>Só funciona em Java?</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>RMI</td><td>Objetos Java nativos, sem XML</td><td>Protocolo próprio do RMI sobre TCP</td><td>Sim</td></tr>
+            <tr><td>SOAP</td><td>XML, com envelope inteiro</td><td>HTTP ou SMTP</td><td>Não</td></tr>
+            <tr><td>REST</td><td>O que o servidor decidir produzir</td><td>HTTP</td><td>Não</td></tr>
+          </tbody>
+        </table>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">A diferença entre SOAP e REST</span>
+          <p>SOAP exige o envelope XML inteiro, com header, body e fault; REST é mais leve, apoiado só em HTTP, URIs e na representação do recurso, que a Aula 09 já mostrou poder ser JSON ou XML.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Contraste dos três modelos</div>
+          <div class="footer-page">11</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 12: CICLO 2, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: a mensagem SOAP contra a saída REST</h2>
+        </div>
+
+        <p class="lead">Lado a lado, a mensagem SOAP <code>GetPrice</code> do capítulo, contra a saída do <code>curl</code> da Aula 09 para uma <code>Remessa</code>. Contar as linhas até chegar ao dado que interessa.</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:6px;">
+          <pre class="code-compact" style="margin:0;"><code class="language-xml" data-trim>&lt;soap:Envelope&gt;
+  &lt;soap:Body&gt;
+    &lt;m:GetPrice&gt;
+      &lt;m:Item&gt;Apples&lt;/m:Item&gt;
+    &lt;/m:GetPrice&gt;
+  &lt;/soap:Body&gt;
+&lt;/soap:Envelope&gt;</code></pre>
+          <pre class="code-compact" style="margin:0;"><code class="language-json" data-trim>{
+  "codigoRastreio": "RS-0001",
+  "situacao": "EM_TRANSITO"
+}</code></pre>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">O que muda</span>
+          <p>Sete linhas de envelope para chegar a <code>Apples</code>, contra uma estrutura plana que já entrega <code>codigoRastreio</code> direto: a diferença de verbosidade entre os dois modelos.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Demonstração, SOAP e REST</div>
+          <div class="footer-page">12</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 13: EXERCÍCIO CURTO DO CICLO 2 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício em duplas: RMI, SOAP e REST lado a lado</h2>
+        </div>
+
+        <p class="lead">Cinco minutos, em duplas. Preencher a tabela com as três colunas: formato de dado, protocolo de transporte, só funciona em Java?</p>
+
+        <div class="exercise-container">
+          <h3>O que preencher</h3>
+          <ol class="exercise-steps">
+            <li>Uma linha para RMI.</li>
+            <li>Uma linha para SOAP.</li>
+            <li>Uma linha para REST.</li>
+          </ol>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Exercício, RMI SOAP REST</div>
+          <div class="footer-page">13</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 14: QUIZ DE FIXAÇÃO ==================== -->
+      <section class="quiz-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area"><div class="accent-bar"></div><h2>Quiz de fixação</h2></div>
+        <div class="quiz-container">
+          <div class="quiz-question">A Rota Sul vai se conectar a um parceiro legado que só entende XML. Qual dos três modelos do capítulo NÃO permite transferir dados em XML?</div>
+          <ul class="quiz-options">
+            <li data-correct="true"><span class="option-letter">A</span> RMI, porque troca objetos Java diretamente, sem arquivos XML.</li>
+            <li data-correct="false"><span class="option-letter">B</span><span class="option-text">SOAP, porque suas mensagens usam sempre arquivos em formato <code>JSON</code>, e não XML.</span></li>
+            <li data-correct="false"><span class="option-letter">C</span> REST, porque seus recursos nunca podem ser representados em XML.</li>
+            <li data-correct="false"><span class="option-letter">D</span> Nenhum dos três, porque todos usam XML obrigatoriamente.</li>
+          </ul>
+          <div class="quiz-feedback"
+               data-correct-msg="Correto. O RMI troca objetos Java diretamente, sem menção a XML: a JVM serializa os objetos, não um envelope de metadados."
+               data-incorrect-msg="Incorreto. As mensagens SOAP seguem o padrão XML, não JSON; o REST é flexível na representação do recurso, já demonstrado em JSON e XML na Aula 09; e o RMI não usa XML, então não é verdade que os três usam XML obrigatoriamente."></div>
+        </div>
+        <div class="slide-footer"><div class="footer-bar">10 Quiz de fixação</div><div class="footer-page">14</div></div>
+      </section>
+
+      <!-- ==================== SLIDE 15: LABORATÓRIO, INTRODUÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório: o parceiro legado, simulado dentro do fork</h2>
+        </div>
+
+        <p class="lead">A Rota Sul não tem um parceiro real para a turma acessar, então o laboratório simula o parceiro dentro do próprio fork: um endpoint SOAP simples, em <code>br.uni9.rotasul.parceiro</code>.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>O que chega pronto no kit</h4>
+            <p style="margin:0; font-size:0.7em;"><code>parceiro.xsd</code>, o contrato do serviço, e <code>WebServiceConfig.java</code>, que publica o servlet em <code>/ws/*</code> e expõe o WSDL a partir do XSD. Escrever isso à mão consumiria o laboratório inteiro sem ensinar nada sobre objetos remotos.</p>
+          </div>
+          <div class="side">
+            <h4>O que o aluno escreve hoje</h4>
+            <p style="margin:0; font-size:0.7em;">Três peças: o <code>@Endpoint</code> que atende, o cliente que chama, e o teste que prova. É o mesmo tipo de código que se escreveria para consumir um parceiro de verdade; só o endereço muda.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Laboratório, introdução</div>
+          <div class="footer-page">15</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 16: LAB PASSO 1, KIT E CONTRATO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 1: instalar o kit e ler o contrato</h2>
+        </div>
+
+        <p class="lead">Copiar os dois arquivos do kit e criar o pacote <code>br.uni9.rotasul.parceiro</code>, com <code>endpoint</code> e <code>client</code>.</p>
+
+        <pre class="code-compact"><code class="language-xml" data-trim>&lt;xs:element name="consultaEntregaRequest"&gt;
+  &lt;xs:complexType&gt;&lt;xs:sequence&gt;
+    &lt;xs:element name="codigoRastreio" type="xs:string"/&gt;
+  &lt;/xs:sequence&gt;&lt;/xs:complexType&gt;
+&lt;/xs:element&gt;
+&lt;xs:element name="consultaEntregaResponse"&gt;
+  &lt;xs:complexType&gt;&lt;xs:sequence&gt;
+    &lt;xs:element name="situacao" type="xs:string"/&gt;
+    &lt;xs:element name="previsaoEntrega" type="xs:date"/&gt;
+  &lt;/xs:sequence&gt;&lt;/xs:complexType&gt;
+&lt;/xs:element&gt;</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>O XSD faz o papel que o capítulo chamou de Descrição de Serviço na Aula 07: diz o que o Provedor espera receber e o que ele devolve.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Laboratório, passo 1, contrato</div>
+          <div class="footer-page">16</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 17: LAB PASSO 2, DEPENDÊNCIAS ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 2: dependências e o gerador de classes</h2>
+        </div>
+
+        <p class="lead">No <code>pom.xml</code>: <code>spring-boot-starter-web-services</code>, <code>wsdl4j</code>, e o <code>jaxb2-maven-plugin</code> apontando para o <code>parceiro.xsd</code>.</p>
+
+        <pre class="code-compact"><code class="language-xml" data-trim>&lt;plugin&gt;
+  &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+  &lt;artifactId&gt;jaxb2-maven-plugin&lt;/artifactId&gt;
+  &lt;version&gt;3.2.0&lt;/version&gt;
+  &lt;configuration&gt;
+    &lt;sources&gt;&lt;source&gt;src/main/resources/parceiro.xsd&lt;/source&gt;&lt;/sources&gt;
+    &lt;packageName&gt;br.uni9.rotasul.parceiro.gerado&lt;/packageName&gt;
+  &lt;/configuration&gt;
+&lt;/plugin&gt;</code></pre>
+
+        <div class="callout" style="margin-top:4px;">
+          <p><strong>A versão precisa ser dita em voz alta.</strong> A 2.x gera classes com <code>javax.xml.bind</code>; o Spring Boot 3 usa <code>jakarta.xml.bind</code>, e o marshaller do passo 6 não reconhece a linha antiga. Sem <code>&lt;version&gt;</code>, o Maven pode resolver a 2.x.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Laboratório, passo 2, dependências</div>
+          <div class="footer-page">17</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 18: LAB PASSO 3, GERAR CLASSES ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 3: gerar as classes Java do XSD</h2>
+        </div>
+
+        <p class="lead"><code>./mvnw generate-sources</code>. Conferir em <code>target/generated-sources</code> as duas classes, sem uma linha escrita à mão.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>package br.uni9.rotasul.parceiro.gerado;
+
+@XmlRootElement(name = "consultaEntregaRequest")
+public class ConsultaEntregaRequest {
+  protected String codigoRastreio;
+  // getters e setters gerados
+}</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>Confirmação em cinco segundos de que a versão do passo 2 pegou: no topo do arquivo gerado, <code>@XmlRootElement</code> vem de <code>jakarta.xml.bind.annotation</code>, não de <code>javax</code>.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Laboratório, passo 3, gerar classes</div>
+          <div class="footer-page">18</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 19: LAB PASSO 4, O ENDPOINT ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 4: escrever o endpoint que simula o parceiro</h2>
+        </div>
+
+        <p class="lead">Em <code>parceiro/endpoint</code>, <code>ParceiroEndpoint</code>, anotado <code>@Endpoint</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Endpoint
+public class ParceiroEndpoint {
+  static final String NAMESPACE = "http://rotasul.uni9.br/parceiro";
+
+  @PayloadRoot(namespace = NAMESPACE, localPart = "consultaEntregaRequest")
+  @ResponsePayload
+  public ConsultaEntregaResponse consultarEntrega(
+      @RequestPayload ConsultaEntregaRequest request) {
+    ConsultaEntregaResponse response = new ConsultaEntregaResponse();
+    boolean daRotaSul = request.getCodigoRastreio().startsWith("RS");
+    response.setSituacao(daRotaSul ? "EM_TRANSITO" : "DESCONHECIDO");
+    // previsaoEntrega no kit completo
+    return response;
+  }
+}</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Laboratório, passo 4, endpoint</div>
+          <div class="footer-page">19</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 20: LAB PASSO 5, WSDL ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: subir e conferir o WSDL</h2>
+        </div>
+
+        <p class="lead"><code>./mvnw spring-boot:run</code> e abrir <code>/ws/parceiro.wsdl</code> na porta que o terminal imprimiu.</p>
+
+        <pre class="code-compact"><code class="language-bash" data-trim># trocando 8080 pela porta que o seu terminal imprimiu
+curl http://localhost:8080/ws/parceiro.wsdl</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>O WSDL não foi escrito por ninguém: o <code>WebServiceConfig</code> do kit o gera a partir do <code>parceiro.xsd</code>. É o mesmo documento que um parceiro real publicaria. Apontar na tela a operação <code>consultaEntrega</code>, o tipo da requisição e o da resposta.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Laboratório, passo 5, WSDL</div>
+          <div class="footer-page">20</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 21: LAB PASSO 6, O CLIENTE ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 6: escrever o cliente</h2>
+        </div>
+
+        <p class="lead">Em <code>parceiro/client</code>, <code>ParceiroClient</code>, estendendo <code>WebServiceGatewaySupport</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public class ParceiroClient extends WebServiceGatewaySupport {
+  public ConsultaEntregaResponse consultarEntrega(String codigoRastreio) {
+    ConsultaEntregaRequest request = new ConsultaEntregaRequest();
+    request.setCodigoRastreio(codigoRastreio);
+    return (ConsultaEntregaResponse)
+        getWebServiceTemplate().marshalSendAndReceive(request);
+  }
+
+  public void apontarPara(String uri) {
+    getWebServiceTemplate().setDefaultUri(uri);
+  }
+}</code></pre>
+
+        <div class="callout" style="margin-top:4px;">
+          <p><strong>A URI não fica escrita dentro da classe.</strong> Um bean <code>Jaxb2Marshaller</code>, no kit, lê a propriedade <code>rotasul.parceiro.uri</code>, que vale <code>http://localhost:${server.port:8080}/ws</code>.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Laboratório, passo 6, cliente</div>
+          <div class="footer-page">21</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 22: LAB PASSO 7, TESTAR O CLIENTE ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 7: testar o cliente</h2>
+        </div>
+
+        <p class="lead"><code>ParceiroClientTest</code>, com a porta de <code>@LocalServerPort</code> e o cliente apontado para ela antes da chamada.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class ParceiroClientTest {
+  @LocalServerPort int porta;
+  @Autowired ParceiroClient parceiroClient;
+
+  @Test
+  void devolveEmTransitoParaCodigoDaRotaSul() {
+    parceiroClient.apontarPara("http://localhost:" + porta + "/ws");
+    var resposta = parceiroClient.consultarEntrega("RS12345");
+    assertEquals("EM_TRANSITO", resposta.getSituacao());
+  }
+}</code></pre>
+
+        <div class="callout" style="margin-top:4px;">
+          <p><strong>O <code>webEnvironment</code> não é detalhe.</strong> No modo padrão (<code>MOCK</code>), a chamada SOAP não tem para onde ir. <code>RANDOM_PORT</code> sobe o Tomcat numa porta livre.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Laboratório, passo 7, teste</div>
+          <div class="footer-page">22</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 23: LAB PASSO 8, FECHAR PELO REST ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 8: fechar a integração pelo lado REST</h2>
+        </div>
+
+        <p class="lead">Em <code>RemessaController</code>, da Aula 09, o método <code>GET /remessas/{id}/situacao-parceiro</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@GetMapping("/{id}/situacao-parceiro")
+public ConsultaEntregaResponse situacaoNoParceiro(@PathVariable Long id) {
+  Remessa remessa = remessaService.buscarPorId(id);
+  return parceiroClient.consultarEntrega(remessa.getCodigoRastreio());
+}</code></pre>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">O ponto em que a integração se fecha</span>
+          <p>O dado que chegou por SOAP sai por REST, para qualquer consumidor da Rota Sul.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Laboratório, passo 8, REST</div>
+          <div class="footer-page">23</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 24: LAB PASSO 9, DOCUMENTAR ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 9: documentar a API e registrar a decisão</h2>
+        </div>
+
+        <p class="lead">No <code>pom.xml</code>, <code>springdoc-openapi-starter-webmvc-ui</code>. Subir e abrir <code>/swagger-ui/index.html</code>, conferindo os endpoints de <code>/remessas</code>.</p>
+
+        <pre class="code-compact"><code class="language-xml" data-trim>&lt;dependency&gt;
+  &lt;groupId&gt;org.springdoc&lt;/groupId&gt;
+  &lt;artifactId&gt;springdoc-openapi-starter-webmvc-ui&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>Em <code>docs/decisoes.md</code>: a Rota Sul não tem um parceiro real disponível para a turma, e o contrato XSD mais o endpoint reproduzem o mesmo tipo de código que se escreveria contra um parceiro de verdade.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Laboratório, passo 9, springdoc</div>
+          <div class="footer-page">24</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 25: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- O slide do entregável é o último passo do laboratório e nasce
+           dentro do Ciclo 4, então leva `exercise-slide content-slide` como
+           os demais slides de passo. Ver ADR-008. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Entregável de hoje e critérios de aceitação</h2>
+        </div>
+
+        <p class="lead">O cliente SOAP em <code>br.uni9.rotasul.parceiro</code>, consumindo o endpoint simulado, com <code>ParceiroClientTest</code> passando, mais a API REST de <code>/remessas</code> documentada.</p>
+
+        <table style="margin-top:4px; font-size:0.6em;">
+          <thead>
+            <tr><th style="width:380px;">Critério de aceitação</th><th>Evidência conferida na correção</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>consultarEntrega("RS12345")</code> devolve <code>EM_TRANSITO</code></td><td><code>ParceiroClientTest</code> verde, com <code>RANDOM_PORT</code></td></tr>
+            <tr><td>WSDL disponível</td><td><code>/ws/parceiro.wsdl</code> respondendo com a operação <code>consultaEntrega</code></td></tr>
+            <tr><td>Swagger UI lista os endpoints de <code>/remessas</code></td><td><code>/swagger-ui/index.html</code> aberto na porta do terminal</td></tr>
+            <tr><td><code>GET /remessas/{id}/situacao-parceiro</code> funcionando</td><td>Saída do <code>curl</code> colada no commit</td></tr>
+            <tr><td><code>./mvnw test</code> passando</td><td>Suíte inteira verde, incluindo <code>ParceiroClientTest</code></td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Entregável e critérios</div>
+          <div class="footer-page">25</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 26: FECHAMENTO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Commit, push e prévia da Aula 11</h2>
+        </div>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>git add src pom.xml docs
+git commit -m "feat(parceiro): consome o parceiro legado por SOAP e documenta a API REST com springdoc"
+git push</code></pre>
+
+        <div class="side-by-side" style="margin-top:12px;">
+          <div class="side" style="padding:14px 18px;">
+            <h4>O Módulo 2 fecha aqui</h4>
+            <p style="margin:0; font-size:0.66em;">Contrato separado de implementação na Aula 07, empacotamento comparado na Aula 08, metadados em JSON e XML na Aula 09, e hoje SOAP e REST juntos, fechando a integração da Rota Sul com o mundo fora dela.</p>
+          </div>
+          <div class="side" style="padding:14px 18px;">
+            <h4>Prévia da Aula 11</h4>
+            <p style="margin:0; font-size:0.66em;">Hoje a turma usou padrões sem nomeá-los: <code>PedidoService</code> separando contrato de implementação, e a suíte de teste abstrata rodando contra as duas, uma aplicação de Template Method. A Aula 11 abre o catálogo de Design Patterns.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Fechamento</div>
+          <div class="footer-page">26</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 27: REFERÊNCIAS ==================== -->
+      <section id="ref-slide" class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Referências desta aula</h2>
+        </div>
+
+        <p class="lead">Os números entre colchetes nos títulos remetem a esta lista.</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; margin-top:14px;">
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[1] RMI, SOAP (Web Services) e REST</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">MESQUITA, P. R. B. <em>Capítulo 09</em>. Arquitetura de Software. AVA, Uninove. Fonte primária desta aula.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[2] SOAP Specification</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">W3C. Referência indicada pelo capítulo. <code style="font-size:0.9em;">w3.org/TR/soap/</code></p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[3] Documentação do Spring Web Services</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;"><code style="font-size:0.9em;">docs.spring.io/spring-ws/docs/current/reference/html/</code></p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[4] springdoc-openapi</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">Documentação. <code style="font-size:0.9em;">springdoc.org</code></p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[5] Diagrama de componentes da Rota Sul</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;"><code style="font-size:0.9em;">docs/arquitetura/componentes.puml</code> do fork do aluno, entregável da Aula 05, componente "Integração com parceiros", que ganha implementação real nesta aula.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">10 Referências</div>
+          <div class="footer-page">27</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 28: ENCERRAMENTO ==================== -->
+      <section class="end-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
+             style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">
+        <div class="copyright">
+          Copyright &copy; 2026<br>
+          Prof. José Romualdo da Costa Filho<br><br>
+          Todos os direitos reservados. É expressamente proibida a reprodução, divulgação<br>
+          total ou parcial, deste material acadêmico sem autorização formal,<br>
+          por escrito, do Professor autor da ementa.
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="../assets/js/uninove-quiz.js"></script>
+  <script>
+    Reveal.initialize({
+      width: 1280, height: 720, center: false, margin: 0,
+      hash: true, slideNumber: false,
+      // Os chevrons de navegação caem sobre a footer-bar e sobre o triângulo
+      // azul do canto inferior direito; a barra de progresso encosta no rodapé
+      // e parece um segundo rodapé. Nenhum dos dois é usado na projeção.
+      controls: false, progress: false,
+      // Um slide por página no ?print-pdf, para o PDF bater com o deck.
+      pdfMaxPagesPerSlide: 1,
+      plugins: [RevealHighlight],
+    });
+  </script>
+</body>
+</html>
