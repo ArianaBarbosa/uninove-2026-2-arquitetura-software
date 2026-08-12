@@ -1455,7 +1455,7 @@ As Tasks 15 a 33 são a mesma sequência de passos, com parâmetros diferentes. 
 | Task | Aula | Módulo | Título | Fonte | Laboratório, ciclos 3 e 4 | Entregável |
 |---|---|---|---|---|---|---|
 | 15 | 02 | M1 | Padrões de projeto e frameworks: origem e distinção | `pdf/001.pdf` | Inventariar os frameworks e padrões que a Rota Sul vai usar, com a justificativa de cada escolha | `docs/decisoes.md` no fork, com uma linha por escolha e o motivo |
-| 16 | 03 | M1 | Sistemas colaborativos | `pdf/002.pdf` | Mapear as interações da Rota Sul no modelo 3C, marcando o que é síncrono e o que é assíncrono | `docs/colaboracao-3c.md` com a tabela das interações classificadas |
+| 16 | 03 | M1 | Sistemas colaborativos | `pdf/002.pdf` | Mapear as interações da Rota Sul no modelo 3C, marcando o que é síncrono e o que é assíncrono | `docs/colaboracao.md` com a tabela das interações classificadas |
 | 17 | 04 | M1 | Arquitetura de sistemas colaborativos | `pdf/003.pdf` | Desenhar a arquitetura colaborativa em diagrama de componentes e de implantação | `docs/arquitetura/componentes.puml` com os dois diagramas, mais `componentes.md` embutindo a imagem pelo proxy do PlantUML |
 | 18 | 05 | M1 | Arquitetura de software e representação em UML | `pdf/004.pdf` | Formalizar os diagramas estruturais: classes do domínio e pacotes | `docs/arquitetura/dominio.puml` com as 9 entidades e os pacotes, mais `dominio.md` embutindo a imagem pelo proxy do PlantUML |
 
