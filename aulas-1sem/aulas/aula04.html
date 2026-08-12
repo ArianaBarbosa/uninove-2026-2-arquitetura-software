@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aula 04, Arquitetura de sistemas colaborativos | Uninove</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="../assets/css/uninove-theme.css">
+  <link rel="stylesheet" href="../assets/css/uninove-print.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ==================== SLIDE 1: CAPA ==================== -->
+      <section class="cover-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho" class="uninove-logo-full"
+             style="max-width:400px; background:#FFFFFF; padding:26px 36px; border-radius:10px;">
+        <div style="margin-top:36px; color:#FFFFFF; font-size:0.95em; font-weight:800; letter-spacing:4px; text-transform:uppercase;">Arquitetura de Software</div>
+        <div style="margin-top:12px; color:#C84B31; font-size:0.6em; font-weight:700; letter-spacing:3px; text-transform:uppercase;">Graduação, 2026.2</div>
+      </section>
+
+      <!-- ==================== SLIDE 2: TÍTULO ==================== -->
+      <section class="title-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="title-card">
+          <div class="accent-bar"></div>
+          <h1>Arquitetura de Software</h1>
+          <h2>Arquitetura de sistemas colaborativos</h2>
+          <h3>Prof. José Romualdo</h3>
+        </div>
+        <div class="lesson-bar">AULA 04 &nbsp;|&nbsp; Módulo 1, Fundamentos e sistemas colaborativos</div>
+      </section>
+
+      <!-- ==================== SLIDE 3: AGENDA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Agenda do encontro de hoje</h2>
+        </div>
+
+        <p class="lead">São 150 minutos corridos, em quatro ciclos. Não há intervalo formal: a troca de ciclo é o respiro da aula.</p>
+
+        <table>
+          <thead>
+            <tr><th style="width:190px;">Horário</th><th style="width:200px;">Bloco</th><th>O que acontece</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>19h30 às 20h05</td><td>Ciclo 1</td><td>Síncrono e assíncrono, sistema distribuído e controle de concorrência</td></tr>
+            <tr><td>20h05 às 20h40</td><td>Ciclo 2</td><td>Os três modelos de arquitetura: centralizada, descentralizada e híbrida</td></tr>
+            <tr><td>20h40 às 20h50</td><td>Quiz de fixação</td><td>Controle de concorrência pessimista, aplicado à Rota Sul</td></tr>
+            <tr><td>20h50 às 21h25</td><td>Ciclo 3</td><td>Laboratório: diagrama de componentes em PlantUML</td></tr>
+            <tr><td>21h25 às 21h50</td><td>Ciclo 4</td><td>Laboratório: diagrama de implantação, decisão e entregável</td></tr>
+            <tr><td>21h50 às 22h00</td><td>Fechamento</td><td>Commit, push e prévia da Aula 05</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Agenda do encontro</div>
+          <div class="footer-page">3</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 4: RETOMADA DA AULA 03 ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Retomada: o que a Aula 03 deixou pronto</h2>
+        </div>
+
+        <p class="lead">Na Aula 03 cada aluno entregou <code>docs/colaboracao.md</code> no próprio fork, com a tabela das nove interações classificadas no modelo 3C e marcadas como síncronas ou assíncronas.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>A coluna preenchida por intuição</h4>
+            <p style="margin:0;">A coluna <strong>Síncrona ou assíncrona</strong> foi respondida pela pergunta operacional: a resposta precisa vir agora? Sem definição formal na mão.</p>
+          </div>
+          <div class="side">
+            <h4>O que muda hoje</h4>
+            <p style="margin:0;">O capítulo desta aula dá a definição formal dos dois termos, e a turma confere se a intuição da semana passada resistiu.</p>
+          </div>
+        </div>
+
+        <div class="takeaway">
+          <span class="takeaway-label">No projetor</span>
+          <p>Projetar a tabela de <code>docs/colaboracao.md</code> de um aluno e reclassificar duas linhas em voz alta, agora com a definição formal do Ciclo 1.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Retomada</div>
+          <div class="footer-page">4</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 5: CICLO 1, SÍNCRONO/ASSÍNCRONO E SISTEMA DISTRIBUÍDO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Síncrono e assíncrono, e o sistema distribuído por baixo <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">A complexidade de um sistema colaborativo depende de como os usuários precisam interagir entre si, na definição do capítulo [1].</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Modo síncrono</h4>
+            <p style="margin:0;">O conteúdo é transmitido imediatamente. Todos, incluindo quem enviou, visualizam exatamente o mesmo conteúdo, sempre em tempo real.</p>
+          </div>
+          <div class="side">
+            <h4>Modo assíncrono</h4>
+            <p style="margin:0;">Cada usuário recebe o conteúdo num momento diferente dos demais. Um usuário pode estar vendo um conteúdo que outros já modificaram.</p>
+          </div>
+        </div>
+
+        <div class="takeaway">
+          <span class="takeaway-label">Sistema distribuído, na definição do capítulo</span>
+          <p>Um conjunto de componentes de hardware e software em computadores autônomos, que se comunicam por troca de mensagens. Distribuir componentes facilita compartilhar recursos, e é aí que nasce a concorrência.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Síncrono e assíncrono</div>
+          <div class="footer-page">5</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 6: CICLO 1, CONTROLE DE CONCORRÊNCIA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Controle de concorrência: pessimista e otimista <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Distribuir componentes facilita compartilhar recursos, e vários usuários podem tentar usar o mesmo recurso ao mesmo tempo. O capítulo lista duas abordagens de controle.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Pessimista</h4>
+            <p style="margin:0;">O componente controla, serializa e sincroniza todas as operações sobre os recursos compartilhados.</p>
+          </div>
+          <div class="side">
+            <h4>Otimista</h4>
+            <p style="margin:0;">Em vez de evitar a inconsistência de antemão, o componente tenta detectar quando o problema está prestes a ocorrer e se propõe a evitá-lo.</p>
+          </div>
+        </div>
+
+        <div class="takeaway">
+          <span class="takeaway-label">Vale para o quiz de hoje</span>
+          <p>O quiz das 20h40 cobra exatamente essa distinção, aplicada a um caso concreto da Rota Sul.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Controle de concorrência</div>
+          <div class="footer-page">6</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 7: CICLO 1, AS SEIS CARACTERÍSTICAS ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>As seis características de sistemas distribuídos <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead" style="font-size:0.6em;">O capítulo lista seis características, que voltam no Ciclo 2 como critério de comparação entre os modelos de arquitetura.</p>
+
+        <table style="font-size:0.66em;">
+          <thead>
+            <tr><th style="width:230px;">Característica</th><th>O que significa</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Transparência da distribuição</td><td>Para o usuário, tudo parece rodar num único lugar; redistribuir componentes não se percebe</td></tr>
+            <tr><td>Extensibilidade</td><td>Acrescentar função ou capacidade sem duplicar componente nem interromper os demais</td></tr>
+            <tr><td>Escalabilidade</td><td>Atende ao aumento de solicitações sem reduzir quantidade nem qualidade dos serviços em uso</td></tr>
+            <tr><td>Tolerância a falhas</td><td>Continua executando os serviços projetados mesmo quando falhas ocorrem</td></tr>
+            <tr><td>Interoperabilidade</td><td>Componentes de fabricantes variados se intercomunicam, por protocolo ou mecanismo específico</td></tr>
+            <tr><td>Portabilidade</td><td>Um componente muda de sistema distribuído e continua funcionando do mesmo modo</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Seis características</div>
+          <div class="footer-page">7</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 8: CICLO 1, HETEROGENEIDADE, DESAFIOS E O QUE PIORA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Heterogeneidade, desafios e o que piora na colaboração <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead" style="font-size:0.66em;">Um sistema distribuído costuma ser heterogêneo, e a heterogeneidade não pode impedir a comunicação nem o compartilhamento de recursos.</p>
+
+        <div class="side-by-side" style="margin-top:4px;">
+          <div class="side" style="padding:14px 18px;">
+            <h4>Heterogeneidade e desafios</h4>
+            <ul style="margin:0; padding-left:18px; font-size:0.72em;">
+              <li>Metadados JSON e XML, camadas como o CORBA, ou máquina virtual como a JVM</li>
+              <li>Redes confiáveis, mas não livres de falha: atraso, falha de envio, perda de sincronismo</li>
+              <li>Segurança: confidencialidade das informações e autenticidade de quem está conectado</li>
+            </ul>
+          </div>
+          <div class="side" style="padding:14px 18px;">
+            <h4>O que piora quando é colaborativo</h4>
+            <ul style="margin:0; padding-left:18px; font-size:0.72em;">
+              <li>Controle de recursos compartilhados fica mais complexo, com muitos usuários ao mesmo tempo</li>
+              <li>Exige serviços de mensagem, áudio e vídeo em tempo real</li>
+              <li>Grupos específicos exigem políticas descentralizadas de gestão e segurança</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:4px;">
+          <span class="takeaway-label">O ponto que mais rende discussão</span>
+          <p>O controle de uso passa a ser exercido sobre os usuários, e não sobre os componentes, como nos demais sistemas distribuídos.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Heterogeneidade e desafios</div>
+          <div class="footer-page">8</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 9: CICLO 1, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: duas janelas e um e-mail</h2>
+        </div>
+
+        <p class="lead">Duas janelas do mesmo documento colaborativo lado a lado: digitar em uma e ver o texto aparecer na outra é síncrono. Um e-mail enviado, com o intervalo até alguém abrir, é assíncrono.</p>
+
+        <div class="flow-diagram" style="margin-top:26px;">
+          <div class="flow-item">Editor compartilhado<br>Duas janelas, mesmo texto<br>Síncrono</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-item">E-mail enviado<br>Intervalo até a abertura<br>Assíncrono</div>
+        </div>
+
+        <div class="takeaway" style="margin-top:30px;">
+          <span class="takeaway-label">Voltando ao docs/colaboracao.md</span>
+          <p>Reclassificar em voz alta duas linhas da tabela de um aluno, agora com a definição formal na mão.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Demonstração, síncrono e assíncrono</div>
+          <div class="footer-page">9</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 10: EXERCÍCIO CURTO DO CICLO 1 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício individual: dois expedidores, um pedido</h2>
+        </div>
+
+        <p class="lead">Cinco minutos, individual. Dois expedidores abrem ao mesmo tempo a tela do mesmo pedido para montar a remessa.</p>
+
+        <div class="exercise-container">
+          <h3>O que escrever nos cinco minutos</h3>
+          <ol class="exercise-steps">
+            <li>Descrever em duas ou três linhas o que acontece sob controle de concorrência pessimista.</li>
+            <li>Descrever o que acontece sob controle otimista.</li>
+            <li>Dizer qual dos dois o aluno escolheria para este caso e por quê. Duas leituras em voz alta.</li>
+          </ol>
+        </div>
+
+        <div class="callout">
+          <p><strong>Modelo de resposta:</strong> pessimista bloqueia o segundo expedidor até o primeiro terminar; otimista deixa os dois avançarem e verifica conflito ao salvar.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Exercício, concorrência</div>
+          <div class="footer-page">10</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 11: CICLO 2, ARQUITETURA CENTRALIZADA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Arquitetura centralizada <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Segue o mesmo tipo de processamento da arquitetura cliente-servidor: tudo roda no servidor, e o cliente só interage com o usuário. Exemplo do capítulo: páginas JSP, PHP ou ASP.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>A favor</h4>
+            <p style="margin:0;">Facilita o desenvolvimento e a gestão dos recursos compartilhados, evita boa parte da concorrência e simplifica segurança e autenticação.</p>
+          </div>
+          <div class="side">
+            <h4>Contra</h4>
+            <p style="margin:0;">Com muitos usuários, o servidor demora a responder; pouca escalabilidade e pouca tolerância a falhas.</p>
+          </div>
+        </div>
+
+        <div class="takeaway">
+          <span class="takeaway-label">Duas mitigações do capítulo</span>
+          <p>Distribuir parte do processamento entre cliente e servidor; acrescentar uma segunda instância do servidor como backup de serviços.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Arquitetura centralizada</div>
+          <div class="footer-page">11</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 12: CICLO 2, ARQUITETURA DESCENTRALIZADA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Arquitetura descentralizada <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">O processamento é distribuído pelos vários componentes. Exemplo do capítulo: a própria Internet, com o servidor de DNS traduzindo URL em IP.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>A favor</h4>
+            <p style="margin:0; font-size:0.72em;">Maior tolerância a falhas: se o DNS não responde, o destino segue disponível para quem sabe o IP. Fácil acrescentar serviço e capacidade. Componente reusável em outro sistema.</p>
+          </div>
+          <div class="side">
+            <h4>Contra</h4>
+            <p style="margin:0; font-size:0.72em;">Mais difícil de controlar compartilhamento, segurança e localização. Exige uso intenso da rede, mais controle de consistência, e pode haver atraso de sincronização.</p>
+          </div>
+        </div>
+
+        <div class="takeaway">
+          <span class="takeaway-label">O limite que o projetista precisa manter</span>
+          <p>O atraso de sincronização não pode chegar num nível em que a colaboração entre os componentes deixe de acontecer.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Arquitetura descentralizada</div>
+          <div class="footer-page">12</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 13: CICLO 2, ARQUITETURA HÍBRIDA E TABELA DE FECHAMENTO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Arquitetura híbrida e o fechamento do ciclo <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead" style="font-size:0.68em;">Reúne vantagens dos dois modelos, eliminando ao máximo os aspectos negativos de cada um. A Internet é o exemplo: o site fica num servidor único, e vários servidores DNS se substituem sem que o usuário perceba.</p>
+
+        <table style="margin-top:4px;">
+          <thead>
+            <tr><th>Característica</th><th>Centralizada</th><th>Descentralizada</th><th>Híbrida</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Escalabilidade</td><td>Baixa</td><td>Alta</td><td>Alta nos pontos distribuídos</td></tr>
+            <tr><td>Tolerância a falhas</td><td>Baixa</td><td>Alta</td><td>Alta, com redundância nos pontos centrais</td></tr>
+            <tr><td>Facilidade de controle</td><td>Alta</td><td>Baixa</td><td>Intermediária</td></tr>
+            <tr><td>Uso de rede</td><td>Baixo</td><td>Alto</td><td>Intermediário</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Arquitetura híbrida</div>
+          <div class="footer-page">13</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 14: CICLO 2, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: nslookup e os três modelos da Rota Sul</h2>
+        </div>
+
+        <p class="lead">Rodar <code>nslookup</code> para um domínio conhecido e depois acessar o mesmo domínio pelo IP retornado: a URL depende do DNS, o IP não. É o exemplo do capítulo, ao vivo.</p>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>$ nslookup uninove.br
+Servidor:  8.8.8.8
+Endereço:  8.8.8.8#53
+
+Resposta não confiável:
+Nome:   uninove.br
+Endereço: 200.147.115.10</code></pre>
+
+        <div class="takeaway" style="margin-top:14px;">
+          <span class="takeaway-label">No quadro</span>
+          <p>Esboçar como ficaria a Rota Sul nos três modelos, em três desenhos de trinta segundos cada.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Demonstração, DNS</div>
+          <div class="footer-page">14</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 15: EXERCÍCIO CURTO DO CICLO 2 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício em duplas: escolher um modelo para a Rota Sul</h2>
+        </div>
+
+        <p class="lead">Cinco minutos, em duplas. Não existe resposta única, existe justificativa boa e justificativa ruim.</p>
+
+        <div class="exercise-container">
+          <h3>O que escrever nos cinco minutos</h3>
+          <ol class="exercise-steps">
+            <li>Escolher um dos três modelos, centralizada, descentralizada ou híbrida, para a Rota Sul.</li>
+            <li>Uma frase dizendo qual característica do Ciclo 1 o modelo favorece.</li>
+            <li>Outra frase dizendo qual característica ele sacrifica.</li>
+          </ol>
+        </div>
+
+        <div class="callout">
+          <p><strong>Lembrete:</strong> use as seis características do Ciclo 1 como vocabulário. "Escalável" ou "difícil de controlar" sozinhos não bastam.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Exercício, escolha do modelo</div>
+          <div class="footer-page">15</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 16: QUIZ DE FIXAÇÃO ==================== -->
+      <section class="quiz-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area"><div class="accent-bar"></div><h2>Quiz de fixação</h2></div>
+        <div class="quiz-container">
+          <div class="quiz-question">Dois expedidores da Rota Sul tentam montar a remessa do mesmo pedido ao mesmo tempo. O componente serializa as duas operações, atendendo uma de cada vez e bloqueando a segunda até a primeira terminar. Segundo o capítulo, essa abordagem é:</div>
+          <ul class="quiz-options">
+            <li data-correct="false"><span class="option-letter">A</span> Controle de concorrência otimista.</li>
+            <li data-correct="true"><span class="option-letter">B</span> Controle de concorrência pessimista.</li>
+            <li data-correct="false"><span class="option-letter">C</span> Transparência da distribuição dos componentes.</li>
+            <li data-correct="false"><span class="option-letter">D</span> Tolerância a falhas.</li>
+          </ul>
+          <div class="quiz-feedback"
+               data-correct-msg="Correto. O capítulo define o controle pessimista como o componente que controla, serializa e sincroniza as operações sobre os recursos compartilhados."
+               data-incorrect-msg="Incorreto. A é o oposto do pessimista. C e D são características de sistemas distribuídos, não controle de concorrência."></div>
+        </div>
+        <div class="slide-footer"><div class="footer-bar">04 Quiz de fixação</div><div class="footer-page">16</div></div>
+      </section>
+
+      <!-- ==================== SLIDE 17: CICLO 3, PLANTUML E AS DUAS LIMITAÇÕES ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório de modelagem: PlantUML <a href="#/ref-slide" class="ref-badge" title="Ver referências">[3]</a></h2>
+        </div>
+
+        <p class="lead" style="font-size:0.68em;">Sem código de aplicação. O que se cobra hoje é a decisão, quais componentes existem e quem depende de quem. A notação vem pronta; a Aula 05 explica de onde ela vem.</p>
+
+        <div class="side-by-side" style="margin-top:4px;">
+          <div class="side">
+            <h4>Cada diagrama, dois arquivos</h4>
+            <p style="margin:0; font-size:0.72em;">O <code>.puml</code> com a fonte, versionado no fork, e um <code>.md</code> irmão que embute a imagem pelo proxy oficial, apontando para o <code>raw</code> do fork do próprio aluno.</p>
+          </div>
+          <div class="side">
+            <h4>Duas limitações, ditas agora</h4>
+            <p style="margin:0; font-size:0.72em;">A imagem depende do serviço externo <code>plantuml.com</code> e some se ele cair, embora o <code>.puml</code> continue como fonte de verdade. O proxy só lê a fonte se o repositório do aluno for público.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:4px;">
+          <span class="takeaway-label">A escolha é pela notação</span>
+          <p><code>component</code> com interface em pirulito e soquete, <code>node</code> para implantação: nada de aproximar componente com fluxograma.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 PlantUML e as duas limitações</div>
+          <div class="footer-page">17</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 18: LAB PASSO 1 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 1: a pasta e a lista de componentes</h2>
+        </div>
+
+        <p class="lead">Antes de desenhar, escrever numa folha os componentes de software que a Rota Sul precisa, partindo das interações de <code>docs/colaboracao.md</code>.</p>
+
+        <div class="exercise-container">
+          <h3>O que fazer agora</h3>
+          <ol class="exercise-steps">
+            <li>Criar <code>docs/arquitetura/</code> no fork.</li>
+            <li>Listar no mínimo quatro componentes de software da Rota Sul. Os quatro mais comuns: recebimento de pedidos, montagem de remessas, rastreamento e ocorrências, integração com parceiros.</li>
+          </ol>
+        </div>
+
+        <div class="callout">
+          <p><strong>Esses quatro nomes não são coincidência:</strong> reaparecem na Aula 19 como quatro processos separados.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Laboratório, passo 1, pasta e componentes</div>
+          <div class="footer-page">18</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 19: LAB PASSO 2, NOTAÇÃO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 2: declarar componente e interface</h2>
+        </div>
+
+        <p class="lead" style="font-size:0.7em;">A pergunta que orienta cada ligação: que operação este componente oferece, e quem depende dela?</p>
+
+        <pre class="code-compact"><code class="language-text" data-trim>component "Nome do componente" as apelido
+interface "operacaoOferecida" as iOperacao
+
+quemOferece -up- iOperacao
+quemConsome --( iOperacao</code></pre>
+
+        <div class="exercise-container">
+          <h3>Regra da notação</h3>
+          <ol class="exercise-steps">
+            <li><code>component</code> declara cada componente; <code>interface</code> declara o que ele oferece.</li>
+            <li><code>--</code> liga o componente à interface que ele oferece; <code>--(</code> liga à interface que ele consome.</li>
+            <li>Cada aluno acrescenta pelo menos uma interface que não esteja no esqueleto do professor.</li>
+          </ol>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Laboratório, passo 2, notação</div>
+          <div class="footer-page">19</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 20: LAB PASSO 2, ESQUELETO ==================== -->
+      <!-- Bloco de código PlantUML é o mais alto do deck. As quebras de linha
+           em branco do esqueleto do planejamento foram removidas só para a
+           projeção; o conteúdo semântico do diagrama, componentes, interfaces
+           e ligações, é o mesmo. Ver a seção do relatório sobre orçamento de
+           altura. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 2: o esqueleto para adaptar</h2>
+        </div>
+
+        <p class="lead" style="font-size:0.62em;">Criar <code>docs/arquitetura/componentes.puml</code> com este ponto de partida, adaptado ao que cada um mapeou.</p>
+
+        <pre class="code-compact"><code class="language-text" data-trim>@startuml
+title Componentes da Rota Sul
+component "Recebimento de pedidos" as pedidos
+component "Montagem de remessas" as expedicao
+component "Rastreamento e ocorrências" as rastreamento
+component "Integração com parceiros" as parceiros
+interface "receberPedidoValidado" as iPedido
+interface "registrarEvento" as iEvento
+interface "despacharUltimaMilha" as iUltimaMilha
+expedicao -up- iPedido
+pedidos --( iPedido
+rastreamento -up- iEvento
+expedicao --( iEvento
+parceiros --( iEvento
+parceiros -up- iUltimaMilha
+expedicao --( iUltimaMilha
+@enduml</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Laboratório, passo 2, esqueleto</div>
+          <div class="footer-page">20</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 21: LAB PASSO 3, MD E IMAGEM ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 3: o <code>.md</code> irmão e a imagem</h2>
+        </div>
+
+        <p class="lead" style="font-size:0.66em;">Criar <code>docs/arquitetura/componentes.md</code> com a linha que embute a imagem, trocando <code>SEU_USUARIO</code> pelo usuário do aluno no GitHub. A linha é uma só; aqui ela aparece quebrada só para caber na tela.</p>
+
+        <!-- white-space:pre-wrap e overflow-wrap:anywhere só para a projeção,
+             com !important: o RevealHighlight aplica a classe `hljs` ao
+             <code>, e a regra `.reveal .hljs` do próprio reveal.css já fixa
+             `white-space:pre-wrap`, mas o Chromium mede a linha como se
+             estivesse em `pre` quando o `<code>` ainda não passou pelo
+             highlight no instante da checagem de layout; forçar aqui garante
+             o comportamento em qualquer ordem de carregamento. A linha de
+             imagem do Markdown é única no arquivo real, mas larga demais para
+             1160px de área útil em qualquer tamanho de fonte legível. Ver a
+             seção do relatório sobre orçamento de altura. -->
+        <pre class="code-compact" style="white-space:pre-wrap !important; overflow-wrap:anywhere !important;"><code class="language-markdown" data-trim style="white-space:pre-wrap !important; overflow-wrap:anywhere !important;"># Componentes da Rota Sul
+
+![Diagrama de componentes da Rota Sul](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/SEU_USUARIO/uninove-2026-2-rota-sul/main/docs/arquitetura/componentes.puml)</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><strong>Se der erro:</strong> um retângulo com texto é sintaxe no <code>.puml</code>; nada aparecendo é caminho errado no <code>src</code> ou fork privado.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Laboratório, passo 3, md e imagem</div>
+          <div class="footer-page">21</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 22: LAB PASSO 4, DIAGRAMA DE IMPLANTAÇÃO ==================== -->
+      <!-- Bloco de código PlantUML é o mais alto do deck. A estação e o
+           celular aparecem aqui como node de rótulo único, sem artifact
+           aninhado, só para caber na projeção; o esqueleto completo, com
+           artifact "Navegador" e artifact "Aplicativo de rota" dentro de cada
+           device, está no README.md do laboratório, que é o que o aluno
+           copia. Ver a seção do relatório sobre orçamento de altura. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 4: o diagrama de implantação</h2>
+        </div>
+
+        <p class="lead" style="font-size:0.6em;">A pergunta muda: onde cada coisa roda. <code>node</code> com estereótipo, <code>artifact</code> ou <code>database</code> dentro; ligação marcada como síncrona ou assíncrona.</p>
+
+        <pre class="code-compact"><code class="language-text" data-trim>@startuml
+title Implantação da Rota Sul
+node "Estação do atendente, navegador" as estacao &lt;&lt;device&gt;&gt;
+node "Celular do motorista, app de rota" as celular &lt;&lt;device&gt;&gt;
+node "Servidor de aplicação" as servidorApp &lt;&lt;server&gt;&gt; {
+  artifact "rotasul.jar, Spring Boot" as aplicacao
+}
+node "Servidor de banco" as servidorBanco &lt;&lt;server&gt;&gt; {
+  database "MySQL 8.4, schema rotasul" as banco
+}
+node "Sistema do parceiro, externo" as sistemaParceiro &lt;&lt;externo&gt;&gt;
+estacao --&gt; aplicacao : HTTP, síncrono
+celular --&gt; aplicacao : HTTP, síncrono
+aplicacao --&gt; banco : JDBC, síncrono
+aplicacao --&gt; sistemaParceiro : integração, assíncrono
+@enduml</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Laboratório, passo 4, implantação</div>
+          <div class="footer-page">22</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 23: LAB PASSO 5, ARQUITETURA-COLABORATIVA.MD ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: a decisão do modelo</h2>
+        </div>
+
+        <p class="lead">Criar <code>docs/arquitetura-colaborativa.md</code> com três seções, escolhendo um dos três modelos do Ciclo 2 para a Rota Sul.</p>
+
+        <div class="exercise-container">
+          <h3>As três seções obrigatórias</h3>
+          <ol class="exercise-steps">
+            <li><code>## Modelo escolhido</code>: centralizada, descentralizada ou híbrida.</li>
+            <li><code>## Justificativa</code>: citando pelo menos duas das seis características do capítulo, dizendo o que a escolha favorece e o que sacrifica.</li>
+            <li><code>## Diagramas</code>: link para os dois <code>.md</code> gerados nos passos anteriores.</li>
+          </ol>
+        </div>
+
+        <div class="callout">
+          <p><strong>Critério de aceitação:</strong> sem citar pelo menos duas características do Ciclo 1, a justificativa não passa na correção.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Laboratório, passo 5, decisão</div>
+          <div class="footer-page">23</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 24: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- O slide do entregável é o último passo do laboratório e nasce
+           dentro do Ciclo 4, então leva `exercise-slide content-slide` como
+           os demais slides de passo. Ver ADR-008. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Entregável de hoje e critérios de aceitação</h2>
+        </div>
+
+        <p class="lead" style="font-size:0.66em;">Acrescentar uma linha em <code>docs/decisoes.md</code>, da Aula 02, com o modelo de arquitetura escolhido hoje: o inventário é vivo.</p>
+
+        <table style="margin-top:4px;">
+          <thead>
+            <tr><th style="width:400px;">Critério de aceitação</th><th>Evidência conferida na correção</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Componentes com no mínimo quatro componentes e interfaces</td><td><code>componentes.puml</code> e a imagem em <code>componentes.md</code></td></tr>
+            <tr><td>Implantação com no mínimo três nós, ligações síncronas ou assíncronas</td><td><code>implantacao.puml</code> e a imagem em <code>implantacao.md</code></td></tr>
+            <tr><td>Justificativa cita ao menos duas características do capítulo</td><td><code>arquitetura-colaborativa.md</code>, seção Justificativa</td></tr>
+            <tr><td>Linha nova no inventário</td><td>Uma linha a mais em <code>docs/decisoes.md</code>, com o modelo escolhido</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Entregável e critérios</div>
+          <div class="footer-page">24</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 25: FECHAMENTO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Commit, push e prévia da Aula 05</h2>
+        </div>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>git add docs/arquitetura-colaborativa.md docs/arquitetura docs/decisoes.md
+git commit -m "docs(arquitetura): escolhe o modelo colaborativo e esboça componentes e implantação"
+git push</code></pre>
+
+        <div class="side-by-side" style="margin-top:12px;">
+          <div class="side" style="padding:14px 18px;">
+            <h4>Confira antes de sair</h4>
+            <p style="margin:0; font-size:0.7em;">As duas imagens aparecem desenhadas na página do <code>.md</code>, sem retângulo de erro.</p>
+          </div>
+          <div class="side" style="padding:14px 18px;">
+            <h4>Prévia da Aula 05</h4>
+            <p style="margin:0; font-size:0.7em;">Os dois diagramas de hoje foram desenhados por intuição. A próxima aula formaliza a notação UML e acrescenta o diagrama de classes do domínio.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:14px;">
+          <span class="takeaway-label">As duas ideias de hoje</span>
+          <p>Controle pessimista serializa, controle otimista detecta e corrige; e cada modelo de arquitetura favorece uma característica e sacrifica outra.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Fechamento</div>
+          <div class="footer-page">25</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 26: REFERÊNCIAS ==================== -->
+      <section id="ref-slide" class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Referências desta aula</h2>
+        </div>
+
+        <p class="lead">Os números entre colchetes nos títulos remetem a esta lista.</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; margin-top:16px;">
+          <div class="concept-card" style="padding:12px 16px;">
+            <h4 style="margin:0 0 4px 0;">[1] Arquitetura de Sistemas Colaborativos</h4>
+            <p style="font-size:0.68em; color:#444444; margin:0;">MESQUITA, P. R. B. <em>Capítulo 03</em>. Arquitetura de Software. AVA, Uninove. Fonte primária desta aula.</p>
+          </div>
+          <div class="concept-card" style="padding:12px 16px;">
+            <h4 style="margin:0 0 4px 0;">[2] Sistemas Colaborativos</h4>
+            <p style="font-size:0.68em; color:#444444; margin:0;">PIMENTEL, M.; FUCKS, H. <em>Sistemas Colaborativos</em>. Rio de Janeiro: Campus, 2011. Referência indicada pelo capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:12px 16px;">
+            <h4 style="margin:0 0 4px 0;">[3] PlantUML</h4>
+            <p style="font-size:0.68em; color:#444444; margin:0;">Documentação da linguagem. <code style="font-size:0.9em;">plantuml.com/pt</code></p>
+          </div>
+          <div class="concept-card" style="padding:12px 16px;">
+            <h4 style="margin:0 0 4px 0;">[4] O ponto de partida do mapeamento</h4>
+            <p style="font-size:0.68em; color:#444444; margin:0;"><code style="font-size:0.9em;">docs/colaboracao.md</code> do fork do aluno, entregável da Aula 03.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">04 Referências</div>
+          <div class="footer-page">26</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 27: ENCERRAMENTO ==================== -->
+      <section class="end-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
+             style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">
+        <div class="copyright">
+          Copyright &copy; 2026<br>
+          Prof. José Romualdo da Costa Filho<br><br>
+          Todos os direitos reservados. É expressamente proibida a reprodução, divulgação<br>
+          total ou parcial, deste material acadêmico sem autorização formal,<br>
+          por escrito, do Professor autor da ementa.
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="../assets/js/uninove-quiz.js"></script>
+  <script>
+    Reveal.initialize({
+      width: 1280, height: 720, center: false, margin: 0,
+      hash: true, slideNumber: false,
+      // Os chevrons de navegação caem sobre a footer-bar e sobre o triângulo
+      // azul do canto inferior direito; a barra de progresso encosta no rodapé
+      // e parece um segundo rodapé. Nenhum dos dois é usado na projeção.
+      controls: false, progress: false,
+      // Um slide por página no ?print-pdf, para o PDF bater com o deck.
+      pdfMaxPagesPerSlide: 1,
+      plugins: [RevealHighlight],
+    });
+  </script>
+</body>
+</html>
