@@ -97,6 +97,19 @@ python3 tools/check_canto_coral.py
 
 # Validação do portal e dos links dos cards
 python3 tools/check_portal.py
+
+# Medição da folga de altura de cada slide (índice base 0, tema curto do
+# footer-bar, folga em px). NÃO é um quinto validador: nunca reprova nada,
+# sempre sai com 0. Reaproveita a mesma geometria do check_slides.py (mesmo
+# JS_MEDIR, descontando o padding-bottom de 60px da section), para que
+# ninguém escreva um script de medição por conta própria e infle a folga
+# real por esquecer desse desconto.
+python3 tools/medir_folga.py aulas-1sem/aulas/aula01.html
+
+# Mede o slide de quiz com o .quiz-feedback visível: clica na alternativa
+# correta antes de medir. Ponto cego da ADR-007, que o check_slides.py
+# nunca cobre sozinho porque o feedback é display:none até o clique.
+python3 tools/medir_folga.py --quiz-respondido aulas-1sem/aulas/aula01.html
 ```
 
 Quando os quatro validadores existirem, nenhum substitui o outro: eles

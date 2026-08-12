@@ -63,8 +63,16 @@ def servir(porta):
 
 
 # Executado no navegador: mede cada slide e devolve os elementos que vazam.
+#
+# O parâmetro `clicarQuiz` não é usado por este script (checar() sempre chama
+# `page.evaluate(JS_MEDIR)`, sem argumento, e o padrão `false` preserva o
+# comportamento de sempre). Ele existe para que `tools/medir_folga.py`
+# reaproveite esta mesma função em vez de reescrever a geometria: com
+# `clicarQuiz = true`, cada slide de quiz é respondido (clique na alternativa
+# `data-correct="true"`) antes da medição, revelando o `.quiz-feedback` que
+# fica `display:none` até o clique (ADR-007).
 JS_MEDIR = """
-() => {
+(clicarQuiz = false) => {
   const secoes = [...document.querySelectorAll('.reveal .slides > section')];
   return secoes.map((sec, i) => {
     // Torna o slide mensurável mesmo sem estar ativo
@@ -72,6 +80,11 @@ JS_MEDIR = """
     sec.style.display = 'block';
     sec.style.visibility = 'visible';
     sec.style.opacity = '1';
+
+    if (clicarQuiz && sec.classList.contains('quiz-slide')) {
+      const correta = sec.querySelector('.quiz-options li[data-correct="true"]');
+      if (correta) correta.click();
+    }
 
     const cs = getComputedStyle(sec);
     const padTop = parseFloat(cs.paddingTop);
@@ -84,6 +97,11 @@ JS_MEDIR = """
     const limiteDireita = base.left + 1280 - padRight;
 
     const vazamentos = [];
+    // Elemento mais baixo do slide, com a mesma exclusão de rodapé/barra/logo
+    // usada para achar vazamento: é o dado bruto de que a folga de altura
+    // (limiteBaixo menos este valor) precisa, reaproveitado por
+    // tools/medir_folga.py.
+    let maxBottom = base.top;
     for (const el of sec.querySelectorAll('*')) {
       const ecs = getComputedStyle(el);
       if (ecs.display === 'none' || ecs.visibility === 'hidden') continue;
@@ -91,6 +109,8 @@ JS_MEDIR = """
       if (el.closest('.slide-footer, .top-bar, [class*="logo-header"]')) continue;
       const r = el.getBoundingClientRect();
       if (r.width === 0 && r.height === 0) continue;
+
+      if (r.bottom > maxBottom) maxBottom = r.bottom;
 
       const excessoBaixo = r.bottom - limiteBaixo;
       const excessoDireita = r.right - limiteDireita;
@@ -180,15 +200,21 @@ JS_MEDIR = """
     sec.setAttribute('style', estiloAnterior);
 
     const titulo = sec.querySelector('h2');
+    const footer = sec.querySelector('.footer-bar');
     return {
       indice: i,
       titulo: titulo ? titulo.textContent.trim().slice(0, 55) : '(' + sec.className + ')',
+      tema: footer ? footer.textContent.trim() : null,
       // só o vazamento mais grave por slide, para o relatório não explodir
       pior: vazamentos.sort((a, b) =>
         (b.abaixo + b.direita) - (a.abaixo + a.direita))[0] || null,
       total: vazamentos.length,
       sobreposicoes: sobreposicoes.sort((x, y) => y.px - x.px).slice(0, 3),
       colisoes: colisoes.sort((x, y) => x.folga - y.folga).slice(0, 2),
+      // Folga de altura: limiteBaixo já descontou o padding-bottom de 60px da
+      // section (linha ~90). tools/medir_folga.py usa este campo em vez de
+      // recalcular a geometria por conta própria.
+      folgaAltura: Math.round(limiteBaixo - maxBottom),
     };
   });
 }

@@ -123,6 +123,8 @@ em vez de confiar na disciplina de quem escreve o deck.
 | `aulas-1sem/assets/css/uninove-theme.css`, linha 636 | `.reveal pre code` com `max-height: none`, que troca o corte silencioso do código por um estouro que o `check_slides.py` enxerga |
 | `aulas-1sem/assets/css/uninove-theme.css`, linha 655 | `.reveal pre, .reveal pre code` com `white-space: pre-wrap !important` e `overflow-wrap: anywhere !important`, movida da Aula 04 para o tema: a regra equivalente do `reveal.css` só vale dentro de `@media print`, então na tela nada quebrava linha comprida de código sem esta regra |
 | `aulas-1sem/SKILL.md`, seções 6.3, 7 e 10 | A convenção do `.option-text` e a tabela do que cada validador cobre |
+| `tools/check_slides.py`, campo `folgaAltura` do `JS_MEDIR`, e parâmetro `clicarQuiz` | A geometria (limite inferior menos `padding-bottom`) e o clique programático na alternativa certa, reaproveitados por `tools/medir_folga.py` em vez de duplicados |
+| `tools/medir_folga.py`, opção `--quiz-respondido` | Mede o slide de quiz com o `.quiz-feedback` visível, o ponto cego desta ADR; ver seção "Riscos conhecidos" |
 
 ## Riscos conhecidos
 
@@ -146,12 +148,22 @@ em vez de confiar na disciplina de quem escreve o deck.
   longo, ou com um enunciado de uma linha a mais, **passa no validador e estoura
   em sala, depois do clique**. É exatamente a categoria de defeito que esta ADR
   trata, agora do lado do validador e não do tema.
-  - **Mitigação:** por enquanto, nenhuma automática. A regra prática é
-    dimensionar o slide de quiz com pelo menos 140px de folga no estado
-    inicial, e conferir o slide respondido no navegador antes de dar a aula
-    por pronta. A correção definitiva é o `check_slides.py` medir o slide de
-    quiz duas vezes, antes e depois de disparar o clique na alternativa
-    correta; enquanto ela não existir, este risco continua aberto.
+  - **Mitigação, parcial desde a revisão da Task 20.** `tools/medir_folga.py
+    --quiz-respondido` clica na alternativa `data-correct="true"` antes de
+    medir, então o ponto cego agora tem uma ferramenta dedicada em vez de
+    depender de abrir o navegador e olhar. A mesma revisão também achou que os
+    scripts de medição que vinham sendo escritos por conta própria, inclusive
+    o que gerou os números acima, infla(va)m a folga em cerca de 60px por não
+    descontar o `padding-bottom` da `section`; medido de novo com a ferramenta,
+    o quiz da Aula 01 dá **193px antes e 56px depois** (os mesmos números desta
+    ADR, então o padding não estava errado aqui), mas o quiz da Aula 07 deu
+    **153px antes e 24px depois**, bem abaixo dos 140px recomendados, achado
+    só possível porque a medição agora está correta. Isto continua sendo uma
+    medição, não uma checagem: `check_slides.py` não passou a reprovar quiz
+    com pouca folga depois do clique, e nenhum limiar mínimo é imposto. A
+    correção definitiva, integrar essa segunda medição ao próprio
+    `check_slides.py` com um limiar que reprove automaticamente, continua em
+    aberto.
 
 - **Correção feita aqui não se propaga para os acervos irmãos.** Os validadores
   e o tema deste acervo são cópias, não symlinks (ADR-003). O mesmo defeito

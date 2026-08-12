@@ -737,3 +737,38 @@ entram na suíte pytest; são exercitados no CI contra os decks reais.
 `check_decks.py` sobre todos os decks existentes, `check_portal.py`, e
 `check_slides.py` mais `check_canto_coral.py` sobre todos os decks, com o
 navegador instalado no runner.
+
+### 10.3 Medição de folga de altura, `tools/medir_folga.py`
+
+`check_slides.py` só reprova **estouro**: um slide com 5px de folga passa
+igual a um com 500px. Dimensionar um slide novo (decidir se cabe mais um
+parágrafo, se o quiz precisa de texto mais curto) exige saber a folga de
+verdade, não só se ela é positiva.
+
+`tools/medir_folga.py` existe para que ninguém escreva esse script de
+medição por conta própria de novo. Um implementador que mede a folga
+"na unha" tende a esquecer que a `section` tem `padding-bottom: 60px`
+(`aulas-1sem/assets/css/uninove-theme.css`) e a inflar o número em cerca de
+60px, exatamente o tamanho do padding esquecido. Foi o que aconteceu no
+relatório da Task 20 (Aula 07): o quiz depois do clique foi registrado com
+84px de folga quando o valor real, descontado o padding, é 24px.
+
+A ferramenta reaproveita literalmente a geometria do `check_slides.py`: usa
+o mesmo `JS_MEDIR`, com o mesmo cálculo de `padBottom` e a mesma exclusão de
+rodapé/`top-bar`/logo, e só lê o campo `folgaAltura` que o `JS_MEDIR` já
+devolve por slide. Não é um quinto validador: nunca reprova nada e sempre
+sai com 0, porque o número, sozinho, não diz se o slide está bom ou ruim
+(isso depende do que ainda pode ser digitado ali).
+
+```bash
+python3 tools/medir_folga.py aulas-1sem/aulas/aula01.html
+python3 tools/medir_folga.py --quiz-respondido aulas-1sem/aulas/aula01.html
+```
+
+A opção `--quiz-respondido` clica na alternativa `data-correct="true"` do
+slide de quiz antes de medir, revelando o `.quiz-feedback` que fica
+`display:none` até o clique. Sem essa opção, o quiz é medido no estado
+inicial, como o `check_slides.py` mede, e o número não conta o espaço que o
+feedback consome. Este é o ponto cego descrito na ADR-007: um quiz com folga
+positiva no estado inicial pode ficar muito mais apertado depois do clique,
+e só a medição com `--quiz-respondido` mostra isso.
