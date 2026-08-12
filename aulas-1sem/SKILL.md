@@ -648,6 +648,62 @@ Os slides do laboratório, dentro do deck, seguem um slide por passo: o aluno
 acompanha a tela enquanto executa, sem precisar dividir atenção entre o
 slide e um roteiro à parte.
 
+**Armadilha recorrente: mudar assinatura, tipo ou construtor de algo já
+entregue quebra o que uma aula anterior deixou pronto, e isso só aparece no
+fork acumulado.** Já ocorreu três vezes neste acervo: a Aula 07 trocou
+`PedidoService` de classe concreta para interface e quebrou o
+`PedidoServiceTest` que a Aula 06 entregou; a Aula 11 acrescentou `regiao`
+como terceiro parâmetro do construtor de `Pedido` e quebrou duas chamadas de
+dois argumentos, uma da Aula 06 e outra da Aula 07; a Aula 10 acrescentou
+`ParceiroClient` ao construtor de `RemessaController` e quebrou o
+`RemessaControllerTest` que a Aula 09 entregou, porque o `@WebMvcTest` só
+tinha `@MockBean` de `RemessaService`. As três correções seguem a mesma
+regra:
+
+- **Toda aula que muda assinatura, tipo ou construtor de algo já entregue
+  precisa ajustar, no mesmo laboratório, os testes e as chamadas que a
+  mudança quebra.** O ajuste é parte do passo que introduz a mudança, não um
+  passo à parte nem um problema para a próxima aula herdar. Se o kit
+  entregar arquivos prontos que dependem da assinatura antiga (uma classe de
+  domínio, um teste, um cliente), o kit também entrega esses arquivos já
+  corrigidos.
+- **Verificar a aula em isolamento não pega esse defeito.** Montar só o
+  código da aula em questão, num projeto Maven à parte, prova que o código
+  novo compila e passa; não prova nada sobre o código que aulas anteriores
+  já entregaram e que o aluno de verdade carrega no mesmo fork. As três
+  quebras acima passaram batidas exatamente porque cada aula foi verificada
+  assim.
+- **A verificação correta monta o fork acumulado e roda a suíte inteira.**
+  Empilhar, num único projeto Maven, o código de referência de cada aula na
+  ordem em que o aluno o recebe, do primeiro laboratório até o mais recente,
+  e rodar `./mvnw test` nesse projeto acumulado, a cada aula nova. `./mvnw
+  test` precisa terminar verde contando **todos** os testes das aulas
+  anteriores, não só os da aula que está sendo verificada.
+
+Isso vale, sem exceção, para as Aulas 12 a 20, que ainda serão construídas.
+Várias delas mudam assinatura de coisas já entregues: entidade JPA,
+relacionamento `@ManyToOne`, transação, contêiner de teste de integração.
+Quem escrever essas aulas verifica no fork acumulado, não isolado.
+
+**Variante do mesmo defeito, achada na própria Aula 11 ao provar a cadeia
+06 a 11 completa.** `CalculoDeFreteService` (`@Service`) recebia
+`FreteRotaPropria` e `FreteTransportadoraParceira` pelo construtor, mas
+nenhuma das duas classes tinha anotação de framework, de propósito, porque
+são domínio. Isso nunca aparecia no laboratório isolado da Aula 11 (nem no
+próprio kit de verificação da aula, que testava só `pedido` e
+`rastreamento`, sem `expedicao` nem `parceiro`) porque
+`CalculoDeFreteServiceTest` monta o serviço com `new`, sem Spring. Só
+apareceu ao empilhar o fork completo, com `ParceiroClientTest`
+(`@SpringBootTest`, da Aula 10) subindo o contexto inteiro:
+`UnsatisfiedDependencyException`, por falta de bean para as duas
+estratégias. Corrigido com `CalculoDeFreteConfig`, uma classe `@Configuration`
+com um `@Bean` para cada estratégia, o mesmo padrão que `ParceiroClientConfig`
+já usava desde a Aula 10: framework na configuração, nunca na classe de
+domínio. A lição estende a de cima: não é só assinatura que muda e quebra
+o que já existia; uma peça nova, sozinha correta, também pode faltar um elo
+de fiação que só o contexto Spring inteiro exige, e só aparece testando o
+fork acumulado.
+
 ---
 
 ## 9. O ciclo do artefato

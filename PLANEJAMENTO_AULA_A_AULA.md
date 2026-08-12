@@ -3110,12 +3110,28 @@ parceiro de verdade; só o endereço muda.
    endpoint estão no mesmo processo, mas a chamada entre eles atravessa HTTP
    de verdade, como atravessaria contra um parceiro externo. Rodar
    `./mvnw test`.
-8. **Fechar a integração pelo lado REST.** Acrescentar ao `RemessaController`
-   da Aula 09 o método `GET /remessas/{id}/situacao-parceiro`, que busca a
-   `Remessa`, chama `ParceiroClient.consultarEntrega` com o seu
-   `codigoRastreio` e devolve o resultado em JSON. É o ponto em que a
-   integração se fecha: o dado que chegou por SOAP sai por REST, para
-   qualquer consumidor da Rota Sul.
+8. **Fechar a integração pelo lado REST, e ajustar o teste que a Aula 09
+   entregou.** Acrescentar ao `RemessaController` da Aula 09 o método `GET
+   /remessas/{id}/situacao-parceiro`, que busca a `Remessa`, chama
+   `ParceiroClient.consultarEntrega` com o seu `codigoRastreio` e devolve o
+   resultado em JSON. É o ponto em que a integração se fecha: o dado que
+   chegou por SOAP sai por REST, para qualquer consumidor da Rota Sul. Mas o
+   construtor de `RemessaController` ganha `ParceiroClient` como segundo
+   parâmetro, e isso quebra `RemessaControllerTest`, o teste que a Aula 09
+   entregou: ele sobe o contexto com `@WebMvcTest(RemessaController.class)` e
+   troca só `RemessaService` por `@MockBean`, porque até aqui era só disso
+   que o controlador precisava. Sem um segundo `@MockBean`, de
+   `ParceiroClient`, o Spring não consegue montar o bean `RemessaController`
+   dentro do contexto fatiado do `@WebMvcTest`, e `./mvnw test` falha ao
+   subir o contexto, não por asserção errada. A correção é de uma linha,
+   `@MockBean private ParceiroClient parceiroClient;`, ao lado do
+   `@MockBean` de `RemessaService` já existente; nenhum dos dois métodos de
+   teste muda, porque nenhum chama `situacao-parceiro`. É a terceira vez que
+   o acervo tropeça nesse mesmo padrão, depois da Aula 07 quebrando o teste
+   da Aula 06 e da Aula 11 quebrando chamadas das Aulas 06 e 07: mudar a
+   assinatura de um construtor que outro código já instancia é decisão de
+   design com custo real, e o laboratório do dia precisa pagar esse custo no
+   mesmo commit, não deixar para depois.
 9. **Documentar a API e registrar a decisão.** No `pom.xml`,
    `springdoc-openapi-starter-webmvc-ui`. Subir a aplicação e abrir
    `/swagger-ui/index.html` na porta que o terminal imprimiu, conferindo que
@@ -3127,11 +3143,14 @@ parceiro de verdade; só o endereço muda.
    código que se escreveria contra um parceiro de verdade.
 
 **Entregável do dia:** o cliente SOAP em `br.uni9.rotasul.parceiro`,
-consumindo o endpoint simulado, com `ParceiroClientTest` passando, mais a API
-REST de `/remessas` documentada pelo springdoc-openapi. Critério de
-aceitação: `consultarEntrega("RS12345")` devolvendo `EM_TRANSITO` no teste com
-`RANDOM_PORT`, a Swagger UI listando os endpoints de `/remessas` em
-`/swagger-ui/index.html`, e `./mvnw test` passando.
+consumindo o endpoint simulado, com `ParceiroClientTest` passando, a API
+REST de `/remessas` documentada pelo springdoc-openapi, e
+`RemessaControllerTest`, da Aula 09, ajustado com o `@MockBean` de
+`ParceiroClient` que o novo parâmetro do construtor passou a exigir.
+Critério de aceitação: `consultarEntrega("RS12345")` devolvendo
+`EM_TRANSITO` no teste com `RANDOM_PORT`, a Swagger UI listando os
+endpoints de `/remessas` em `/swagger-ui/index.html`, e `./mvnw test`
+passando com a suíte inteira verde, incluindo `RemessaControllerTest`.
 
 ### Fechamento, 21h50 às 22h00
 
@@ -3459,14 +3478,28 @@ pacotes da Aula 05 e ainda sem nenhuma linha de código.
    usa a primeira. É o único ponto do código que conhece as duas
    implementações concretas; todo o resto do sistema só vai conhecer a
    interface `CalculadoraDeFrete` e o serviço.
-6. **Testar o Strategy.** `CalculoDeFreteServiceTest`, em
+6. **Registrar as estratégias como bean.** `CalculoDeFreteConfig`, anotada
+   `@Configuration`, em `pedido/service`, com um `@Bean` para
+   `FreteRotaPropria` e outro para `FreteTransportadoraParceira`. Sem essa
+   classe, `CalculoDeFreteService` não sobe fora do teste manual: seu
+   construtor pede as duas estratégias como tipos concretos, e nenhuma das
+   duas tem anotação de framework, de propósito (são domínio). O Spring só
+   monta o bean `CalculoDeFreteService` se também existir um bean de cada
+   estratégia; sem `CalculoDeFreteConfig`, qualquer teste que suba o
+   contexto inteiro, ou o próprio `./mvnw spring-boot:run`, falha com
+   `UnsatisfiedDependencyException`. `CalculoDeFreteServiceTest`, no próximo
+   passo, nunca expõe isso, porque instancia tudo com `new`; só um teste de
+   contexto completo, como `ParceiroClientTest` da Aula 10, expõe. Mesmo
+   padrão do `ParceiroClientConfig`, já usado na Aula 10: o framework entra
+   na configuração, nunca na classe de domínio.
+7. **Testar o Strategy.** `CalculoDeFreteServiceTest`, em
    `src/test/java/br/uni9/rotasul/pedido/service/`, com dois casos: um
    `Pedido` com `regiao` `"PRINCIPAL"` calcula `15.00`, e um `Pedido` com
    `regiao` `"ULTIMA_MILHA"` calcula `19.50`. Rodar `./mvnw test`.
 
 ### Ciclo 4, 21h25 às 21h50
 
-7. **Criar o contexto `rastreamento` e instalar a hierarquia de produtos.**
+8. **Criar o contexto `rastreamento` e instalar a hierarquia de produtos.**
    Dentro de `src/main/java/br/uni9/rotasul/`, criar `rastreamento/domain`. É
    o primeiro código do terceiro contexto reservado desde o diagrama de
    pacotes da Aula 05, ao lado de `pedido` e `expedicao`; a Aula 10 já havia
@@ -3478,7 +3511,7 @@ pacotes da Aula 05 e ainda sem nenhuma linha de código.
    (`ultimaLocalizacaoConhecida`, `getTipo()` devolve `"EXTRAVIO"`). É
    herança simples, que a turma já domina desde a Aula 06; não é o padrão que
    a aula ensina, e por isso vem pronta, não digitada.
-8. **Escrever a hierarquia de criadores, o Factory Method.** Também em
+9. **Escrever a hierarquia de criadores, o Factory Method.** Também em
    `rastreamento/domain`, a classe abstrata `OcorrenciaCreator`:
 
    ```java
@@ -3505,7 +3538,7 @@ pacotes da Aula 05 e ainda sem nenhuma linha de código.
    construtor e devolvendo `new OcorrenciaAtraso(...)`, e
    `ExtravioOcorrenciaCreator`, recebendo `ultimaLocalizacaoConhecida` pelo
    construtor e devolvendo `new OcorrenciaExtravio(...)`.
-9. **Testar o Factory Method.** `OcorrenciaCreatorTest`, em
+10. **Testar o Factory Method.** `OcorrenciaCreatorTest`, em
    `src/test/java/br/uni9/rotasul/rastreamento/domain/`, com três casos:
    `new AtrasoOcorrenciaCreator(3).registrar("RS12345")` devolve uma
    instância de `OcorrenciaAtraso` com `getTipo()` igual a `"ATRASO"`; `new
@@ -3513,7 +3546,7 @@ pacotes da Aula 05 e ainda sem nenhuma linha de código.
    uma instância de `OcorrenciaExtravio` com `getTipo()` igual a
    `"EXTRAVIO"`; e chamar `registrar("")` em qualquer um dos dois criadores
    lança `IllegalArgumentException`. Rodar `./mvnw test`.
-10. **Registrar as duas decisões.** Em `docs/decisoes.md`, duas linhas novas:
+11. **Registrar as duas decisões.** Em `docs/decisoes.md`, duas linhas novas:
     uma explicando que o cálculo de frete usa Strategy porque a fórmula
     precisa variar por pedido, em tempo de execução, e outra explicando que a
     criação de `Ocorrencia` usa Factory Method porque o código que recebe a
@@ -3522,12 +3555,15 @@ pacotes da Aula 05 e ainda sem nenhuma linha de código.
 **Entregável do dia:** pronto no kit, `Pedido` já com `regiao` e a hierarquia
 de `Ocorrencia`/`OcorrenciaAtraso`/`OcorrenciaExtravio`; escrito hoje,
 `CalculadoraDeFrete` com `FreteRotaPropria` e `FreteTransportadoraParceira`,
-mais `CalculoDeFreteService` escolhendo entre elas, e `OcorrenciaCreator` com
-`AtrasoOcorrenciaCreator` e `ExtravioOcorrenciaCreator`. Nove arquivos
+`CalculoDeFreteService` escolhendo entre elas, `CalculoDeFreteConfig`
+registrando as duas como bean, e `OcorrenciaCreator` com
+`AtrasoOcorrenciaCreator` e `ExtravioOcorrenciaCreator`. Dez arquivos
 digitados ao todo. Critério de aceitação: `CalculoDeFreteServiceTest` e
 `OcorrenciaCreatorTest` passando com `./mvnw test`, nenhuma anotação de
-framework em `Ocorrencia` nem em suas subclasses, e as duas decisões
-registradas em `docs/decisoes.md`.
+framework em `Ocorrencia` nem em suas subclasses nem em `FreteRotaPropria` e
+`FreteTransportadoraParceira`, `./mvnw spring-boot:run` subindo sem
+`UnsatisfiedDependencyException`, e as duas decisões registradas em
+`docs/decisoes.md`.
 
 ### Fechamento, 21h50 às 22h00
 

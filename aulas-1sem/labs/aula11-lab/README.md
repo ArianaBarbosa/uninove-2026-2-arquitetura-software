@@ -236,6 +236,55 @@ public class CalculoDeFreteService {
 > trouxer a camada de apresentação. Até lá, o serviço fica pronto e testado,
 > paralelo ao fluxo existente, pronto para ser chamado quando a hora chegar.
 
+Ainda em `pedido/service`, criar `CalculoDeFreteConfig`, registrando as duas
+estratégias como bean, sem anotar `FreteRotaPropria` nem
+`FreteTransportadoraParceira` diretamente:
+
+```java
+package br.uni9.rotasul.pedido.service;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import br.uni9.rotasul.pedido.domain.FreteRotaPropria;
+import br.uni9.rotasul.pedido.domain.FreteTransportadoraParceira;
+
+// CalculoDeFreteService recebe as duas estratégias pelo construtor, e o
+// Spring só consegue montar esse bean se também existir um bean de cada
+// estratégia concreta. Registrar os dois aqui, e não com @Component direto
+// em FreteRotaPropria ou FreteTransportadoraParceira, é o mesmo padrão que
+// a Aula 10 já usou em ParceiroClientConfig: o framework aparece na
+// configuração, nunca na classe de domínio.
+@Configuration
+public class CalculoDeFreteConfig {
+
+    @Bean
+    public FreteRotaPropria freteRotaPropria() {
+        return new FreteRotaPropria();
+    }
+
+    @Bean
+    public FreteTransportadoraParceira freteTransportadoraParceira() {
+        return new FreteTransportadoraParceira();
+    }
+}
+```
+
+> **Sem esta classe, o Spring não sobe.** `CalculoDeFreteService` é
+> `@Service`, e seu construtor pede `FreteRotaPropria` e
+> `FreteTransportadoraParceira` como tipos concretos. `CalculoDeFreteServiceTest`,
+> no próximo passo, nunca percebe a falta, porque instancia os três objetos
+> à mão com `new`, sem envolver o Spring. Mas qualquer teste que suba o
+> contexto inteiro, como `ParceiroClientTest` da Aula 10
+> (`@SpringBootTest(webEnvironment = RANDOM_PORT)`), ou o próprio `./mvnw
+> spring-boot:run`, falha com
+> `UnsatisfiedDependencyException: No qualifying bean of type
+> 'FreteRotaPropria'` assim que tenta montar `CalculoDeFreteService`. É a
+> mesma lição do laboratório de hoje, numa direção diferente: não é uma
+> assinatura que muda e quebra quem já existia, é uma classe nova que só se
+> prova errada quando roda ao lado de tudo o que a Rota Sul já tinha, nunca
+> isolada.
+
 ### 3.6 Testar o Strategy
 
 `CalculoDeFreteServiceTest`, em
@@ -487,6 +536,8 @@ Em `docs/decisoes.md`, duas linhas novas:
 - `CalculadoraDeFrete`, `FreteRotaPropria` e `FreteTransportadoraParceira`,
   em `pedido.domain`.
 - `CalculoDeFreteService`, em `pedido.service`, anotada `@Service`.
+- `CalculoDeFreteConfig`, em `pedido.service`, registrando `FreteRotaPropria`
+  e `FreteTransportadoraParceira` como bean.
 - `CalculoDeFreteServiceTest`, com os dois casos de região, passando.
 - `OcorrenciaCreator`, `AtrasoOcorrenciaCreator` e
   `ExtravioOcorrenciaCreator`, em `rastreamento.domain`.
@@ -499,9 +550,10 @@ Em `docs/decisoes.md`, duas linhas novas:
 |---|---|
 | `CalculoDeFreteServiceTest` passando | `./mvnw test` verde, `"PRINCIPAL"` calcula `15.00` e `"ULTIMA_MILHA"` calcula `19.50` |
 | `OcorrenciaCreatorTest` passando | `./mvnw test` verde, os três casos: `ATRASO`, `EXTRAVIO` e a exceção do código vazio |
-| Nenhuma anotação de framework nas classes de domínio envolvidas | Inspeção de `Pedido`, `CalculadoraDeFrete`, `FreteRotaPropria`, `FreteTransportadoraParceira`, `Ocorrencia`, `OcorrenciaAtraso`, `OcorrenciaExtravio`, `OcorrenciaCreator`, `AtrasoOcorrenciaCreator` e `ExtravioOcorrenciaCreator`: nenhuma tem anotação; só `CalculoDeFreteService` leva `@Service` |
+| Nenhuma anotação de framework nas classes de domínio envolvidas | Inspeção de `Pedido`, `CalculadoraDeFrete`, `FreteRotaPropria`, `FreteTransportadoraParceira`, `Ocorrencia`, `OcorrenciaAtraso`, `OcorrenciaExtravio`, `OcorrenciaCreator`, `AtrasoOcorrenciaCreator` e `ExtravioOcorrenciaCreator`: nenhuma tem anotação; `CalculoDeFreteService` leva `@Service`, e `CalculoDeFreteConfig` leva `@Configuration`, mas nenhuma das duas é classe de domínio |
 | Nenhuma classe fora de `pedido.domain`, `pedido.service` e `rastreamento.domain` instancia diretamente uma das quatro implementações concretas | Busca por `new FreteRotaPropria`, `new FreteTransportadoraParceira`, `new AtrasoOcorrenciaCreator` e `new ExtravioOcorrenciaCreator` fora desses três pacotes |
 | As duas decisões estão registradas | `docs/decisoes.md` com as duas linhas novas, Strategy e Factory Method |
+| `CalculoDeFreteService` sobe com o contexto Spring inteiro, não só no teste manual | `./mvnw spring-boot:run` sem `UnsatisfiedDependencyException`; `CalculoDeFreteConfig` fornece o bean de `FreteRotaPropria` e de `FreteTransportadoraParceira` |
 | `./mvnw test` passando | Suíte inteira verde, incluindo os dois testes de hoje e os testes das Aulas 06 e 07 que o kit já ajustou ao novo construtor de `Pedido` |
 | O commit da aula existe | `git log` do fork mostra o commit `feat(padroes): aplica Strategy no calculo de frete e Factory Method na criacao de Ocorrencia` |
 
@@ -525,6 +577,19 @@ do construtor de `Pedido` (`PedidoServicePadraoTest`,
 `PedidoServiceContratoTest` e as suas duas subclasses concretas), exatamente
 para confirmar que os seis arquivos do kit (seção 0) fazem a suíte inteira
 do fork nascer verde, não só o código de hoje isolado.
+
+Mesmo essa verificação, mais ampla que isolar só o código de hoje, ainda não
+bastava: ela não incluía `expedicao` nem `parceiro`, os contextos das Aulas
+09 e 10, e por isso não tinha nenhum teste `@SpringBootTest` de contexto
+completo capaz de expor a falta do bean de `FreteRotaPropria` e de
+`FreteTransportadoraParceira`. Foi só ao montar o fork acumulado desde a
+Aula 06 até a Aula 11, com `ParceiroClientTest`
+(`@SpringBootTest(webEnvironment = RANDOM_PORT)`, da Aula 10) presente, que
+o defeito apareceu: `UnsatisfiedDependencyException` ao montar
+`CalculoDeFreteService`, porque nenhum bean de `FreteRotaPropria` existia. O
+`CalculoDeFreteConfig` do passo 3.5 resolve isso; com ele, o fork acumulado
+completo (Aulas 06 a 11) compila e a suíte inteira fica verde, incluindo
+`ParceiroClientTest` e `RemessaControllerTest`, herdados das Aulas 10 e 09.
 
 ```
 $ export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home

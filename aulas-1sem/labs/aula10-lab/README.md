@@ -463,6 +463,67 @@ $ curl http://localhost:8080/remessas/1/situacao-parceiro
 O `codigoRastreio` da remessa 1 é `RS-0001`, então o parceiro simulado
 devolve `EM_TRANSITO`, exatamente a regra do passo 3.4.
 
+> **O construtor de `RemessaController` ganha um parâmetro, e isso quebra
+> quem o instanciava em teste.** `RemessaControllerTest`, entregue na Aula
+> 09, sobe o contexto com `@WebMvcTest(RemessaController.class)` e troca
+> `RemessaService` por um mock com `@MockBean`. Até aqui isso bastava: o
+> controlador só recebia `RemessaService` no construtor. A partir de agora
+> ele recebe `ParceiroClient` também, e o Spring não tem como montar o bean
+> `RemessaController` dentro do contexto fatiado do `@WebMvcTest` sem que
+> `ParceiroClient` também esteja disponível, como mock. Sem o ajuste
+> abaixo, `./mvnw test` falha ao subir o contexto do teste, não por um
+> `assertEquals` errado, mas porque o Spring não consegue instanciar o
+> controlador. É a mesma lição da Aula 07 (interface no lugar de classe
+> concreta) e da Aula 11 (parâmetro novo no construtor de `Pedido`): mudar
+> a assinatura de algo que outro código já instancia é decisão de design
+> com custo real, e o custo é ajustar quem depende da assinatura antiga.
+
+Acrescentar ao `RemessaControllerTest` da Aula 09 o `@MockBean` de
+`ParceiroClient`, ao lado do `@MockBean` de `RemessaService` que já existia:
+
+```java
+package br.uni9.rotasul.expedicao.web;
+
+// ... imports já existentes do teste da Aula 09 ...
+
+@WebMvcTest(RemessaController.class)
+class RemessaControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private RemessaService remessaService;
+
+    @MockBean
+    private ParceiroClient parceiroClient;
+
+    // os dois métodos de teste da Aula 09, respondeEmJsonQuandoOAcceptPedeJson
+    // e respondeEmXmlQuandoOAcceptPedeXml, continuam exatamente como estavam
+}
+```
+
+Nenhum dos dois métodos de teste muda: nenhum dos dois chama
+`situacao-parceiro`, então nenhum precisa programar um retorno para
+`parceiroClient`. O `@MockBean` sozinho já resolve a dependência que falta
+para o contexto subir; sem ele o Spring lança
+`UnsatisfiedDependencyException` na hora de criar o bean
+`RemessaController`.
+
+```bash
+./mvnw test
+```
+
+Saída de referência, obtida rodando este mesmo gabarito:
+
+```
+[INFO] Running br.uni9.rotasul.expedicao.web.RemessaControllerTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.612 s
+[INFO] Results:
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+```
+
 ### 3.9 Documentar a API e registrar a decisão
 
 No `pom.xml`:
@@ -507,7 +568,10 @@ No fork do aluno:
 - `ParceiroClientTest`, com `@SpringBootTest(webEnvironment = RANDOM_PORT)` e
   `@LocalServerPort`, passando.
 - `RemessaController` (da Aula 09) acrescido de `GET
-  /remessas/{id}/situacao-parceiro`.
+  /remessas/{id}/situacao-parceiro` e do parâmetro `ParceiroClient` no
+  construtor.
+- `RemessaControllerTest` (da Aula 09) ajustado com o `@MockBean` de
+  `ParceiroClient`, ao lado do `@MockBean` de `RemessaService` já existente.
 - `pom.xml` com `spring-boot-starter-web-services`, `wsdl4j`,
   `jaxb-runtime`, `jaxb2-maven-plugin` (linha 3.x, versão presa) e
   `springdoc-openapi-starter-webmvc-ui`.
@@ -524,7 +588,8 @@ No fork do aluno:
 | Swagger UI lista os endpoints de `/remessas` | `/swagger-ui/index.html` abrindo na porta do terminal, com os dois caminhos de `/remessas` em `/v3/api-docs` |
 | `GET /remessas/{id}/situacao-parceiro` funcionando | Saída do `curl` colada no commit, com `situacao` vindo do parceiro simulado |
 | Nenhuma URI de parceiro fixada dentro de `ParceiroClient` | A URI só entra por `apontarPara`, lida de `rotasul.parceiro.uri` no bean de configuração |
-| `./mvnw test` passando | Suíte inteira verde, incluindo os dois métodos de `ParceiroClientTest` |
+| `RemessaControllerTest`, da Aula 09, continua verde | `@MockBean` de `ParceiroClient` acrescentado ao lado do `@MockBean` de `RemessaService` |
+| `./mvnw test` passando | Suíte inteira verde, incluindo os dois métodos de `ParceiroClientTest` e os dois de `RemessaControllerTest` |
 | A decisão está registrada | Linha nova em `docs/decisoes.md` explicando o parceiro simulado |
 | O commit da aula existe | `git log` do fork mostra o commit `feat(parceiro): consome o parceiro legado por SOAP e documenta a API REST com springdoc` |
 
@@ -547,3 +612,12 @@ testes verdes em `ParceiroClientTest`), `mvn clean package -DskipTests`,
 contra o WSDL, o endpoint SOAP bruto (envelope XML manual), `GET
 /remessas/{id}`, `GET /remessas/{id}/situacao-parceiro` e o Swagger UI.
 Nenhum processo ficou para trás depois dos testes manuais.
+
+Essa verificação isolada, sozinha, não bastaria: `RemessaControllerTest`
+pertence à camada `expedicao`, que a Aula 10 não recria, e só existe no
+fork acumulado desde a Aula 09. Por isso este gabarito também foi conferido
+no fork acumulado, com o código das Aulas 06 a 10 empilhado no mesmo
+projeto Maven: `./mvnw test` roda a suíte inteira, incluindo
+`RemessaControllerTest` com o `@MockBean` de `ParceiroClient` do passo 3.8,
+e fica verde. É essa segunda verificação, não a primeira, que prova que o
+laboratório de hoje não quebra o que a Aula 09 entregou.

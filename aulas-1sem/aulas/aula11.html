@@ -567,14 +567,14 @@ CalculoDeFreteService o-- CalculadoraDeFrete</code></pre>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 21: LAB PASSO 5, CONTEXTO DO STRATEGY (1/2) ==================== -->
+      <!-- ==================== SLIDE 21: LAB PASSO 5, CONTEXTO DO STRATEGY (1/3) ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
         <div class="decor-coral"></div>
         <div class="slide-title-area">
           <div class="accent-bar"></div>
-          <h2>Laboratório, passo 5: o contexto do Strategy (1/2)</h2>
+          <h2>Laboratório, passo 5: o contexto do Strategy (1/3)</h2>
         </div>
 
         <p class="lead">Em <code>pedido/service</code>, <code>CalculoDeFreteService</code>, anotada <code>@Service</code>, recebendo as duas estratégias pelo construtor.</p>
@@ -596,19 +596,19 @@ public class CalculoDeFreteService {
         </div>
 
         <div class="slide-footer">
-          <div class="footer-bar">11 Laboratório, passo 5, contexto (1/2)</div>
+          <div class="footer-bar">11 Laboratório, passo 5, contexto (1/3)</div>
           <div class="footer-page">21</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 22: LAB PASSO 5, CONTEXTO DO STRATEGY (2/2) ==================== -->
+      <!-- ==================== SLIDE 22: LAB PASSO 5, CONTEXTO DO STRATEGY (2/3) ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
         <div class="decor-coral"></div>
         <div class="slide-title-area">
           <div class="accent-bar"></div>
-          <h2>Laboratório, passo 5: o contexto do Strategy (2/2)</h2>
+          <h2>Laboratório, passo 5: o contexto do Strategy (2/3)</h2>
         </div>
 
         <p class="lead">O método <code>calcular</code> decide qual estratégia chamar olhando <code>pedido.getRegiao()</code>.</p>
@@ -626,12 +626,42 @@ public class CalculoDeFreteService {
         </div>
 
         <div class="slide-footer">
-          <div class="footer-bar">11 Laboratório, passo 5, contexto (2/2)</div>
+          <div class="footer-bar">11 Laboratório, passo 5, contexto (2/3)</div>
           <div class="footer-page">22</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 23: LAB PASSO 6, TESTAR O STRATEGY ==================== -->
+      <!-- ==================== SLIDE 23: LAB PASSO 5, REGISTRAR AS ESTRATÉGIAS COMO BEAN (3/3) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: registrar as estratégias como bean (3/3)</h2>
+        </div>
+
+        <p class="lead">Ainda em <code>pedido/service</code>, <code>CalculoDeFreteConfig</code>: registra as duas estratégias como bean, sem anotar as classes de domínio.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Configuration
+public class CalculoDeFreteConfig {
+  @Bean
+  public FreteRotaPropria freteRotaPropria() { return new FreteRotaPropria(); }
+  @Bean
+  public FreteTransportadoraParceira freteTransportadoraParceira() { return new FreteTransportadoraParceira(); }
+}</code></pre>
+
+        <div class="callout" style="margin-top:4px;">
+          <p><strong>Sem esta classe, o Spring não sobe.</strong> <code>CalculoDeFreteServiceTest</code> não percebe, porque usa <code>new</code>; um <code>@SpringBootTest</code> de contexto inteiro falharia com <code>UnsatisfiedDependencyException</code>. Mesmo padrão do <code>ParceiroClientConfig</code>, da Aula 10.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">11 Laboratório, passo 5, bean (3/3)</div>
+          <div class="footer-page">23</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 24: LAB PASSO 6, TESTAR O STRATEGY ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -656,11 +686,11 @@ void calculaTarifaFixaParaPedidoDaRotaPrincipal() {
 
         <div class="slide-footer">
           <div class="footer-bar">11 Laboratório, passo 6, teste</div>
-          <div class="footer-page">23</div>
+          <div class="footer-page">24</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 24: LAB PASSO 7, CONTEXTO RASTREAMENTO ==================== -->
+      <!-- ==================== SLIDE 25: LAB PASSO 7, CONTEXTO RASTREAMENTO ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -685,11 +715,11 @@ void calculaTarifaFixaParaPedidoDaRotaPrincipal() {
 
         <div class="slide-footer">
           <div class="footer-bar">11 Laboratório, passo 7, rastreamento</div>
-          <div class="footer-page">24</div>
+          <div class="footer-page">25</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 25: LAB PASSO 8, O FACTORY METHOD ==================== -->
+      <!-- ==================== SLIDE 26: LAB PASSO 8, O FACTORY METHOD ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -719,11 +749,11 @@ void calculaTarifaFixaParaPedidoDaRotaPrincipal() {
 
         <div class="slide-footer">
           <div class="footer-bar">11 Laboratório, passo 8, Factory Method</div>
-          <div class="footer-page">25</div>
+          <div class="footer-page">26</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 26: LAB PASSO 9, TESTAR O FACTORY METHOD ==================== -->
+      <!-- ==================== SLIDE 27: LAB PASSO 9, TESTAR O FACTORY METHOD ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -753,11 +783,11 @@ void registrarComCodigoDeRastreioVazioLancaExcecao() {
 
         <div class="slide-footer">
           <div class="footer-bar">11 Laboratório, passo 9, teste</div>
-          <div class="footer-page">26</div>
+          <div class="footer-page">27</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 27: LAB PASSO 10, REGISTRAR AS DECISÕES ==================== -->
+      <!-- ==================== SLIDE 28: LAB PASSO 10, REGISTRAR AS DECISÕES ==================== -->
       <section class="exercise-slide content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -777,11 +807,11 @@ a ligacao do atendente nao deve conhecer as subclasses concretas.</code></pre>
 
         <div class="slide-footer">
           <div class="footer-bar">11 Laboratório, passo 10, decisões</div>
-          <div class="footer-page">27</div>
+          <div class="footer-page">28</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 28: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- ==================== SLIDE 29: ENTREGÁVEL E CRITÉRIOS ==================== -->
       <!-- O slide do entregável é o último passo do laboratório e nasce
            dentro do Ciclo 4, então leva `exercise-slide content-slide` como
            os demais slides de passo. Ver ADR-008. -->
@@ -805,17 +835,18 @@ a ligacao do atendente nao deve conhecer as subclasses concretas.</code></pre>
             <tr><td><code>OcorrenciaCreatorTest</code> passando</td><td><code>./mvnw test</code> verde, os três casos, <code>ATRASO</code>, <code>EXTRAVIO</code> e exceção</td></tr>
             <tr><td>Nenhuma anotação de framework no domínio envolvido</td><td>Inspeção de <code>Pedido</code>, <code>CalculadoraDeFrete</code>, as duas estratégias, <code>Ocorrencia</code> e suas subclasses, <code>OcorrenciaCreator</code> e seus dois criadores</td></tr>
             <tr><td>Nenhuma classe fora dos pacotes de domínio e serviço instancia as quatro implementações diretamente</td><td>Busca por <code>new FreteRotaPropria</code>, <code>new FreteTransportadoraParceira</code>, <code>new AtrasoOcorrenciaCreator</code> e <code>new ExtravioOcorrenciaCreator</code> fora de <code>pedido.domain</code>, <code>pedido.service</code> e <code>rastreamento.domain</code></td></tr>
+            <tr><td><code>CalculoDeFreteService</code> sobe com o contexto Spring inteiro</td><td><code>CalculoDeFreteConfig</code> fornece o bean das duas estratégias; sem <code>UnsatisfiedDependencyException</code> em <code>./mvnw spring-boot:run</code></td></tr>
             <tr><td>As duas decisões registradas</td><td><code>docs/decisoes.md</code> com as duas linhas novas</td></tr>
           </tbody>
         </table>
 
         <div class="slide-footer">
           <div class="footer-bar">11 Entregável e critérios</div>
-          <div class="footer-page">28</div>
+          <div class="footer-page">29</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 29: FECHAMENTO ==================== -->
+      <!-- ==================== SLIDE 30: FECHAMENTO ==================== -->
       <section class="content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -842,11 +873,11 @@ git push</code></pre>
 
         <div class="slide-footer">
           <div class="footer-bar">11 Fechamento</div>
-          <div class="footer-page">29</div>
+          <div class="footer-page">30</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 30: REFERÊNCIAS ==================== -->
+      <!-- ==================== SLIDE 31: REFERÊNCIAS ==================== -->
       <section id="ref-slide" class="content-slide">
         <div class="top-bar"></div>
         <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
@@ -887,11 +918,11 @@ git push</code></pre>
 
         <div class="slide-footer">
           <div class="footer-bar">11 Referências</div>
-          <div class="footer-page">30</div>
+          <div class="footer-page">31</div>
         </div>
       </section>
 
-      <!-- ==================== SLIDE 31: ENCERRAMENTO ==================== -->
+      <!-- ==================== SLIDE 32: ENCERRAMENTO ==================== -->
       <section class="end-slide">
         <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
              style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">

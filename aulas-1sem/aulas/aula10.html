@@ -707,6 +707,10 @@ public ConsultaEntregaResponse situacaoNoParceiro(@PathVariable Long id) {
           <p>O dado que chegou por SOAP sai por REST, para qualquer consumidor da Rota Sul.</p>
         </div>
 
+        <div class="callout" style="margin-top:6px;">
+          <p><strong>Um parâmetro novo no construtor quebra o teste que a Aula 09 entregou:</strong> <code>RemessaControllerTest</code> usa <code>@WebMvcTest(RemessaController.class)</code> com <code>@MockBean RemessaService</code>; sem um <code>@MockBean ParceiroClient</code> também, o Spring não tem como montar o controlador e o contexto do teste não sobe. Ajustar esse teste é parte do laboratório de hoje, não um passo à parte.</p>
+        </div>
+
         <div class="slide-footer">
           <div class="footer-bar">10 Laboratório, passo 8, REST</div>
           <div class="footer-page">24</div>
