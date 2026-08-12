@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aula 05, Arquitetura de software e representação em UML | Uninove</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="../assets/css/uninove-theme.css">
+  <link rel="stylesheet" href="../assets/css/uninove-print.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ==================== SLIDE 1: CAPA ==================== -->
+      <section class="cover-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho" class="uninove-logo-full"
+             style="max-width:400px; background:#FFFFFF; padding:26px 36px; border-radius:10px;">
+        <div style="margin-top:36px; color:#FFFFFF; font-size:0.95em; font-weight:800; letter-spacing:4px; text-transform:uppercase;">Arquitetura de Software</div>
+        <div style="margin-top:12px; color:#C84B31; font-size:0.6em; font-weight:700; letter-spacing:3px; text-transform:uppercase;">Graduação, 2026.2</div>
+      </section>
+
+      <!-- ==================== SLIDE 2: TÍTULO ==================== -->
+      <section class="title-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="title-card">
+          <div class="accent-bar"></div>
+          <h1>Arquitetura de Software</h1>
+          <h2>Arquitetura de software e representação em UML</h2>
+          <h3>Prof. José Romualdo</h3>
+        </div>
+        <div class="lesson-bar">AULA 05 &nbsp;|&nbsp; Módulo 1, Fundamentos e sistemas colaborativos</div>
+      </section>
+
+      <!-- ==================== SLIDE 3: AGENDA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Agenda do encontro de hoje</h2>
+        </div>
+
+        <p class="lead">São 150 minutos corridos, em quatro ciclos. Não há intervalo formal: a troca de ciclo é o respiro da aula.</p>
+
+        <table>
+          <thead>
+            <tr><th style="width:190px;">Horário</th><th style="width:200px;">Bloco</th><th>O que acontece</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>19h30 às 20h05</td><td>Ciclo 1</td><td>O que é arquitetura de software, de onde vem o nome e de onde vem a UML</td></tr>
+            <tr><td>20h05 às 20h40</td><td>Ciclo 2</td><td>Os cinco diagramas UML de arquitetura e qual pergunta cada um responde</td></tr>
+            <tr><td>20h40 às 20h50</td><td>Quiz de fixação</td><td>Qual diagrama documenta entidades, atributos e multiplicidade</td></tr>
+            <tr><td>20h50 às 21h25</td><td>Ciclo 3</td><td>Laboratório: revisão de componentes e diagrama de classes do domínio</td></tr>
+            <tr><td>21h25 às 21h50</td><td>Ciclo 4</td><td>Laboratório: diagrama de pacotes, decisão e entregável</td></tr>
+            <tr><td>21h50 às 22h00</td><td>Fechamento</td><td>Commit, push e prévia da Aula 06</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Agenda do encontro</div>
+          <div class="footer-page">3</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 4: RETOMADA DA AULA 04 ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Retomada: o que a Aula 04 deixou pronto</h2>
+        </div>
+
+        <p class="lead">Na Aula 04 cada aluno entregou <code>docs/arquitetura-colaborativa.md</code> e os quatro arquivos de <code>docs/arquitetura/</code>: <code>componentes.puml</code>/<code>.md</code> e <code>implantacao.puml</code>/<code>.md</code>.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>A mesma ferramenta, decisões diferentes</h4>
+            <p style="margin:0;">Todos usaram a mesma notação PlantUML, mas cada um recortou os componentes do seu jeito e nomeou as interfaces à própria maneira. O diagrama comunica para quem o desenhou e para mais ninguém.</p>
+          </div>
+          <div class="side">
+            <h4>O que falta</h4>
+            <p style="margin:0;">Nenhum dos dois esboços foi checado contra uma definição formal de UML. Hoje o capítulo dá essa base, e o Ciclo 3 revisa o próprio <code>componentes.puml</code> contra ela.</p>
+          </div>
+        </div>
+
+        <div class="takeaway">
+          <span class="takeaway-label">No projetor</span>
+          <p>Projetar o <code>componentes.puml</code> de dois alunos lado a lado e mostrar que os nomes de interface e o recorte dos componentes divergem, mesmo com a sintaxe igual.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Retomada</div>
+          <div class="footer-page">4</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 5: CICLO 1, AUMENTO DE COMPLEXIDADE E PROBLEMA CENTRAL ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>O problema que justifica a disciplina <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Os primeiros softwares, dos anos 1950 aos 1980, automatizavam tarefas específicas e tinham requisitos simples. Os anos 1990 mudaram isso, na narrativa do capítulo [1].</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>O que aumentou a complexidade</h4>
+            <p style="margin:0;">Internet comercial e telefonia celular popularizadas nos anos 1990 levaram os sistemas a novos níveis de uso, e os requisitos ficaram muito mais complexos.</p>
+          </div>
+          <div class="side">
+            <h4>O problema central</h4>
+            <p style="margin:0;">A complexidade cresceu principalmente na hora de <strong>modificar</strong> o software: determinar o quanto uma mudança afeta o que já existe, e o quanto ela mesma exige trabalho novo para corrigir o que quebrou.</p>
+          </div>
+        </div>
+
+        <div class="takeaway">
+          <span class="takeaway-label">É esse problema que a disciplina inteira ataca</span>
+          <p>Documentar a arquitetura é a resposta a essa pergunta: o quanto uma mudança afeta o que já está pronto.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 O problema central</div>
+          <div class="footer-page">5</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 6: CICLO 1, DE ONDE VEM O NOME ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>De onde vem o nome arquitetura de software <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Durante os anos 1960 e 1970, os desenvolvedores perceberam a necessidade de manter documentada a organização de um software, tanto para iniciar quanto para manter.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>A analogia com a construção civil</h4>
+            <p style="margin:0;">Como era algo análogo ao que já acontecia na construção civil, os pioneiros usaram o nome <strong>arquitetura de software</strong>. Os primeiros a publicar sobre o tema foram Edsger Dijkstra e David Parnas, em pesquisas sobre processamento concorrente e desenvolvimento modular.</p>
+          </div>
+          <div class="side">
+            <h4>Onde o assunto se organizou</h4>
+            <p style="margin:0;">Boa parte do trabalho ficou centrada no SEI, Instituto de Engenharia de Software da Carnegie Mellon: sem determinação formal, mas muito do que sai de lá vira padrão de facto na indústria.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 De onde vem o nome</div>
+          <div class="footer-page">6</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 7: CICLO 1, DOIS MODELOS DE PROJETO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Dois modelos de projeto de software <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Para projetar um software, o capítulo apresenta dois modelos, e os dois orientam o que considerar e como documentar.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Análise estruturada <a href="#/ref-slide" class="ref-badge" title="Ver referências">[2]</a></h4>
+            <p style="margin:0; font-size:0.72em;">Popular nos anos 1980. Projeta olhando os <strong>processos</strong> e como eles modificam uma informação: com que dados um processo começa, onde ficam armazenados, que módulos processam. Método mais conhecido: YSM, de Edward Yourdon [2].</p>
+          </div>
+          <div class="side">
+            <h4>Análise orientada a objetos</h4>
+            <p style="margin:0; font-size:0.72em;">Popular a partir dos anos 1990, com a Internet. Determina, a partir do conceito do sistema, quais objetos interagem com ele e como cada um afeta ou é afetado. Um método único se sobressaiu: o de Jacobson, Booch e Rumbaugh.</p>
+          </div>
+        </div>
+
+        <div class="takeaway">
+          <span class="takeaway-label">A diferença que importa hoje</span>
+          <p>A análise estruturada nasceu no auge do cliente-servidor e indicava o que roda no servidor e o que roda no cliente; a orientada a objetos deu origem à linguagem que a aula formaliza a seguir.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Dois modelos de projeto</div>
+          <div class="footer-page">7</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 8: CICLO 1, A UML NASCE ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>A UML nasce do método que se sobressaiu <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">O método de Jacobson, Booch e Rumbaugh era apoiado por uma linguagem de documentação capaz de registrar entidades, processos e a organização do software em componentes.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Por que "unificada"</h4>
+            <p style="margin:0;">Essa linguagem recebeu o nome de <strong>UML, Linguagem Unificada de Modelagem</strong>, porque a comunidade percebeu a vantagem de um método padronizado em vez de vários concorrentes, como acontecia na análise estruturada.</p>
+          </div>
+          <div class="side">
+            <h4>Quem mantém a especificação</h4>
+            <p style="margin:0;">A UML continua atualizada por um consórcio, o <strong>OMG</strong> [4], que mantém o <code>uml.org</code> e por isso tem várias versões de especificação ao longo do tempo.</p>
+          </div>
+        </div>
+
+        <div class="takeaway">
+          <span class="takeaway-label">Onde a Aula 05 entra na espiral</span>
+          <p>Os diagramas de componentes e implantação da Aula 04 já usavam UML sem dizer o nome. Hoje o nome e a formalização chegam, mais o diagrama de classes e o de pacotes.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 A UML nasce</div>
+          <div class="footer-page">8</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 9: CICLO 1, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: cinco perguntas que os esboços não respondem</h2>
+        </div>
+
+        <p class="lead">Voltar aos dois <code>componentes.puml</code> projetados na retomada e listar no quadro, em voz alta, cinco perguntas de quem lê de fora.</p>
+
+        <div class="exercise-container">
+          <h3>As cinco perguntas</h3>
+          <ol class="exercise-steps">
+            <li>Essa seta é chamada de método ou de envio de mensagem?</li>
+            <li>Essa caixa é uma classe, um componente ou uma máquina?</li>
+            <li>Quantos volumes cabem numa remessa?</li>
+            <li>Isso roda no servidor ou no celular?</li>
+            <li>Esse retângulo maior é um agrupamento lógico ou uma máquina física?</li>
+          </ol>
+        </div>
+
+        <div class="takeaway" style="margin-top:6px;">
+          <span class="takeaway-label">É assim que o Ciclo 2 começa</span>
+          <p>Cada uma dessas cinco perguntas corresponde a um diagrama específico da UML.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Demonstração, cinco perguntas</div>
+          <div class="footer-page">9</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 10: EXERCÍCIO CURTO DO CICLO 1 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício individual: o atendente e a remessa</h2>
+        </div>
+
+        <p class="lead">Cinco minutos, individual. Enunciado: "o atendente consulta as ocorrências de uma remessa para responder ao cliente".</p>
+
+        <div class="exercise-container">
+          <h3>O que escrever nos cinco minutos</h3>
+          <ol class="exercise-steps">
+            <li>O que a análise estruturada olharia: os processos e os dados que eles transformam.</li>
+            <li>O que a análise orientada a objetos olharia: as entidades envolvidas e como cada uma afeta ou é afetada.</li>
+          </ol>
+        </div>
+
+        <div class="callout">
+          <p><strong>Duas leituras em voz alta:</strong> uma resposta de cada modelo, para contrastar o mesmo enunciado sob os dois olhares.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Exercício, dois modelos</div>
+          <div class="footer-page">10</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 11: CICLO 2, CLASSES E COMPONENTES ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Diagrama de classes e de componentes <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">O capítulo indica cinco diagramas UML para representar arquitetura de software. Cada um responde a uma pergunta diferente.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Diagrama de classes</h4>
+            <p style="margin:0; font-size:0.72em;">Representa a estrutura e as relações das classes que constroem o software. É conceitual: pode representar o sistema inteiro ou só parte dele. Também serve para representar <strong>mapas objeto-relacional</strong>, assunto das Aulas 14, 15 e 18.</p>
+          </div>
+          <div class="side">
+            <h4>Diagrama de componentes</h4>
+            <p style="margin:0; font-size:0.72em;">Mostra como as classes se organizam em componentes: um programa que executa uma tarefa. Destaca dados necessários e respostas geradas. Usado sobretudo em sistemas de alta complexidade, para mostrar a distribuição segundo modelos como SOA e MVC.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Classes e componentes</div>
+          <div class="footer-page">11</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 12: CICLO 2, IMPLANTAÇÃO E PACOTES ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Diagrama de implantação e de pacotes <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Os dois diagramas que a Aula 04 já usou por intuição, agora com a definição formal do capítulo.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Diagrama de instalação, ou implantação</h4>
+            <p style="margin:0; font-size:0.72em;">Mostra a distribuição dos componentes de hardware e software e sua interação. Não é tão usado durante o desenvolvimento: aparece nas fases finais, ou quando é preciso ligar um software novo a um sistema existente.</p>
+          </div>
+          <div class="side">
+            <h4>Diagrama de pacotes</h4>
+            <p style="margin:0; font-size:0.72em;">Ilustra como as classes estão divididas em pacotes, agrupamentos lógicos normalmente organizados por funcionalidade. É um dos diagramas mais fáceis de aplicar para mostrar a adequação ao modelo de arquitetura escolhido.</p>
+          </div>
+        </div>
+
+        <div class="takeaway">
+          <span class="takeaway-label">É o diagrama de pacotes que o Ciclo 4 formaliza</span>
+          <p>A estrutura que ele desenha hoje é a mesma que a Aula 06 vai criar de verdade em código Java.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Implantação e pacotes</div>
+          <div class="footer-page">12</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 13: CICLO 2, ESTRUTURA COMPOSTA E TABELA DE FECHAMENTO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Estrutura composta, e a pergunta certa para cada diagrama <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">O quinto diagrama: <strong>estrutura composta</strong>, usado para demonstrar a arquitetura interna de uma funcionalidade específica, descrevendo a colaboração interna de classes, interfaces ou componentes.</p>
+
+        <table style="margin-top:4px;">
+          <thead>
+            <tr><th>Pergunta</th><th>Diagrama</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Que entidades existem e como se relacionam?</td><td>Classes</td></tr>
+            <tr><td>Que partes executáveis existem e o que uma oferece à outra?</td><td>Componentes</td></tr>
+            <tr><td>Onde cada parte roda?</td><td>Implantação</td></tr>
+            <tr><td>Como o código está agrupado logicamente?</td><td>Pacotes</td></tr>
+            <tr><td>Como uma funcionalidade específica é montada por dentro?</td><td>Estrutura composta</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Pergunta certa, diagrama certo</div>
+          <div class="footer-page">13</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 14: CICLO 2, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: a notação de componentes já era UML</h2>
+        </div>
+
+        <p class="lead">Abrir o <code>componentes.puml</code> da Aula 04 ao vivo: <code>component</code> desenha o retângulo com o ícone no canto, e <code>interface</code> desenha o pirulito da interface oferecida e o soquete de quem a consome.</p>
+
+        <pre class="code-compact"><code class="language-text" data-trim>class Remessa {
+  +Long id
+  +String codigoRastreio
+}
+class Volume {
+  +Long id
+  +BigDecimal pesoKg
+}
+Remessa "1" -- "1..*" Volume</code></pre>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">O que a multiplicidade responde</span>
+          <p>Uma pergunta que o esboço da semana passada não respondia: quantos volumes cabem numa remessa.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Demonstração, classes e multiplicidade</div>
+          <div class="footer-page">14</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 15: EXERCÍCIO CURTO DO CICLO 2 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício em duplas: qual diagrama responde</h2>
+        </div>
+
+        <p class="lead">Cinco minutos, em duplas. Para cada pergunta, dizer qual dos cinco diagramas responde.</p>
+
+        <div class="exercise-container">
+          <h3>As quatro perguntas</h3>
+          <ol class="exercise-steps">
+            <li>Uma <code>Ocorrencia</code> pertence a um <code>Volume</code> ou a uma <code>Remessa</code>?</li>
+            <li>O serviço de rastreamento roda na mesma máquina que o banco?</li>
+            <li>As classes de apresentação e as de acesso a dados estão separadas?</li>
+            <li>O componente de integração com parceiro oferece qual interface?</li>
+          </ol>
+        </div>
+
+        <div class="callout">
+          <p><strong>Gabarito:</strong> (a) classes, (b) implantação, (c) pacotes, (d) componentes.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Exercício, qual diagrama</div>
+          <div class="footer-page">15</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 16: QUIZ DE FIXAÇÃO ==================== -->
+      <section class="quiz-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area"><div class="accent-bar"></div><h2>Quiz de fixação</h2></div>
+        <div class="quiz-container">
+          <div class="quiz-question">A Rota Sul quer documentar quais entidades existem, quais atributos cada uma tem e quantos volumes uma remessa pode conter. Qual diagrama UML responde a essa necessidade?</div>
+          <ul class="quiz-options">
+            <li data-correct="false"><span class="option-letter">A</span> Diagrama de implantação, pela distribuição de hardware e software.</li>
+            <li data-correct="true"><span class="option-letter">B</span> Diagrama de classes, pela estrutura e relações das classes do software.</li>
+            <li data-correct="false"><span class="option-letter">C</span> Diagrama de pacotes, pelos agrupamentos lógicos das classes.</li>
+            <li data-correct="false"><span class="option-letter">D</span> Diagrama de estrutura composta, pela colaboração interna de uma função.</li>
+          </ul>
+          <div class="quiz-feedback"
+               data-correct-msg="Correto. Classes e relações incluem atributos e multiplicidade, que diz quantos volumes cabem numa remessa."
+               data-incorrect-msg="Incorreto. A responde onde roda, C como agrupa, D descreve a montagem interna de uma função."></div>
+        </div>
+        <div class="slide-footer"><div class="footer-bar">05 Quiz de fixação</div><div class="footer-page">16</div></div>
+      </section>
+
+      <!-- ==================== SLIDE 17: CICLO 3, PLANTUML, LIMITAÇÕES E ARMADILHAS ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório: PlantUML, limitações e armadilhas <a href="#/ref-slide" class="ref-badge" title="Ver referências">[6]</a></h2>
+        </div>
+
+        <p class="lead">Ainda sem código de aplicação. Hoje o <code>componentes.puml</code> da Aula 04 é revisado, e dois diagramas novos nascem com a notação formal que o Ciclo 2 acabou de explicar.</p>
+
+        <div class="side-by-side" style="margin-top:4px;">
+          <div class="side">
+            <h4>Duas limitações, repetidas de hoje</h4>
+            <p style="margin:0; font-size:0.72em;">A imagem depende do serviço externo <code>plantuml.com</code> e some se ele cair, embora o <code>.puml</code> continue como fonte de verdade. O proxy só lê a fonte se o repositório do aluno for público.</p>
+          </div>
+          <div class="side">
+            <h4>Duas armadilhas de sintaxe</h4>
+            <p style="margin:0; font-size:0.72em;"><code>device</code> não aceita bloco com chaves: usar <code>node</code> com o estereótipo. E <code>package</code> vazio ao lado de <code>class</code> solta falha com "Use allowmixing": toda classe entra dentro do pacote a que pertence.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:4px;">
+          <span class="takeaway-label">Duas notações juntas hoje</span>
+          <p>Diagrama de classes usa <code>class</code>; diagrama de pacotes usa <code>package</code>. São dois arquivos <code>.puml</code> separados, não um diagrama misturando os dois.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 PlantUML, limitações e armadilhas</div>
+          <div class="footer-page">17</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 18: LAB PASSO 1 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 1: revisar o diagrama de componentes</h2>
+        </div>
+
+        <p class="lead">Abrir <code>docs/arquitetura/componentes.puml</code>, da Aula 04, e conferir três coisas que na semana passada podiam ter passado.</p>
+
+        <div class="exercise-container">
+          <h3>As três checagens</h3>
+          <ol class="exercise-steps">
+            <li>Toda interface tem nome de operação, e não descrição de conteúdo: <code>receberPedidoValidado</code>, não "pedido validado".</li>
+            <li>Cada interface está ligada com <code>--</code> ao componente que a <strong>oferece</strong> e com <code>--(</code> ao que a <strong>consome</strong>, nunca o contrário.</li>
+            <li>Nenhum componente ficou sem interface: componente que não oferece nem consome nada é caixa solta.</li>
+          </ol>
+        </div>
+
+        <div class="callout">
+          <p><strong>Salvar por cima:</strong> o histórico do Git guarda a versão anterior, e é ele que mostra a evolução do aluno.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Laboratório, passo 1, revisão</div>
+          <div class="footer-page">18</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 19: LAB PASSO 2, AS NOVE ENTIDADES ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 2: listar as classes do domínio</h2>
+        </div>
+
+        <p class="lead">Escrever as nove entidades do case, cada uma com no mínimo três atributos tipados. Sem métodos: o comportamento entra na Aula 06.</p>
+
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:10px;">
+          <div class="concept-card" style="padding:10px 14px;"><h4 style="margin:0; font-size:0.8em;">Cliente</h4></div>
+          <div class="concept-card" style="padding:10px 14px;"><h4 style="margin:0; font-size:0.8em;">Pedido</h4></div>
+          <div class="concept-card" style="padding:10px 14px;"><h4 style="margin:0; font-size:0.8em;">Remessa</h4></div>
+          <div class="concept-card" style="padding:10px 14px;"><h4 style="margin:0; font-size:0.8em;">Volume</h4></div>
+          <div class="concept-card" style="padding:10px 14px;"><h4 style="margin:0; font-size:0.8em;">Rota</h4></div>
+          <div class="concept-card" style="padding:10px 14px;"><h4 style="margin:0; font-size:0.8em;">Veiculo</h4></div>
+          <div class="concept-card" style="padding:10px 14px;"><h4 style="margin:0; font-size:0.8em;">Motorista</h4></div>
+          <div class="concept-card" style="padding:10px 14px;"><h4 style="margin:0; font-size:0.8em;">Ocorrencia</h4></div>
+          <div class="concept-card" style="padding:10px 14px;"><h4 style="margin:0; font-size:0.8em;">Parceiro</h4></div>
+        </div>
+
+        <div class="callout" style="margin-top:10px;">
+          <p><strong>Esses nove nomes não mudam:</strong> valem o semestre inteiro, e ninguém inventa entidade fora da lista.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Laboratório, passo 2, entidades</div>
+          <div class="footer-page">19</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 20: LAB PASSO 3, DECISÕES ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 3: as decisões do diagrama de classes</h2>
+        </div>
+
+        <p class="lead">Criar <code>docs/arquitetura/dominio.puml</code>. Toda associação precisa de multiplicidade nas duas pontas.</p>
+
+        <div class="exercise-container">
+          <h3>Quatro decisões que a turma precisa tomar</h3>
+          <ol class="exercise-steps">
+            <li>Um <code>Pedido</code> gera uma ou várias <code>Remessa</code>?</li>
+            <li>Uma <code>Remessa</code> tem quantos <code>Volume</code>?</li>
+            <li>Uma <code>Ocorrencia</code> se liga ao <code>Volume</code>, à <code>Remessa</code> ou aos dois?</li>
+            <li>O <code>Parceiro</code> se liga à <code>Remessa</code> ou ao <code>Volume</code> da última milha?</li>
+          </ol>
+        </div>
+
+        <div class="callout">
+          <p><strong>Não há gabarito único.</strong> Há gabarito coerente: qualquer escolha vale, desde que o diagrama inteiro fique consistente com ela.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Laboratório, passo 3, decisões</div>
+          <div class="footer-page">20</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 21: LAB PASSO 3, ESQUELETO (1/2) ==================== -->
+      <!-- O esqueleto das três classes ficava com apenas 4px de folga medida
+           num único slide (código de 20 linhas), dentro da margem de erro de
+           variação de fonte entre navegadores (ver ADR-007, risco do quiz).
+           Dividido em dois slides pela mesma regra usada no diagrama de
+           pacotes: nunca encolher a fonte, dividir o conteúdo. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 3: o esqueleto, parte 1 de 2</h2>
+        </div>
+
+        <p class="lead">Três das nove classes, ponto de partida. As outras seis completam com as mesmas regras.</p>
+
+        <pre class="code-compact"><code class="language-text" data-trim>@startuml
+title Classes do domínio da Rota Sul
+class Pedido {
+  +Long id
+  +LocalDateTime criadoEm
+  +String situacao
+}
+class Remessa {
+  +Long id
+  +String codigoRastreio
+  +LocalDate previsaoEntrega
+}
+Pedido "1" -- "1..*" Remessa
+' continua: Volume e a associação com Remessa</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Laboratório, passo 3, esqueleto 1/2</div>
+          <div class="footer-page">21</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 22: LAB PASSO 3, ESQUELETO (2/2) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 3: o esqueleto, parte 2 de 2</h2>
+        </div>
+
+        <p class="lead">Continuação: a terceira classe e a associação que fecha a cadeia Pedido, Remessa, Volume.</p>
+
+        <pre class="code-compact"><code class="language-text" data-trim>class Volume {
+  +Long id
+  +BigDecimal pesoKg
+  +String etiqueta
+}
+Remessa "1" -- "1..*" Volume
+@enduml</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Laboratório, passo 3, esqueleto 2/2</div>
+          <div class="footer-page">22</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 23: LAB PASSO 4, MD E IMAGEM ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 4: o <code>.md</code> irmão e a imagem</h2>
+        </div>
+
+        <p class="lead">Criar <code>docs/arquitetura/dominio.md</code>, mesmo formato do passo 4 da Aula 04, trocando o nome do arquivo para <code>dominio.puml</code>. A linha é uma só; aqui ela aparece quebrada só para caber na tela.</p>
+
+        <!-- A quebra da linha longa do proxy PlantUML dentro deste bloco de
+             código vem do tema (uninove-theme.css, regra `.reveal pre,
+             .reveal pre code`), não é tratada aqui: ver ADR-007. -->
+        <pre class="code-compact"><code class="language-markdown" data-trim># Classes do domínio da Rota Sul
+
+![Diagrama de classes do domínio da Rota Sul](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/SEU_USUARIO/uninove-2026-2-rota-sul/main/docs/arquitetura/dominio.puml)</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><strong>Critério de aceitação:</strong> as nove classes aparecem desenhadas, com atributos dentro da caixa e multiplicidade nas pontas.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Laboratório, passo 4, md e imagem</div>
+          <div class="footer-page">23</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 24: LAB PASSO 5, PACOTES ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: o diagrama de pacotes</h2>
+        </div>
+
+        <p class="lead">Criar <code>docs/arquitetura/pacotes.puml</code> e o <code>pacotes.md</code> irmão. Notação <code>package</code>, aninhada, com pelo menos uma classe dentro de cada pacote.</p>
+
+        <div class="side-by-side" style="margin-top:4px;">
+          <div class="side">
+            <h4>A convenção do semestre</h4>
+            <p style="margin:0; font-size:0.72em;"><strong>Contexto primeiro, camada depois:</strong> <code>br.uni9.rotasul.&lt;contexto&gt;.&lt;camada&gt;</code>. Contextos: <code>pedido</code>, <code>expedicao</code>, <code>rastreamento</code>. Camadas: <code>web</code>, <code>service</code>, <code>repository</code>, <code>domain</code>.</p>
+          </div>
+          <div class="side">
+            <h4>A direção que não muda</h4>
+            <p style="margin:0; font-size:0.72em;">Dependência tracejada <code>..&gt;</code>, sempre de <code>web</code> para <code>service</code> e de <code>service</code> para <code>repository</code>, nunca ao contrário.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Laboratório, passo 5, pacotes</div>
+          <div class="footer-page">24</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 25: LAB PASSO 5, ESQUELETO (1/2) ==================== -->
+      <!-- Bloco de código PlantUML do diagrama de pacotes é o mais alto do
+           deck: o esqueleto completo (29 linhas, contexto "pedido" com as
+           quatro camadas mais "expedicao" e "rastreamento" abreviados)
+           estourava 242px o limite de 1280x720 num único slide. Dividido em
+           dois slides que mostram o mesmo arquivo em duas partes, a
+           primeira terminando sem fechar todas as chaves, a segunda
+           continuando de onde a primeira parou; o esqueleto integral, para
+           copiar, está no README.md do laboratório. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: o esqueleto, parte 1 de 2</h2>
+        </div>
+
+        <p class="lead">Ponto de partida: o contexto <code>pedido</code> completo, com as quatro camadas. Continua no próximo slide.</p>
+
+        <pre class="code-compact"><code class="language-text" data-trim>@startuml
+title Pacotes da Rota Sul
+package "br.uni9.rotasul" {
+  package "pedido" {
+    package "pedido.web" as web {
+      class PedidoController
+    }
+    package "pedido.service" as service {
+      class PedidoService
+    }
+    package "pedido.repository" as repository {
+      interface PedidoRepository
+    }
+    package "pedido.domain" as domain {
+      class Pedido
+    }
+  }
+  ' continua: expedicao, rastreamento e as dependências</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Laboratório, passo 5, esqueleto 1/2</div>
+          <div class="footer-page">25</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 26: LAB PASSO 5, ESQUELETO (2/2) ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: o esqueleto, parte 2 de 2</h2>
+        </div>
+
+        <p class="lead">Continuação: <code>expedicao</code> e <code>rastreamento</code> abreviados, cada aluno completa com as mesmas quatro camadas de <code>pedido</code>. As dependências apontam sempre de fora para dentro.</p>
+
+        <pre class="code-compact"><code class="language-text" data-trim>  package "expedicao" {
+    class RemessaService
+  }
+  package "rastreamento" {
+    class OcorrenciaService
+  }
+}
+web ..> service
+service ..> repository
+service ..> domain
+repository ..> domain
+@enduml</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Laboratório, passo 5, esqueleto 2/2</div>
+          <div class="footer-page">26</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 27: LAB PASSO 6, REGISTRAR DECISÃO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 6: registrar a decisão</h2>
+        </div>
+
+        <p class="lead">Acrescentar em <code>docs/decisoes.md</code>, da Aula 02, uma linha registrando a convenção de pacotes escolhida.</p>
+
+        <pre class="code-compact"><code class="language-markdown" data-trim>| Escolha | Motivo |
+|---|---|
+| ... linhas das aulas anteriores ... | ... |
+| Pacotes por br.uni9.rotasul.contexto.camada | Contexto primeiro isola pedido, expedicao e rastreamento; camada depois separa web, service, repository e domain, com dependência sempre de fora para dentro |</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Laboratório, passo 6, decisão</div>
+          <div class="footer-page">27</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 28: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- O slide do entregável é o último passo do laboratório e nasce
+           dentro do Ciclo 4, então leva `exercise-slide content-slide` como
+           os demais slides de passo. Ver ADR-008. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Entregável de hoje e critérios de aceitação</h2>
+        </div>
+
+        <p class="lead">Dois diagramas novos, mais o de componentes revisado. As três imagens precisam aparecer na página dos <code>.md</code> no fork.</p>
+
+        <table style="margin-top:4px; font-size:0.66em;">
+          <thead>
+            <tr><th style="width:380px;">Critério de aceitação</th><th>Evidência conferida na correção</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>As nove entidades no diagrama de classes, com atributos tipados</td><td><code>dominio.puml</code> e a imagem em <code>dominio.md</code></td></tr>
+            <tr><td>Todas as associações com multiplicidade nas duas pontas</td><td><code>dominio.puml</code>, cada linha de associação</td></tr>
+            <tr><td>Pacotes com os três contextos e as quatro camadas</td><td><code>pacotes.puml</code> e a imagem em <code>pacotes.md</code></td></tr>
+            <tr><td>Dependências de <code>web</code> para <code>service</code> e de <code>service</code> para <code>repository</code></td><td><code>pacotes.puml</code>, setas <code>..&gt;</code></td></tr>
+            <tr><td>Componentes revisados, sem componente sem interface</td><td><code>componentes.puml</code> da Aula 04, salvo por cima</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Entregável e critérios</div>
+          <div class="footer-page">28</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 29: FECHAMENTO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Commit, push e prévia da Aula 06</h2>
+        </div>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>git add docs/arquitetura docs/decisoes.md
+git commit -m "docs(uml): formaliza classes do dominio e pacotes da Rota Sul"
+git push</code></pre>
+
+        <div class="side-by-side" style="margin-top:12px;">
+          <div class="side" style="padding:14px 18px;">
+            <h4>Confira antes de sair</h4>
+            <p style="margin:0; font-size:0.7em;">As três imagens aparecem desenhadas na página dos <code>.md</code>, sem retângulo de erro. Se alguma faltar: fork público, caminho do <code>src</code> e sintaxe do <code>.puml</code>, nessa ordem.</p>
+          </div>
+          <div class="side" style="padding:14px 18px;">
+            <h4>Prévia da Aula 06</h4>
+            <p style="margin:0; font-size:0.7em;">O diagrama de pacotes de hoje tem quatro camadas desenhadas e nenhuma linha de código dentro. Na próxima aula elas viram código: <code>web</code>, <code>service</code> e <code>repository</code>, com o primeiro endpoint da Rota Sul respondendo.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:14px;">
+          <span class="takeaway-label">A ideia de hoje</span>
+          <p>Um diagrama sem notação formal comunica só para quem o desenhou; a UML formaliza classe, componente, implantação, pacote e estrutura composta para que qualquer leitor entenda o mesmo desenho.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Fechamento</div>
+          <div class="footer-page">29</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 30: REFERÊNCIAS ==================== -->
+      <section id="ref-slide" class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Referências desta aula</h2>
+        </div>
+
+        <p class="lead">Os números entre colchetes nos títulos remetem a esta lista.</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; margin-top:14px;">
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[1] Arquitetura de Software</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">MESQUITA, P. R. B. <em>Capítulo 04</em>. Arquitetura de Software. AVA, Uninove. Fonte primária desta aula.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[2] Análise Estruturada Moderna</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">YOURDON, E. São Paulo: Campus, 1990. Referência indicada pelo capítulo para a análise estruturada.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[3] UML Essencial</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">FOWLER, M. 3. ed. Porto Alegre: Bookman, 2005.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[4] Unified Modeling Language</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">OMG. <code style="font-size:0.9em;">uml.org</code>, consórcio mantenedor da especificação, citado pelo capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[5] SEI, Carnegie Mellon University</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;"><code style="font-size:0.9em;">sei.cmu.edu</code>, citado pelo capítulo como centro de referência em arquitetura de software.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[6] PlantUML</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">Documentação da linguagem. <code style="font-size:0.9em;">plantuml.com/pt</code></p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">05 Referências</div>
+          <div class="footer-page">30</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 31: ENCERRAMENTO ==================== -->
+      <section class="end-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
+             style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">
+        <div class="copyright">
+          Copyright &copy; 2026<br>
+          Prof. José Romualdo da Costa Filho<br><br>
+          Todos os direitos reservados. É expressamente proibida a reprodução, divulgação<br>
+          total ou parcial, deste material acadêmico sem autorização formal,<br>
+          por escrito, do Professor autor da ementa.
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="../assets/js/uninove-quiz.js"></script>
+  <script>
+    Reveal.initialize({
+      width: 1280, height: 720, center: false, margin: 0,
+      hash: true, slideNumber: false,
+      // Os chevrons de navegação caem sobre a footer-bar e sobre o triângulo
+      // azul do canto inferior direito; a barra de progresso encosta no rodapé
+      // e parece um segundo rodapé. Nenhum dos dois é usado na projeção.
+      controls: false, progress: false,
+      // Um slide por página no ?print-pdf, para o PDF bater com o deck.
+      pdfMaxPagesPerSlide: 1,
+      plugins: [RevealHighlight],
+    });
+  </script>
+</body>
+</html>
