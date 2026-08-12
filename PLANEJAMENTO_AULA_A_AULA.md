@@ -1729,7 +1729,7 @@ aplicação.
      arquitetura. É exatamente daí que sai o assunto do Ciclo 2.
 
 - **Demonstração no projetor.** Abrir o `docs/arquitetura/componentes.puml` da
-  Aula 05 e apontar o componente de integração com parceiros. Perguntar à
+  Aula 04 e apontar o componente de integração com parceiros. Perguntar à
   turma: se esse componente não responder, o que acontece com o resto? Marcar
   no diagrama, com um comentário, que essa é uma dependência que não pode
   bloquear. Em seguida, mostrar no fork que hoje existe uma classe só, a de

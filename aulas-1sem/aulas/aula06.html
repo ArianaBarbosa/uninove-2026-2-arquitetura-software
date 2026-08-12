@@ -205,7 +205,7 @@
           <h2>Demonstração: o componente que não pode travar a expedição</h2>
         </div>
 
-        <p class="lead">Abrir o <code>componentes.puml</code> da Aula 05 e apontar o componente de integração com parceiros.</p>
+        <p class="lead">Abrir o <code>componentes.puml</code> da Aula 04 e apontar o componente de integração com parceiros.</p>
 
         <div class="exercise-container">
           <h3>Perguntar à turma, em voz alta</h3>
@@ -681,6 +681,7 @@ public class PedidoController {
     return pedidoService.listar();
   }
   @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
   public Pedido registrar(@RequestBody Pedido pedido) {
     return pedidoService.registrar(pedido);
   }
