@@ -22,10 +22,11 @@ linha de código de aplicação, que só entra na Aula 06.
   final é avaliado também pelo histórico de commits.
 - **Conta no GitHub**, para forkar o repositório-esqueleto.
 
-> O repositório-esqueleto `josercf/uninove-2026-2-rota-sul` é criado pelo
-> professor. Enquanto ele não existir, o link de fork abaixo devolve 404;
-> use-o normalmente a partir do momento em que o professor anunciar o
-> repositório disponível.
+> O repositório-esqueleto `josercf/uninove-2026-2-rota-sul` é do professor e
+> está publicado. Ninguém escreve nele: cada aluno trabalha no próprio fork,
+> criado no passo 3.4. Mantenha o seu fork **público**, porque os diagramas
+> das Aulas 04 e 05 são renderizados por um serviço externo que precisa ler
+> o arquivo `.puml` direto do seu repositório.
 
 ## 3. Passo a passo
 

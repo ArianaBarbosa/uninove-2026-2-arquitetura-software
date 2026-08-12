@@ -16,6 +16,8 @@ documento lido ao abrir uma sessão nova neste repositório.
 | Repositório local | `/Users/joseromualdocostafilho/Projects/Uninove/2026/uninove-2026-2-arquitetura-software` |
 | Remote | `git@github.com:josercf/uninove-2026-2-arquitetura-software.git`, branch `main` |
 | Portal publicado | `https://josercf.github.io/uninove-2026-2-arquitetura-software/` |
+| Repositório-esqueleto do case | `git@github.com:josercf/uninove-2026-2-rota-sul.git`, público, branch `main` |
+| Clone local do esqueleto | `/Users/joseromualdocostafilho/Projects/Uninove/2026/uninove-2026-2-rota-sul` |
 | Acervo de referência (ACERVO_DW) | `/Users/joseromualdocostafilho/Projects/Uninove/2026/uninove-2026-2-desenvolvimento-web` |
 | Ledger da execução | `.superpowers/sdd/2026-08-10-acervo-arquitetura-software/progress.md` |
 
@@ -41,22 +43,21 @@ documento lido ao abrir uma sessão nova neste repositório.
 
 **Task 7, instruções de repositório.** Commit ac697e5. Entregou `CLAUDE.md` com onze armadilhas e avisos de consequência concreta para trabalho futuro neste repositório, incluindo mapeamento de chaves SSH, permissões, e comando de push.
 
+**Validadores e CI.** Existem em disco, hoje, os cinco scripts de `tools/` (`check_decks.py`, `check_slides.py`, `check_canto_coral.py`, `check_portal.py` e `medir_folga.py`, este último de medição e não de reprovação), a suíte `tests/` com sete arquivos de teste mais `conftest.py`, `helpers.py` e `fixtures/`, e os dois workflows em `.github/workflows/` (`static.yml`, de publicação, e `ci.yml`, de integração contínua).
+
+**Portal.** `aulas-1sem/index.html` existe e está publicado. Os cards das Aulas 01 a 14 estão habilitados e apontam para os decks; os das Aulas 15 a 20 seguem desabilitados.
+
+**Decks e kits das Aulas 01 a 14.** Commits `3b991ab` a `3b7d7ce`. Cada aula entregou o deck em `aulas-1sem/aulas/aulaXX.html`, o kit em `aulas-1sem/labs/aulaXX-lab/` e o card habilitado no portal. Os kits das Aulas 10, 11 e 12 trazem também arquivos de código em `src/`, que chegam prontos ao aluno (seção "0. O que chega pronto neste kit" de cada `README.md`).
+
+**Repositório-esqueleto do case.** `josercf/uninove-2026-2-rota-sul`, público, commit `b34b1c6`. Projeto Spring Boot 3.3.4 sobre Java 21, artefato `br.uni9:rota-sul:0.0.1-SNAPSHOT`, com nove arquivos versionados e uma classe só. Registrado na ADR-009, que explica cada escolha de composição e por que o esqueleto não sai do `start.spring.io`. Verificado com JDK 21.0.12 antes do push: `./mvnw clean package`, `MANIFEST.MF` conferido contra o que o kit da Aula 08 exibe, `./mvnw spring-boot:run` e a página de erro padrão do Spring Boot na raiz. O aviso de 404 que o kit da Aula 01 trazia foi removido no mesmo movimento.
+
 ## O que falta
 
-**Tasks 8 a 11: Validadores e CI**
+**Decks e kits das Aulas 15 a 20.** Seis pares de deck e kit, mais a habilitação dos seis cards restantes no portal. É o grosso do que resta.
 
-- Task 8: `check_decks.py` adaptado para este acervo e suíte pytest dos validadores fundamentais (7 testes esperados).
-- Task 9: `check_slides.py` e `check_canto_coral.py`, validadores de diagramas.
-- Task 10: `check_portal.py` e verificação de coerência do planejamento contra as 20 aulas.
-- Task 11: Configuração de CI com GitHub Actions.
+**Revisão final e publicação do acervo completo.** Passagem de coerência sobre os 20 decks, os 20 kits, o portal e o planejamento, depois que as seis aulas restantes existirem.
 
-**Tasks 12 a 34: Decks, kits de laboratório e publicação**
-
-- Task 12: Portal publicado com 20 cards vinculados às aulas (conteúdo dinâmico).
-- Tasks 13-33: Vinte decks (padrão-ouro + 19 de aula) e respectivos kits de laboratório, com testes e armadilhas registradas (20 pares).
-- Task 34: Revisão final, correção de regredir na coerência, e publicação do acervo completo.
-
-Arquivos que ainda não existem: `tools/` com validadores, Portal em `_site/` com 20 cards, 20 decks em `aulas-1sem/` e `aulas-2sem/`, 20 kits em `kits-*sem/`, e 20 conjuntos de testes.
+**Contrato herdado da Aula 19.** O roteiro da Aula 19 depende de arquivos que precisam chegar prontos no kit daquela aula (ver a seção "Contrato herdado dos kits de laboratório", adiante). Nada disso mora no repositório-esqueleto: os kits das Aulas 10, 11 e 12 já estabeleceram que arquivo pronto é entregue pelo diretório do kit, não pelo fork inicial.
 
 ## Pendências do professor
 

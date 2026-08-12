@@ -24,59 +24,55 @@ Desenvolvimento Web.
 
 ## Estado atual do repositório
 
-Sete das 34 tarefas do plano de implementação estão fechadas (Tasks 1 a 7).
+Esta seção envelhece rápido. Confira sempre `git log --oneline` e `ls` antes
+de confiar nela.
+
 Existem hoje, de fato, em disco:
 
-- O esqueleto do repositório e o workflow de publicação
-  (`.github/workflows/static.yml`), publicando no GitHub Pages.
+- O esqueleto do repositório e os dois workflows,
+  `.github/workflows/static.yml` (publicação no GitHub Pages) e
+  `.github/workflows/ci.yml` (integração contínua).
 - O tema visual completo, em `aulas-1sem/assets/` (`css/uninove-theme.css`,
   `css/uninove-print.css`, `js/uninove-quiz.js`, `img/uninove-logo.png`,
   `img/code-bg.png`).
 - `PLANO_DE_ENSINO.md`, na raiz.
-- `PLANEJAMENTO_AULA_A_AULA.md`, na raiz, com as 20 seções e 6247 linhas.
+- `PLANEJAMENTO_AULA_A_AULA.md`, na raiz, com as 20 seções.
 - `aulas-1sem/SKILL.md`, a metodologia e o padrão de construção de deck e kit.
-- Os oito ADRs em `docs/adrs/` (ADR-001 a ADR-008, sem buraco de numeração).
-  ADR-007 e ADR-008 nasceram da revisão da Task 13: a 007 registra a classe de
-  defeito de tema que passa nos quatro validadores e só aparece na projeção,
-  citada em nove pontos de `tools/check_decks.py` e de
+- Os nove ADRs em `docs/adrs/` (ADR-001 a ADR-009, sem buraco de numeração).
+  ADR-007 e ADR-008 nasceram da revisão do deck da Aula 01: a 007 registra a
+  classe de defeito de tema que passa nos quatro validadores e só aparece na
+  projeção, citada em nove pontos de `tools/check_decks.py` e de
   `aulas-1sem/assets/css/uninove-theme.css`; a 008, as convenções de molde do
-  deck padrão-ouro.
-- A suíte `tests/` com `test_publicacao.py` e `test_tema.py`, 7 testes.
+  deck padrão-ouro. A 009 registra a composição do repositório-esqueleto da
+  Rota Sul.
+- O diretório `tools/` com os quatro validadores (`check_slides.py`,
+  `check_decks.py`, `check_canto_coral.py`, `check_portal.py`) e o
+  `medir_folga.py`, que mede folga e nunca reprova.
+- A suíte `tests/`, com sete arquivos de teste mais `conftest.py`,
+  `helpers.py` e `fixtures/`.
+- `aulas-1sem/index.html`, o portal, com os cards das Aulas 01 a 14
+  habilitados e os das Aulas 15 a 20 desabilitados.
+- Os decks das Aulas 01 a 14, em `aulas-1sem/aulas/aula01.html` a
+  `aula14.html`, e os kits correspondentes em `aulas-1sem/labs/aulaXX-lab/`.
+- O repositório-esqueleto do case, `josercf/uninove-2026-2-rota-sul`,
+  publicado e público. Não fica neste repositório: o clone local está em
+  `../uninove-2026-2-rota-sul`. Ver ADR-009.
 
-**Ainda não existem, apesar de citados no planejamento e no SKILL.md:**
-
-- O diretório `tools/` inteiro, com os quatro validadores
-  (`check_slides.py`, `check_decks.py`, `check_canto_coral.py`,
-  `check_portal.py`). Nenhum comando que os invoque funciona hoje.
-- `aulas-1sem/index.html`, o portal com os 20 cards de aula.
-- `aulas-1sem/aulas/`, `aulas-1sem/labs/`: nenhum deck e nenhum kit de
-  laboratório foi construído ainda.
-- `.github/workflows/ci.yml`, o workflow de integração contínua descrito na
-  seção 10.2 do `aulas-1sem/SKILL.md`. Só existe `static.yml`, o de
-  publicação.
-
-Antes de rodar qualquer comando da seção seguinte, confira se o arquivo que
-ele invoca já existe. Rodar um validador inexistente não falha com uma
-mensagem clara de "arquivo não encontrado" em todos os shells; verifique com
-`ls tools/` primeiro.
+**Ainda não existem:** os decks e os kits das Aulas 15 a 20, e a habilitação
+dos seis cards restantes no portal.
 
 ## Comandos
 
 ```bash
-# Preview local (quando existir conteúdo em aulas-1sem/, os decks vão usar
-# caminhos relativos e vão precisar de HTTP, não de file://)
+# Preview local. Os decks usam caminhos relativos e precisam de HTTP, não
+# de file://
 python3 -m http.server 8000
 
-# Exportação de um deck em PDF, quando os decks existirem: abrir com
-# ?print-pdf e imprimir do navegador
+# Exportação de um deck em PDF: abrir com ?print-pdf e imprimir do navegador
 # http://localhost:8000/aulas-1sem/aulas/aula01.html?print-pdf
 
-# Testes de repositório (workflow de publicação e tema visual). Funciona hoje.
+# Suíte de testes do acervo
 python3 -m pytest tests/ -v
-
-# Os quatro comandos abaixo AINDA NÃO FUNCIONAM: tools/ não existe neste
-# repositório ainda (ver "Estado atual"). Listados aqui porque são o padrão
-# definido em aulas-1sem/SKILL.md, seção 10, para quando tools/ for criado.
 
 # Preparação de ambiente: instale as dependências do requirements.txt e o
 # Chromium do Playwright antes de rodar qualquer comando abaixo; sem isso,
@@ -112,9 +108,9 @@ python3 tools/medir_folga.py aulas-1sem/aulas/aula01.html
 python3 tools/medir_folga.py --quiz-respondido aulas-1sem/aulas/aula01.html
 ```
 
-Quando os quatro validadores existirem, nenhum substitui o outro: eles
-conferem coisas diferentes. Os três de deck reportam o slide em **base 0**, a
-mesma base de `Reveal.slide(i)`.
+Nenhum dos quatro validadores substitui o outro: eles conferem coisas
+diferentes. Os três de deck reportam o slide em **base 0**, a mesma base de
+`Reveal.slide(i)`.
 
 ## As três camadas de conteúdo
 
@@ -127,10 +123,9 @@ mesma base de `Reveal.slide(i)`.
    o case Rota Sul, a estrutura do encontro de 150 minutos em quatro ciclos e
    o padrão de construção de decks e kits de laboratório. É o documento mais
    denso do repositório; leia antes de escrever qualquer deck.
-3. **Materiais, em `aulas-1sem/`.** O portal (`index.html`, ainda não
-   construído), os decks (`aulas/aulaXX.html`, ainda não construídos), os
-   kits de laboratório (`labs/aulaXX-lab/`, ainda não construídos) e o tema
-   visual (`assets/`, já pronto).
+3. **Materiais, em `aulas-1sem/`.** O portal (`index.html`), os decks
+   (`aulas/aulaXX.html`), os kits de laboratório (`labs/aulaXX-lab/`) e o tema
+   visual (`assets/`). Construídos até a Aula 14.
 
 ## O case Rota Sul
 
@@ -145,6 +140,24 @@ referência e o gabarito do professor para cada etapa, não repositórios à
 parte. Ver ADR-004 para o raciocínio completo, e a seção 5 de
 `aulas-1sem/SKILL.md` para o mini mundo, os atores, as entidades e o contrato
 técnico (stack Java 21, Spring Boot 3.x, MySQL, Flyway, Thymeleaf).
+
+O esqueleto está publicado e é **outro repositório Git**, com clone local em
+`../uninove-2026-2-rota-sul`. Três coisas a saber antes de tocá-lo:
+
+- **A composição dele é decidida, não improvisada.** A ADR-009 registra cada
+  escolha e o material do acervo que a exige. Em particular: o parent é
+  `spring-boot-starter-parent` **3.3.4** fixado à mão, e não a versão corrente
+  do `start.spring.io`, porque é contra o 3.3.4 que os gabaritos das Aulas 06
+  a 14 foram verificados; e o esqueleto **não tem classe de teste**, porque o
+  critério da Aula 07 é "seis execuções verdes" e um `contextLoads` do
+  Initializr faria sete.
+- **Arquivo que "chega pronto" ao aluno não mora no esqueleto.** Ele é
+  entregue pelo diretório do kit da aula em que entra, sob a seção "0. O que
+  chega pronto neste kit" do `README.md`. É assim nas Aulas 10, 11 e 12, e é
+  assim que a Aula 19 deve fazer.
+- **O push dele tem a mesma armadilha de identidade SSH** deste repositório
+  (remote no host `github.com`), então usa o mesmo `GIT_SSH_COMMAND` descrito
+  adiante, em "Armadilhas conhecidas".
 
 ## Anatomia do deck
 
