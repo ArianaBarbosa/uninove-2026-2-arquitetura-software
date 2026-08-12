@@ -1477,7 +1477,7 @@ Duas coisas que o material precisa dizer em voz alta: a imagem depende de um
 serviço externo, o `plantuml.com`, e por isso some se o serviço cair; e o
 `.puml` precisa estar num repositório público, senão o proxy não consegue ler a
 fonte e a imagem quebra.
-| 19 | 06 | M1 | Arquitetura em 3 camadas e a evolução do MVC | `pdf/005.pdf` | Primeiro código: `PedidoController`, `PedidoService` e `PedidoRepository` em memória, com view Thymeleaf | Tela que lista pedidos, servida pelas três camadas separadas |
+| 19 | 06 | M1 | Arquitetura em 3 camadas e a evolução do MVC | `pdf/005.pdf` | Primeiro código: `PedidoController`, `PedidoService` e `PedidoRepository` em memória, com o controller devolvendo JSON | A primeira fatia vertical da Rota Sul em três camadas separadas, respondendo por HTTP |
 | 20 | 07 | M2 | Arquitetura orientada a serviços, SOA | `pdf/006.pdf` | Separar contrato de implementação: interface `PedidoService` com duas implementações trocáveis por perfil | Teste JUnit que roda a mesma suíte contra as duas implementações |
 | 21 | 08 | M2 | Servidores de aplicação e a plataforma Java EE | `pdf/007.pdf` | Empacotar em JAR executável e comparar com o modelo WAR em servidor de aplicação | JAR rodando com `java -jar` e `docs/empacotamento.md` com a comparação |
 | 22 | 09 | M2 | Metadados para troca de dados: XML e JSON | `pdf/008.pdf` | Serializar `Remessa` em JSON e em XML com Jackson, por content negotiation | Endpoint que responde os dois formatos conforme o header `Accept` |
