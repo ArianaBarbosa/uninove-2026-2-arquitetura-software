@@ -180,7 +180,7 @@
           <h2>As seis características de sistemas distribuídos <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
         </div>
 
-        <p class="lead" style="font-size:0.6em;">O capítulo lista seis características, que voltam no Ciclo 2 como critério de comparação entre os modelos de arquitetura.</p>
+        <p class="lead">O capítulo lista seis características, que voltam no Ciclo 2 como critério de comparação entre os modelos de arquitetura.</p>
 
         <table style="font-size:0.66em;">
           <thead>
@@ -212,7 +212,7 @@
           <h2>Heterogeneidade, desafios e o que piora na colaboração <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
         </div>
 
-        <p class="lead" style="font-size:0.66em;">Um sistema distribuído costuma ser heterogêneo, e a heterogeneidade não pode impedir a comunicação nem o compartilhamento de recursos.</p>
+        <p class="lead">Um sistema distribuído costuma ser heterogêneo, e a heterogeneidade não pode impedir a comunicação nem o compartilhamento de recursos.</p>
 
         <div class="side-by-side" style="margin-top:4px;">
           <div class="side" style="padding:14px 18px;">
@@ -382,7 +382,7 @@
           <h2>Arquitetura híbrida e o fechamento do ciclo <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
         </div>
 
-        <p class="lead" style="font-size:0.68em;">Reúne vantagens dos dois modelos, eliminando ao máximo os aspectos negativos de cada um. A Internet é o exemplo: o site fica num servidor único, e vários servidores DNS se substituem sem que o usuário perceba.</p>
+        <p class="lead">Reúne vantagens dos dois modelos, eliminando ao máximo os aspectos negativos de cada um. A Internet é o exemplo: o site fica num servidor único, e vários servidores DNS se substituem sem que o usuário perceba.</p>
 
         <table style="margin-top:4px;">
           <thead>
@@ -495,7 +495,7 @@ Endereço: 200.147.115.10</code></pre>
           <h2>Laboratório de modelagem: PlantUML <a href="#/ref-slide" class="ref-badge" title="Ver referências">[3]</a></h2>
         </div>
 
-        <p class="lead" style="font-size:0.68em;">Sem código de aplicação. O que se cobra hoje é a decisão, quais componentes existem e quem depende de quem. A notação vem pronta; a Aula 05 explica de onde ela vem.</p>
+        <p class="lead">Sem código de aplicação. O que se cobra hoje é a decisão, quais componentes existem e quem depende de quem. A notação vem pronta; a Aula 05 explica de onde ela vem.</p>
 
         <div class="side-by-side" style="margin-top:4px;">
           <div class="side">
@@ -559,7 +559,7 @@ Endereço: 200.147.115.10</code></pre>
           <h2>Laboratório, passo 2: declarar componente e interface</h2>
         </div>
 
-        <p class="lead" style="font-size:0.7em;">A pergunta que orienta cada ligação: que operação este componente oferece, e quem depende dela?</p>
+        <p class="lead">A pergunta que orienta cada ligação: que operação este componente oferece, e quem depende dela?</p>
 
         <pre class="code-compact"><code class="language-text" data-trim>component "Nome do componente" as apelido
 interface "operacaoOferecida" as iOperacao
@@ -597,7 +597,7 @@ quemConsome --( iOperacao</code></pre>
           <h2>Laboratório, passo 2: o esqueleto para adaptar</h2>
         </div>
 
-        <p class="lead" style="font-size:0.62em;">Criar <code>docs/arquitetura/componentes.puml</code> com este ponto de partida, adaptado ao que cada um mapeou.</p>
+        <p class="lead">Criar <code>docs/arquitetura/componentes.puml</code> com este ponto de partida, adaptado ao que cada um mapeou.</p>
 
         <pre class="code-compact"><code class="language-text" data-trim>@startuml
 title Componentes da Rota Sul
@@ -633,19 +633,12 @@ expedicao --( iUltimaMilha
           <h2>Laboratório, passo 3: o <code>.md</code> irmão e a imagem</h2>
         </div>
 
-        <p class="lead" style="font-size:0.66em;">Criar <code>docs/arquitetura/componentes.md</code> com a linha que embute a imagem, trocando <code>SEU_USUARIO</code> pelo usuário do aluno no GitHub. A linha é uma só; aqui ela aparece quebrada só para caber na tela.</p>
+        <p class="lead">Criar <code>docs/arquitetura/componentes.md</code> com a linha que embute a imagem, trocando <code>SEU_USUARIO</code> pelo usuário do aluno no GitHub. A linha é uma só; aqui ela aparece quebrada só para caber na tela.</p>
 
-        <!-- white-space:pre-wrap e overflow-wrap:anywhere só para a projeção,
-             com !important: o RevealHighlight aplica a classe `hljs` ao
-             <code>, e a regra `.reveal .hljs` do próprio reveal.css já fixa
-             `white-space:pre-wrap`, mas o Chromium mede a linha como se
-             estivesse em `pre` quando o `<code>` ainda não passou pelo
-             highlight no instante da checagem de layout; forçar aqui garante
-             o comportamento em qualquer ordem de carregamento. A linha de
-             imagem do Markdown é única no arquivo real, mas larga demais para
-             1160px de área útil em qualquer tamanho de fonte legível. Ver a
-             seção do relatório sobre orçamento de altura. -->
-        <pre class="code-compact" style="white-space:pre-wrap !important; overflow-wrap:anywhere !important;"><code class="language-markdown" data-trim style="white-space:pre-wrap !important; overflow-wrap:anywhere !important;"># Componentes da Rota Sul
+        <!-- A quebra da linha longa do proxy PlantUML dentro deste bloco de
+             código é resolvida no tema (uninove-theme.css, regra `.reveal
+             pre, .reveal pre code`), não aqui: ver ADR-007. -->
+        <pre class="code-compact"><code class="language-markdown" data-trim># Componentes da Rota Sul
 
 ![Diagrama de componentes da Rota Sul](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/SEU_USUARIO/uninove-2026-2-rota-sul/main/docs/arquitetura/componentes.puml)</code></pre>
 
@@ -675,7 +668,7 @@ expedicao --( iUltimaMilha
           <h2>Laboratório, passo 4: o diagrama de implantação</h2>
         </div>
 
-        <p class="lead" style="font-size:0.6em;">A pergunta muda: onde cada coisa roda. <code>node</code> com estereótipo, <code>artifact</code> ou <code>database</code> dentro; ligação marcada como síncrona ou assíncrona.</p>
+        <p class="lead">A pergunta muda: onde cada coisa roda. <code>node</code> com estereótipo, <code>artifact</code> ou <code>database</code> dentro; ligação marcada como síncrona ou assíncrona.</p>
 
         <pre class="code-compact"><code class="language-text" data-trim>@startuml
 title Implantação da Rota Sul
@@ -744,7 +737,7 @@ aplicacao --&gt; sistemaParceiro : integração, assíncrono
           <h2>Entregável de hoje e critérios de aceitação</h2>
         </div>
 
-        <p class="lead" style="font-size:0.66em;">Acrescentar uma linha em <code>docs/decisoes.md</code>, da Aula 02, com o modelo de arquitetura escolhido hoje: o inventário é vivo.</p>
+        <p class="lead">Acrescentar uma linha em <code>docs/decisoes.md</code>, da Aula 02, com o modelo de arquitetura escolhido hoje: o inventário é vivo.</p>
 
         <table style="margin-top:4px;">
           <thead>

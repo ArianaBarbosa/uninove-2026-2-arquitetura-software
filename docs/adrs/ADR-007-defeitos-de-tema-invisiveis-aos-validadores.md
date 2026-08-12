@@ -54,6 +54,33 @@ o bloco de código simplesmente chegava cortado ao projetor e ao PDF. O
 de uma caixa `pre` que continuava dentro dos 720px. Medido: um bloco de 433px
 aparecia com 410px, com as últimas linhas fora da tela.
 
+**A quarta variante, achada na revisão da Aula 04:** uma linha de código longa
+demais para a largura do slide (a URL do proxy do PlantUML dentro de um bloco
+`language-markdown`) não quebra, mesmo com o `<pre>` e o `<code>` ocupando os
+1160px de área útil. O sintoma parecia contradizer a própria folha de estilo
+do Reveal.js: `reveal.css` traz `.reveal .hljs { white-space: pre-wrap }`, e a
+classe `hljs` é adicionada por `RevealHighlight` a todo `<code>` já na
+inicialização, antes de qualquer medição. O relatório da Task 17 registrou o
+sintoma mas deixou a causa como "possivelmente uma condição de corrida entre o
+plugin de destaque e o momento da medição".
+
+Não é condição de corrida. Apurado nesta revisão com o Chrome DevTools
+Protocol (`CSS.getMatchedStylesForNode` sobre o `<code>`, numa página mínima
+com as mesmas três folhas de estilo do deck): a regra
+`.reveal .hljs { white-space: pre-wrap }` do `reveal.css` está dentro de um
+bloco `@media print` inteiro (a mesma seção que trata `page-break-after` e
+outras regras exclusivas de paginação). Ela **só vale na exportação do PDF**,
+nunca na tela. Na tela, quem vence é `.reveal .code-wrapper code
+{ white-space: pre }`, do `white.css`, o tema padrão do próprio Reveal.js: o
+plugin `RevealHighlight` adiciona a classe `code-wrapper` ao `<pre>` na
+inicialização, e essa regra, sem restrição de mídia, é a única que sobra para
+decidir a quebra de linha durante a projeção. O comportamento pretendido pelo
+Reveal.js para código longo na tela é rolagem horizontal (`.reveal pre code
+{ overflow: auto }`, do próprio `white.css`, e `.hljs { overflow-x: auto }`,
+do `monokai.css`), não quebra de linha; este acervo não pode usar rolagem
+porque a `section` tem altura e largura travadas e ninguém rola nada em sala,
+então a saída é forçar a quebra.
+
 ## Decisão
 
 Quando um defeito de tema é invisível aos quatro validadores, a resposta é
@@ -94,11 +121,12 @@ em vez de confiar na disciplina de quem escreve o deck.
 | `aulas-1sem/assets/css/uninove-theme.css`, linha 406 | `.quiz-slide .quiz-options .option-text`, com `flex: 1` e `min-width: 0`, que devolve o texto inteiro a um único item de flex |
 | `aulas-1sem/assets/css/uninove-theme.css`, linha 541 | `.exercise-slide .exercise-container h3` de volta a `display: block`, tirando a armadilha da origem |
 | `aulas-1sem/assets/css/uninove-theme.css`, linha 636 | `.reveal pre code` com `max-height: none`, que troca o corte silencioso do código por um estouro que o `check_slides.py` enxerga |
+| `aulas-1sem/assets/css/uninove-theme.css`, linha 655 | `.reveal pre, .reveal pre code` com `white-space: pre-wrap !important` e `overflow-wrap: anywhere !important`, movida da Aula 04 para o tema: a regra equivalente do `reveal.css` só vale dentro de `@media print`, então na tela nada quebrava linha comprida de código sem esta regra |
 | `aulas-1sem/SKILL.md`, seções 6.3, 7 e 10 | A convenção do `.option-text` e a tabela do que cada validador cobre |
 
 ## Riscos conhecidos
 
-- **A classe de defeito não acabou; só os três casos conhecidos foram
+- **A classe de defeito não acabou; só os quatro casos conhecidos foram
   fechados.** Qualquer regra nova de tema pode reabrir a categoria, e nenhum
   validador procura "defeito que só aparece na tela" de forma genérica, porque
   isso não é procurável.
@@ -138,10 +166,13 @@ em vez de confiar na disciplina de quem escreve o deck.
   `check_decks.py` reprova o elemento inline solto na leitura do HTML, antes de
   qualquer navegador, e a mensagem de erro explica o mecanismo do flex em vez
   de só apontar a linha.
-- **Duas armadilhas sumiram da origem**, sem depender de convenção: o `h3` do
-  `exercise-container` voltou a `display: block`, e o `max-height` do
+- **Três armadilhas sumiram da origem**, sem depender de convenção: o `h3` do
+  `exercise-container` voltou a `display: block`, o `max-height` do
   `pre code` foi zerado, o que transforma código cortado em estouro que o
-  `check_slides.py` acusa.
+  `check_slides.py` acusa, e a quebra de linha longa em bloco de código, achada
+  na Aula 04, saiu do `style` inline daquele deck e foi para o tema: os 20
+  decks ganham o comportamento de uma vez, e ninguém precisa redescobrir que a
+  regra equivalente do `reveal.css` só vale na impressão.
 - Quem lê os comentários do tema e do validador encontra o mecanismo explicado
   no ponto de uso, e não precisa reconstruí-lo a partir do sintoma.
 - A postura fica registrada: diante de um defeito novo dessa categoria, a

@@ -270,6 +270,14 @@ evitadas por quem escreve o material:**
   dentro do `package` a que pertencem, nunca deixar `package` decorativo vazio
   ao lado de `class`.
 
+**Uma armadilha de renderização, não de sintaxe:** a linha do Markdown que
+embute a imagem (o bloco acima, com a URL do proxy) é longa demais para caber
+na tela dentro de um bloco de código, em qualquer tamanho de fonte legível.
+Não precisa tratar isso no deck: `uninove-theme.css` já força
+`white-space: pre-wrap` e `overflow-wrap: anywhere` em todo `<pre>`/`<code>`
+do acervo, então a linha quebra sozinha na projeção. Se um slide novo mostrar
+essa linha sem quebrar, o defeito é no tema, não no deck; ver ADR-007.
+
 ### 5.6 A forma distribuída, Aula 19
 
 A Aula 19 monta a versão distribuída do case, com quatro processos subindo
