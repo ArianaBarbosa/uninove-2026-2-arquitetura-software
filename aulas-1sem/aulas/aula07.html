@@ -556,6 +556,7 @@ public class PedidoController {
 spring.profiles.active=padrao</code></pre>
 
         <pre class="code-compact" style="margin-top:8px;"><code class="language-bash" data-trim>./mvnw spring-boot:run
+# noutro terminal, trocando 8080 pela porta que o seu terminal imprimiu
 curl http://localhost:8080/pedidos</code></pre>
 
         <div class="callout" style="margin-top:8px;">
@@ -588,7 +589,7 @@ public class PedidoServiceComAnaliseDeRisco implements PedidoService {
   public Pedido registrar(Pedido pedido) {
     // mesma checagem de cliente vazio de PedidoServicePadrao, mais:
     if (LOJISTAS_BLOQUEADOS.contains(pedido.getCliente())) {
-      throw new IllegalArgumentException("Pedido de lojista bloqueado é recusado.");
+      throw new IllegalArgumentException("Pedido de lojista bloqueado por análise de risco é recusado.");
     }
     return pedidoRepository.salvar(pedido);
   }
@@ -713,6 +714,7 @@ class PedidoServiceComAnaliseDeRiscoContratoTest extends PedidoServiceContratoTe
         <p class="lead">Subir com o perfil <code>risco</code> e enviar um pedido do lojista bloqueado; depois voltar ao perfil <code>padrao</code> e repetir.</p>
 
         <pre class="code-compact"><code class="language-bash" data-trim>./mvnw spring-boot:run -Dspring-boot.run.profiles=risco
+# noutro terminal, trocando 8080 pela porta que o seu terminal imprimiu
 curl -X POST http://localhost:8080/pedidos \
   -H "Content-Type: application/json" \
   -d '{"cliente":"LOJISTA-BLOQUEADO","descricao":"Pedido suspeito"}'
