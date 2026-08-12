@@ -3613,6 +3613,41 @@ com `-Dspring-boot.run.profiles=dev` e depois com `=prod` e ver, nos dois
 logs, o nome de uma classe diferente; `NotificacaoConfigDevTest` e
 `NotificacaoConfigProdTest` passando com `./mvnw test`.
 
+**Duas quebras do fork acumulado, achadas ao provar a cadeia 06 a 12 completa,
+e como são resolvidas.** Nenhuma das duas aparece isolando só o código novo de
+hoje; as duas só se manifestam quando o Spring monta o contexto inteiro sob um
+perfil que a Aula 07 nunca previu.
+
+Primeira: o `CommandLineRunner` do passo 6 (Ciclo 3) pede `NotificadorDeOcorrencia`
+pelo construtor, mas esse tipo só tem bean registrado sob `@Profile("dev")` ou
+`@Profile("prod")`. Se o método `@Bean` de `logarNotificadorAtivo` não levar a
+mesma restrição de perfil, ele tenta subir em **qualquer** perfil, inclusive
+`"padrao"` (ativo por padrão desde a Aula 07) e `"risco"`, onde não existe
+nenhum `NotificadorDeOcorrencia` para injetar: `UnsatisfiedDependencyException`
+em qualquer `./mvnw test` ou `./mvnw spring-boot:run` que não escolha `dev` nem
+`prod` de propósito. A correção: `logarNotificadorAtivo` leva
+`@Profile({"dev", "prod"})`, a mesma lista dos dois beans que ele depende.
+
+Segunda, mais sutil: `PedidoController`, desde a Aula 06, pede `PedidoService`
+no construtor sem nenhuma restrição de perfil, porque ele precisa existir em
+toda subida da aplicação. Mas, desde a Aula 07, `PedidoServicePadrao` só é bean
+sob `@Profile("padrao")`, e `PedidoServiceComAnaliseDeRisco` só sob
+`@Profile("risco")`. Os perfis `dev` e `prod` de hoje são perfis de ambiente,
+escolhendo o notificador de ocorrência, e não dizem nada sobre qual
+`PedidoService` usar, mas também não coincidem com `"padrao"` nem com
+`"risco"`. Sem ajuste, `./mvnw spring-boot:run -Dspring-boot.run.profiles=dev`
+falha com `UnsatisfiedDependencyException: No qualifying bean of type
+'PedidoService'` ao montar `PedidoController`, e o próprio `NotificacaoConfigDevTest`
+e `NotificacaoConfigProdTest` (que usam `@SpringBootTest`, contexto completo,
+não fatiado) falham pelo mesmo motivo. A correção amplia a lista de `@Profile`
+de `PedidoServicePadrao` para `{"padrao", "dev", "prod"}`, sem tocar
+`PedidoServiceComAnaliseDeRisco`, que continua exclusivo de `"risco"`. Essa
+correção chega pronta no kit (`PedidoServicePadrao.java` já ajustado), com um
+novo passo explícito no laboratório (passo 7, Ciclo 4) explicando o motivo.
+Diferente das quebras das Aulas 07, 10 e 11, aqui não é uma assinatura que
+muda: são dois eixos de perfil, escolha de implementação de negócio contra
+escolha de ambiente, que nunca tinham sido combinados antes de hoje.
+
 ### Retomada, 5 minutos
 
 Na Aula 11 cada aluno entregou dois padrões de projeto: o Strategy no cálculo
@@ -3828,47 +3863,62 @@ nenhuma classe.
    terceiro `@Bean`, `logarNotificadorAtivo(NotificadorDeOcorrencia
    notificador)`, do tipo `CommandLineRunner`, que registra no log, ao subir,
    `"Notificador ativo: " + notificador.getClass().getSimpleName()`. Esse
-   bean não tem `@Profile`: ele roda em qualquer perfil e imprime qual dos
-   dois foi injetado, o mesmo `NotificadorDeOcorrencia` que os outros beans
-   da aplicação vão receber.
+   bean leva `@Profile({"dev", "prod"})`, a mesma lista dos dois beans de que
+   depende: sem essa restrição, ele tentaria subir em qualquer perfil,
+   inclusive `"padrao"` (ativo por padrão desde a Aula 07) e `"risco"`, onde
+   não existe nenhum `NotificadorDeOcorrencia` para injetar, e
+   `UnsatisfiedDependencyException` quebraria qualquer `./mvnw test` que não
+   escolhesse `dev` nem `prod` de propósito.
 
 ### Ciclo 4, 21h25 às 21h50
 
-7. **Subir com o perfil `dev`.** `./mvnw spring-boot:run
+7. **Instalar o ajuste em `PedidoServicePadrao`.** Copiar do kit
+   `PedidoServicePadrao.java`, com `@Profile` ampliado de `"padrao"` para
+   `{"padrao", "dev", "prod"}`. `PedidoController`, desde a Aula 06, pede
+   `PedidoService` sem restrição de perfil; mas, desde a Aula 07,
+   `PedidoServicePadrao` só era bean sob `"padrao"`. Os perfis `dev` e `prod`
+   de hoje são de ambiente, não de qual `PedidoService` usar, mas também não
+   coincidiam com `"padrao"`: sem o ajuste, `./mvnw spring-boot:run
+   -Dspring-boot.run.profiles=dev` falharia com `UnsatisfiedDependencyException`
+   ao montar `PedidoController`.
+8. **Subir com o perfil `dev`.** `./mvnw spring-boot:run
    -Dspring-boot.run.profiles=dev` e conferir, no log de inicialização, a
    linha `Notificador ativo: NotificadorDeOcorrenciaConsole`.
-8. **Subir com o perfil `prod`.** Parar a aplicação e subir de novo com
+9. **Subir com o perfil `prod`.** Parar a aplicação e subir de novo com
    `./mvnw spring-boot:run -Dspring-boot.run.profiles=prod`, conferindo a
    linha `Notificador ativo: NotificadorDeOcorrenciaWebhookSimulado`. As
    duas capturas de log, dev e prod, são a evidência literal que o
    entregável de hoje pede.
-9. **Testar os dois perfis.** Duas classes de teste em
-   `src/test/java/br/uni9/rotasul/rastreamento/service/`:
-   `NotificacaoConfigDevTest`, anotada `@SpringBootTest` e
-   `@ActiveProfiles("dev")`, injetando `NotificadorDeOcorrencia` e
-   confirmando `instanceof NotificadorDeOcorrenciaConsole`; e
-   `NotificacaoConfigProdTest`, com `@ActiveProfiles("prod")`, confirmando
-   `instanceof NotificadorDeOcorrenciaWebhookSimulado`. Rodar `./mvnw test`
-   e ver as duas passarem sem que a suíte precise escolher perfil nenhum na
-   linha de comando: cada teste fixa o seu.
-10. **Deixar o gancho para a Aula 19.** Ninguém chama `notificar(...)` de
+10. **Testar os dois perfis.** Duas classes de teste em
+    `src/test/java/br/uni9/rotasul/rastreamento/service/`:
+    `NotificacaoConfigDevTest`, anotada `@SpringBootTest` e
+    `@ActiveProfiles("dev")`, injetando `NotificadorDeOcorrencia` e
+    confirmando `instanceof NotificadorDeOcorrenciaConsole`; e
+    `NotificacaoConfigProdTest`, com `@ActiveProfiles("prod")`, confirmando
+    `instanceof NotificadorDeOcorrenciaWebhookSimulado`. Rodar `./mvnw test`
+    e ver as duas passarem sem que a suíte precise escolher perfil nenhum na
+    linha de comando: cada teste fixa o seu.
+11. **Deixar o gancho para a Aula 19.** Ninguém chama `notificar(...)` de
     dentro de `OcorrenciaCreator` ainda, e está certo que seja assim: hoje o
     objetivo é a configuração por perfil, não o fluxo completo de
     notificação. Anotar em `docs/decisoes.md` que a chamada real a
     `NotificadorDeOcorrencia` entra quando os serviços da Rota Sul
     conversarem entre si de verdade, na Aula 19.
-11. **Registrar a decisão.** Em `docs/decisoes.md`, uma linha explicando a
+12. **Registrar a decisão.** Em `docs/decisoes.md`, uma linha explicando a
     escolha de configuração explícita por `@Configuration` em vez de
     `@Profile` direto na classe, e por quê: concentrar a decisão de ambiente
     num único lugar, legível sem abrir cada implementação.
 
-**Entregável do dia:** `NotificadorDeOcorrencia` com
-`NotificadorDeOcorrenciaConsole` e `NotificadorDeOcorrenciaWebhookSimulado`,
-a classe `NotificacaoConfig` com os dois `@Bean` por perfil e o
-`CommandLineRunner` de log, mais os dois arquivos de propriedades por
-perfil. Critério de aceitação: o log de `dev` e o log de `prod` mostrando
-classes diferentes na mesma linha de saída, e `NotificacaoConfigDevTest` e
-`NotificacaoConfigProdTest` passando com `./mvnw test`.
+**Entregável do dia:** pronto no kit, `PedidoServicePadrao` com `@Profile`
+ampliado para `{"padrao", "dev", "prod"}`; escrito hoje,
+`NotificadorDeOcorrencia` com `NotificadorDeOcorrenciaConsole` e
+`NotificadorDeOcorrenciaWebhookSimulado`, a classe `NotificacaoConfig` com os
+dois `@Bean` por perfil e o `CommandLineRunner` de log, mais os dois arquivos
+de propriedades por perfil. Oito arquivos digitados ao todo. Critério de
+aceitação: o log de `dev` e o log de `prod` mostrando classes diferentes na
+mesma linha de saída, `NotificacaoConfigDevTest` e `NotificacaoConfigProdTest`
+passando com `./mvnw test`, e `./mvnw spring-boot:run` subindo sem
+`UnsatisfiedDependencyException` sob os dois perfis.
 
 ### Fechamento, 21h50 às 22h00
 

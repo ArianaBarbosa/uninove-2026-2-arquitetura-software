@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aula 12, Frameworks: anatomia e inversão de controle | Uninove</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="../assets/css/uninove-theme.css">
+  <link rel="stylesheet" href="../assets/css/uninove-print.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ==================== SLIDE 1: CAPA ==================== -->
+      <section class="cover-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho" class="uninove-logo-full"
+             style="max-width:400px; background:#FFFFFF; padding:26px 36px; border-radius:10px;">
+        <div style="margin-top:36px; color:#FFFFFF; font-size:0.95em; font-weight:800; letter-spacing:4px; text-transform:uppercase;">Arquitetura de Software</div>
+        <div style="margin-top:12px; color:#C84B31; font-size:0.6em; font-weight:700; letter-spacing:3px; text-transform:uppercase;">Graduação, 2026.2</div>
+      </section>
+
+      <!-- ==================== SLIDE 2: TÍTULO ==================== -->
+      <section class="title-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="title-card">
+          <div class="accent-bar"></div>
+          <h1>Arquitetura de Software</h1>
+          <h2>Frameworks: anatomia e inversão de controle</h2>
+          <h3>Prof. José Romualdo</h3>
+        </div>
+        <div class="lesson-bar">AULA 12 &nbsp;|&nbsp; Módulo 3, Padrões e frameworks</div>
+      </section>
+
+      <!-- ==================== SLIDE 3: AGENDA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Agenda do encontro de hoje</h2>
+        </div>
+
+        <p class="lead">São 150 minutos corridos, em quatro ciclos. Continua o Módulo 3, Padrões e frameworks.</p>
+
+        <table>
+          <thead>
+            <tr><th style="width:190px;">Horário</th><th style="width:200px;">Bloco</th><th>O que acontece</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>19h30 às 20h05</td><td>Ciclo 1</td><td>O que é um framework, e a inversão de controle</td></tr>
+            <tr><td>20h05 às 20h40</td><td>Ciclo 2</td><td>Anatomia do container: configuração implícita e explícita</td></tr>
+            <tr><td>20h40 às 20h50</td><td>Quiz de fixação</td><td>Quem controla o fluxo de execução ao usar um framework</td></tr>
+            <tr><td>20h50 às 21h25</td><td>Ciclo 3</td><td>Laboratório: <code>NotificadorDeOcorrencia</code> por perfil</td></tr>
+            <tr><td>21h25 às 21h50</td><td>Ciclo 4</td><td>Laboratório: os dois perfis subindo com beans distintos</td></tr>
+            <tr><td>21h50 às 22h00</td><td>Fechamento</td><td>Commit, push e prévia da Aula 13</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Agenda do encontro</div>
+          <div class="footer-page">3</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 4: RETOMADA DA AULA 11 ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Retomada: o que a Aula 11 deixou pronto</h2>
+        </div>
+
+        <p class="lead">Na Aula 11 cada aluno entregou dois padrões de projeto: Strategy no cálculo de frete, com <code>CalculadoraDeFrete</code>, <code>FreteRotaPropria</code> e <code>FreteTransportadoraParceira</code>, e Factory Method na criação de <code>Ocorrencia</code>, com <code>OcorrenciaCreator</code> e seus dois criadores concretos.</p>
+
+        <div class="callout" style="margin-top:10px;">
+          <p><strong>Quem decidia, e quem decide agora.</strong> Projetar <code>CalculoDeFreteService</code>: ali, quem decide qual estratégia usar é o próprio código da Rota Sul, uma linha de <code>if</code> dentro do serviço. E a interface <code>PedidoService</code> da Aula 07, com duas implementações escolhidas pelo parâmetro de perfil? Ninguém no código da Rota Sul escreveu esse <code>if</code>. Foi o Spring.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:10px;">
+          <span class="takeaway-label">A aula de hoje abre essa caixa</span>
+          <p>Hoje o nome chega: inversão de controle. E o laboratório mostra o mecanismo por trás do que o Spring já fazia sozinho desde a Aula 07.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Retomada</div>
+          <div class="footer-page">4</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 5: CICLO 1, DEFINIÇÃO E INVERSÃO DE CONTROLE ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>O que é um framework, na definição do capítulo <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">Um framework é uma solução para um problema específico que ainda não é software executável por si só: um conjunto de bibliotecas associadas a interfaces que permitem acoplá-las ao software em desenvolvimento.</p>
+
+        <div class="callout" style="margin-top:8px;">
+          <p><strong>A frase central do capítulo.</strong> "Um framework determina como o aplicativo funcionará, pois ele é que controla o fluxo de execução de operações que o aplicativo necessita. A isso se dá o nome de inversão de controle."</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">A direção da chamada se inverte</span>
+          <p>Numa biblioteca comum, é o próprio programa que decide quando chamar cada função. Com um framework, é ele que decide quando chamar o código da Rota Sul, não o contrário. O exemplo do capítulo é gráfico: os componentes de interface do Android permitem implementar telas sem escrever cada botão do zero.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Definição e inversão de controle</div>
+          <div class="footer-page">5</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 6: CICLO 1, FRAMEWORK X PADRÃO E VANTAGENS ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Framework contra padrão de projeto, e cinco vantagens <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">O capítulo repete a distinção já usada nas Aulas 02 e 11: padrões de projeto orientam a implementação; um framework inclui a implementação de código.</p>
+
+        <div class="side-by-side" style="margin-top:4px;">
+          <div class="side">
+            <h4>Framework pode conter vários padrões</h4>
+            <p style="margin:0; font-size:0.68em;">Mas sempre tem domínio de uma aplicação particular, o que os padrões de projeto, sozinhos, não têm. Strategy e Factory Method da Aula 11 não sabem nada sobre a Rota Sul; o Spring, como framework, é acoplado a como a Rota Sul roda.</p>
+          </div>
+          <div class="side">
+            <h4>Cinco vantagens do capítulo</h4>
+            <p style="margin:0; font-size:0.66em;">Facilidade para detectar erros; garantia melhor de qualidade; o desenvolvedor se concentra no aplicativo final; reuso de soluções conhecidas; uso otimizado de recursos.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Framework contra padrão</div>
+          <div class="footer-page">6</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 7: CICLO 1, DESVANTAGEM E FRAMEWORKS DE EMPRESA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>A desvantagem central, e frameworks de empresa <a href="#/ref-slide" class="ref-badge" title="Ver referências">[1]</a></h2>
+        </div>
+
+        <p class="lead">O código-fonte do framework normalmente não é editável, de propósito: a intenção é formar o núcleo do aplicativo e adicionar blocos de código novos em torno dele.</p>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>O capítulo soma a isso o aumento de tamanho final do software, classes de acoplamento desnecessárias num aplicativo do zero, e o tempo de aprendizado: se gasto durante a execução do projeto, pode anular o ganho de produtividade esperado.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Frameworks de empresa, exemplo do capítulo</span>
+          <p>Além de frameworks genéricos, como o próprio Spring, empresas com problemas específicos justificam um framework próprio: a Sony, para o processamento de imagens de suas câmeras, e a Ericsson, para as centrais de comunicação telefônica que produz.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Desvantagem e frameworks de empresa</div>
+          <div class="footer-page">7</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 8: CICLO 1, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: quem chama o construtor de <code>PedidoServicePadrao</code></h2>
+        </div>
+
+        <p class="lead">Abrir <code>PedidoServicePadrao</code> e <code>PedidoServiceComAnaliseDeRisco</code>, da Aula 07: nenhuma das duas classes chama a outra, nenhuma decide qual vai rodar.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Service
+@Profile("padrao")
+public class PedidoServicePadrao implements PedidoService { ... }
+
+@Service
+@Profile("risco")
+public class PedidoServiceComAnaliseDeRisco implements PedidoService { ... }</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>Quem decide é o <code>spring.profiles.active</code> do <code>application.properties</code>, lido pelo Spring antes de qualquer linha do código da Rota Sul executar. O framework decide o quê instanciar e quando; o desenvolvedor só descreve as opções.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Demonstração, quem decide</div>
+          <div class="footer-page">8</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 9: EXERCÍCIO CURTO DO CICLO 1 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício individual: quem chama, e o que quebra sem <code>@Service</code></h2>
+        </div>
+
+        <p class="lead">Cinco minutos, por escrito, sobre <code>PedidoServicePadrao</code> da Aula 07.</p>
+
+        <div class="exercise-container">
+          <h3>Responder</h3>
+          <ol class="exercise-steps">
+            <li>Quem chama o construtor da classe: o código da Rota Sul ou o Spring?</li>
+            <li>Se a turma removesse a anotação <code>@Service</code> dessa classe, o que aconteceria ao subir a aplicação com o perfil <code>padrao</code>?</li>
+          </ol>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Exercício, quem chama</div>
+          <div class="footer-page">9</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 10: CICLO 2, ANATOMIA DO CONTAINER ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Anatomia do container: o que o Spring faz ao subir <a href="#/ref-slide" class="ref-badge" title="Ver referências">[4]</a></h2>
+        </div>
+
+        <p class="lead">Quando <code>./mvnw spring-boot:run</code> executa, o Spring varre o código em busca de candidatos a bean.</p>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><strong>Nota para o professor.</strong> O capítulo apresenta a inversão de controle em nível conceitual; ele não descreve o mecanismo interno do container (varredura de candidatos, resolução de <code>@Profile</code>, injeção por construtor). Essa camada vem da documentação oficial do Spring Framework [4], necessária para o laboratório de hoje ser executável.</p>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">O mecanismo, não mágica</span>
+          <p>Classes <code>@Component</code>, <code>@Service</code>, <code>@Repository</code>, e métodos <code>@Bean</code> em classes <code>@Configuration</code>; se a definição tiver <code>@Profile</code>, só ativa quando o perfil está entre os ativos. Só depois de resolver todas as definições o container instancia e injeta, como em <code>PedidoController</code> recebendo <code>PedidoService</code>.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Anatomia do container</div>
+          <div class="footer-page">10</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 11: CICLO 2, IMPLÍCITA X EXPLÍCITA ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Configuração implícita contra configuração explícita</h2>
+        </div>
+
+        <p class="lead">Duas formas de registrar um bean com perfil, e o laboratório de hoje pede a segunda.</p>
+
+        <div class="side-by-side" style="margin-top:4px;">
+          <div class="side">
+            <h4>Implícita, o que a Aula 07 já fez</h4>
+            <p style="margin:0; font-size:0.68em;">Anotar a própria classe de implementação com <code>@Service</code> e <code>@Profile("padrao")</code>. Funciona bem quando a decisão é simples, mas a decisão de qual perfil usa qual classe fica espalhada, uma anotação por classe.</p>
+          </div>
+          <div class="side">
+            <h4>Explícita, o que o laboratório de hoje pede</h4>
+            <p style="margin:0; font-size:0.68em;">Uma classe <code>@Configuration</code> concentra, num único lugar, a decisão de qual implementação vira bean em qual perfil, por métodos <code>@Bean</code>. As classes de implementação não precisam de anotação nenhuma.</p>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">A vantagem pedagógica</span>
+          <p>Quem lê a classe de configuração vê, de uma vez, o mapa inteiro de "qual implementação em qual ambiente", sem abrir cada classe candidata para procurar <code>@Profile</code>.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Implícita contra explícita</div>
+          <div class="footer-page">11</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 12: CICLO 2, DEMONSTRAÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Demonstração: anatomia de uma classe <code>@Configuration</code></h2>
+        </div>
+
+        <p class="lead">Esqueleto de uma classe qualquer, para mostrar a anatomia antes de escrever a de hoje.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Configuration
+public class ExemploConfig {
+  @Bean
+  @Profile("dev")
+  public MinhaInterface implementacaoDeDev() { return new ImplementacaoDeDev(); }
+
+  @Bean
+  @Profile("prod")
+  public MinhaInterface implementacaoDeProd() { return new ImplementacaoDeProd(); }
+}</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>O <code>@Profile</code> decide se o método participa da subida; o tipo de retorno é o que fica disponível para o construtor que pedir a interface, não o tipo concreto. Só um dos dois métodos roda por subida.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Demonstração, @Configuration</div>
+          <div class="footer-page">12</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 13: EXERCÍCIO CURTO DO CICLO 2 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Exercício em duplas: prever a saída sem perfil ativo</h2>
+        </div>
+
+        <p class="lead">Cinco minutos. No <code>ExemploConfig</code> do slide anterior, prever o que acontece.</p>
+
+        <div class="exercise-container">
+          <h3>Cenário</h3>
+          <ol class="exercise-steps">
+            <li>A aplicação sobe sem nenhum parâmetro de perfil.</li>
+            <li>Nenhum dos dois métodos <code>@Bean</code> tem um perfil <code>default</code>.</li>
+            <li>O que acontece ao Spring tentar montar um bean que dependa de <code>MinhaInterface</code>?</li>
+          </ol>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Exercício, sem perfil</div>
+          <div class="footer-page">13</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 14: QUIZ DE FIXAÇÃO ==================== -->
+      <section class="quiz-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area"><div class="accent-bar"></div><h2>Quiz de fixação</h2></div>
+        <div class="quiz-container">
+          <div class="quiz-question">Segundo o capítulo, quando um desenvolvedor usa um framework, quem controla o fluxo de execução das operações que o aplicativo necessita?</div>
+          <ul class="quiz-options">
+            <li data-correct="false"><span class="option-letter">A</span> O próprio desenvolvedor, chamando cada função do framework na ordem que escolher.</li>
+            <li data-correct="true"><span class="option-letter">B</span> O framework, que determina como o aplicativo vai funcionar: a inversão de controle.</li>
+            <li data-correct="false"><span class="option-letter">C</span> O sistema operacional, que agenda a execução de cada classe do framework por prioridade.</li>
+            <li data-correct="false"><span class="option-letter">D</span> Framework e aplicativo rodam em processos independentes, sem relação de controle entre os dois.</li>
+          </ul>
+          <div class="quiz-feedback"
+               data-correct-msg="Correto. O capítulo afirma que o framework controla o fluxo de execução do aplicativo. A isso se dá o nome de inversão de controle."
+               data-incorrect-msg="Incorreto. A certa é a B: o capítulo diz que quem controla o fluxo é o framework, não o desenvolvedor, o sistema operacional nem processos independentes."></div>
+        </div>
+        <div class="slide-footer"><div class="footer-bar">12 Quiz de fixação</div><div class="footer-page">14</div></div>
+      </section>
+
+      <!-- ==================== SLIDE 15: LABORATÓRIO, INTRODUÇÃO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório: <code>NotificadorDeOcorrencia</code> por perfil, <code>dev</code> e <code>prod</code></h2>
+        </div>
+
+        <p class="lead">O código de hoje mora no contexto <code>rastreamento</code>, aberto na Aula 11, e acrescenta a camada <code>service</code>, ainda sem nenhuma classe.</p>
+
+        <div class="side-by-side" style="margin-top:6px;">
+          <div class="side">
+            <h4>Ciclo 3, escrever o contrato e a configuração</h4>
+            <p style="margin:0; font-size:0.7em;">Seis passos: a interface <code>NotificadorDeOcorrencia</code>, as duas implementações, <code>NotificacaoConfig</code> registrando os dois beans, os dois arquivos de propriedades e o <code>CommandLineRunner</code> de log.</p>
+          </div>
+          <div class="side">
+            <h4>Ciclo 4, subir os dois perfis e testar</h4>
+            <p style="margin:0; font-size:0.7em;">Seis passos: instalar um ajuste que o fork acumulado exige, subir com <code>dev</code>, subir com <code>prod</code>, testar os dois, o gancho para a Aula 19 e a decisão registrada.</p>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top:8px;">
+          <p><strong>Oito arquivos digitados, um entregue pronto.</strong> Um arquivo já entregue em Aulas anteriores precisa de um ajuste de uma linha para o fork acumulado continuar subindo sob os dois perfis novos; ele chega pronto no kit, e o passo 7 explica por quê.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Laboratório, introdução</div>
+          <div class="footer-page">15</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 16: LAB PASSO 1, CONTRATO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 1: o contrato de notificação</h2>
+        </div>
+
+        <p class="lead">Em <code>rastreamento/service</code>, a interface <code>NotificadorDeOcorrencia</code>, com um único método. Sem anotação de framework: é contrato.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public interface NotificadorDeOcorrencia {
+  void notificar(Ocorrencia ocorrencia);
+}</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Como toda interface de contrato do semestre, ela não sabe que o Spring existe. <code>Ocorrencia</code>, já entregue na Aula 11, é o tipo que ela recebe.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Laboratório, passo 1, contrato</div>
+          <div class="footer-page">16</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 17: LAB PASSO 2, IMPLEMENTAÇÃO DE DEV ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 2: a implementação de dev</h2>
+        </div>
+
+        <p class="lead"><code>NotificadorDeOcorrenciaConsole</code>, também em <code>rastreamento/service</code>, sem anotação nenhuma.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public class NotificadorDeOcorrenciaConsole implements NotificadorDeOcorrencia {
+
+  @Override
+  public void notificar(Ocorrencia ocorrencia) {
+    log.info("[DEV] ocorrencia {} do tipo {} registrada",
+        ocorrencia.getCodigoRastreio(), ocorrencia.getTipo());
+  }
+}</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p>Registra no log, via <code>Logger</code> do SLF4J, o código de rastreio e o tipo da ocorrência. Quem registra esta classe como bean é <code>NotificacaoConfig</code>, no passo 4, nunca uma anotação aqui.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Laboratório, passo 2, dev</div>
+          <div class="footer-page">17</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 18: LAB PASSO 3, IMPLEMENTAÇÃO DE PROD ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 3: a implementação de prod</h2>
+        </div>
+
+        <p class="lead"><code>NotificadorDeOcorrenciaWebhookSimulado</code>, recebendo <code>urlWebhook</code> pelo construtor, também sem anotação.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>public class NotificadorDeOcorrenciaWebhookSimulado implements NotificadorDeOcorrencia {
+  private final String urlWebhook;
+  public NotificadorDeOcorrenciaWebhookSimulado(String urlWebhook) {
+    this.urlWebhook = urlWebhook;
+  }
+
+  @Override
+  public void notificar(Ocorrencia ocorrencia) {
+    log.info("[PROD] enviaria POST para {} com a ocorrencia {}",
+        urlWebhook, ocorrencia.getCodigoRastreio());
+  }
+}</code></pre>
+
+        <div class="callout" style="margin-top:4px;">
+          <p>Sem chamada de rede real, só log. Simulado de propósito, pela mesma razão da Aula 10: a aula não pode depender de um endpoint externo de verdade em qualquer sala.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Laboratório, passo 3, prod</div>
+          <div class="footer-page">18</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 19: LAB PASSO 4, REGISTRAR OS DOIS BEANS ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 4: registrar os dois beans, explicitamente</h2>
+        </div>
+
+        <p class="lead">Criar <code>NotificacaoConfig</code>, anotada <code>@Configuration</code>, em <code>rastreamento/service</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Configuration
+public class NotificacaoConfig {
+
+  @Bean
+  @Profile("dev")
+  public NotificadorDeOcorrencia notificadorDeOcorrenciaDev() {
+    return new NotificadorDeOcorrenciaConsole();
+  }
+
+  @Bean
+  @Profile("prod")
+  public NotificadorDeOcorrencia notificadorDeOcorrenciaProd(
+      @Value("${rotasul.webhook.parceiro-notificacao}") String urlWebhook) {
+    return new NotificadorDeOcorrenciaWebhookSimulado(urlWebhook);
+  }
+}</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Laboratório, passo 4, beans</div>
+          <div class="footer-page">19</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 20: LAB PASSO 5, PROPRIEDADES POR PERFIL ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 5: os dois arquivos de propriedades <a href="#/ref-slide" class="ref-badge" title="Ver referências">[5]</a></h2>
+        </div>
+
+        <p class="lead">Em <code>src/main/resources</code>, um arquivo por perfil.</p>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>application-dev.properties     # vazio por enquanto
+
+application-prod.properties
+rotasul.webhook.parceiro-notificacao=https://parceiro.rotasul.exemplo/webhook</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>É a segunda metade da "configuração por perfil" do entregável de hoje: não só o bean muda, a propriedade também muda, e só o perfil <code>prod</code> precisa saber o endereço do parceiro.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Laboratório, passo 5, properties</div>
+          <div class="footer-page">20</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 21: LAB PASSO 6, COMPROVAR POR LOG ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 6: comprovar por log</h2>
+        </div>
+
+        <p class="lead">Ainda em <code>NotificacaoConfig</code>, um terceiro <code>@Bean</code>, do tipo <code>CommandLineRunner</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Bean
+@Profile({"dev", "prod"})
+public CommandLineRunner logarNotificadorAtivo(NotificadorDeOcorrencia notificador) {
+  return args -> log.info("Notificador ativo: {}",
+      notificador.getClass().getSimpleName());
+}</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><strong>Este bean precisa de <code>@Profile</code>, e não pode ficar sem.</strong> O construtor pede <code>NotificadorDeOcorrencia</code>, que só existe sob <code>dev</code> ou <code>prod</code>. Sem a restrição, ele tentaria subir também sob <code>padrao</code>, o perfil ativo desde a Aula 07, onde não há notificador nenhum, e quebraria a suíte inteira.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Laboratório, passo 6, log</div>
+          <div class="footer-page">21</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 22: LAB PASSO 7, AJUSTE EM PEDIDOSERVICEPADRAO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 7: instalar o ajuste em <code>PedidoServicePadrao</code></h2>
+        </div>
+
+        <p class="lead">Copiar do kit: <code>PedidoServicePadrao.java</code>, com o <code>@Profile</code> ampliado de <code>"padrao"</code> para os três perfis.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@Service
+@Profile({"padrao", "dev", "prod"})
+public class PedidoServicePadrao implements PedidoService { ... }</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><strong>Um segundo ponto de fiação que só o contexto Spring inteiro expõe.</strong> <code>PedidoController</code> pede <code>PedidoService</code> em toda subida, mas <code>PedidoServicePadrao</code> só era bean sob <code>"padrao"</code>. Os perfis <code>dev</code> e <code>prod</code> de hoje são de ambiente, não de qual <code>PedidoService</code> usar, mas não coincidiam com <code>"padrao"</code>: sem o ajuste, <code>./mvnw spring-boot:run -Dspring-boot.run.profiles=dev</code> falharia com <code>UnsatisfiedDependencyException</code>.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Laboratório, passo 7, ajuste</div>
+          <div class="footer-page">22</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 23: LAB PASSO 8, SUBIR COM DEV ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 8: subir com o perfil <code>dev</code></h2>
+        </div>
+
+        <p class="lead">Com o terminal na raiz do fork.</p>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>./mvnw spring-boot:run -Dspring-boot.run.profiles=dev</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Conferir, no log de inicialização, a linha <code>Notificador ativo: NotificadorDeOcorrenciaConsole</code>. É a primeira das duas evidências que o entregável de hoje pede.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Laboratório, passo 8, dev</div>
+          <div class="footer-page">23</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 24: LAB PASSO 9, SUBIR COM PROD ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 9: subir com o perfil <code>prod</code></h2>
+        </div>
+
+        <p class="lead">Parar a aplicação e subir de novo, trocando só o valor do perfil.</p>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>./mvnw spring-boot:run -Dspring-boot.run.profiles=prod</code></pre>
+
+        <div class="callout" style="margin-top:8px;">
+          <p>Conferir a linha <code>Notificador ativo: NotificadorDeOcorrenciaWebhookSimulado</code>. As duas capturas, <code>dev</code> e <code>prod</code>, são a evidência literal do entregável de hoje: beans distintos, comprovados por log.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Laboratório, passo 9, prod</div>
+          <div class="footer-page">24</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 25: LAB PASSO 10, TESTAR OS DOIS PERFIS ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 10: testar os dois perfis</h2>
+        </div>
+
+        <p class="lead">Duas classes em <code>src/test/java/br/uni9/rotasul/rastreamento/service/</code>.</p>
+
+        <pre class="code-compact"><code class="language-java" data-trim>@SpringBootTest
+@ActiveProfiles("dev")
+class NotificacaoConfigDevTest {
+  @Autowired
+  private NotificadorDeOcorrencia notificador;
+
+  @Test
+  void perfilDevInjetaONotificadorDeConsole() {
+    assertInstanceOf(NotificadorDeOcorrenciaConsole.class, notificador);
+  }
+}</code></pre>
+
+        <div class="callout" style="margin-top:6px;">
+          <p><code>NotificacaoConfigProdTest</code> é simétrico, com <code>@ActiveProfiles("prod")</code>. Rodar <code>./mvnw test</code>: cada teste fixa o seu perfil, sem escolha na linha de comando.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Laboratório, passo 10, teste</div>
+          <div class="footer-page">25</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 26: LAB PASSO 11, GANCHO PARA A AULA 19 ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 11: deixar o gancho para a Aula 19</h2>
+        </div>
+
+        <p class="lead">Ninguém chama <code>notificar(...)</code> de dentro de <code>OcorrenciaCreator</code> ainda, e está certo que seja assim.</p>
+
+        <div class="takeaway" style="margin-top:8px;">
+          <span class="takeaway-label">Por que ainda não</span>
+          <p>Hoje o objetivo é a configuração por perfil, não o fluxo completo de notificação. A chamada real a <code>NotificadorDeOcorrencia</code> entra quando os serviços da Rota Sul conversarem entre si de verdade, na Aula 19.</p>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Laboratório, passo 11, gancho</div>
+          <div class="footer-page">26</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 27: LAB PASSO 12, REGISTRAR A DECISÃO ==================== -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Laboratório, passo 12: registrar a decisão</h2>
+        </div>
+
+        <p class="lead">Em <code>docs/decisoes.md</code>, uma linha nova explicando a escolha de configuração explícita.</p>
+
+        <pre class="code-compact"><code class="language-markdown" data-trim>Notificacao de ocorrencia: configuracao explicita por
+NotificacaoConfig em vez de @Profile direto nas classes,
+para concentrar a decisao de ambiente num unico lugar.</code></pre>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Laboratório, passo 12, decisão</div>
+          <div class="footer-page">27</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 28: ENTREGÁVEL E CRITÉRIOS ==================== -->
+      <!-- O slide do entregável é o último passo do laboratório e nasce
+           dentro do Ciclo 4, então leva `exercise-slide content-slide` como
+           os demais slides de passo. Ver ADR-008. -->
+      <section class="exercise-slide content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Entregável de hoje e critérios de aceitação</h2>
+        </div>
+
+        <p class="lead">Os dois perfis, <code>dev</code> e <code>prod</code>, subindo com beans distintos, comprovado por log.</p>
+
+        <table style="margin-top:4px; font-size:0.58em;">
+          <thead>
+            <tr><th style="width:360px;">Critério de aceitação</th><th>Evidência conferida na correção</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Subir com <code>dev</code> mostra o notificador certo</td><td><code>-Dspring-boot.run.profiles=dev</code>, log com <code>NotificadorDeOcorrenciaConsole</code></td></tr>
+            <tr><td>Subir com <code>prod</code> mostra o notificador certo</td><td><code>-Dspring-boot.run.profiles=prod</code>, log com <code>NotificadorDeOcorrenciaWebhookSimulado</code></td></tr>
+            <tr><td><code>NotificacaoConfigDevTest</code> e <code>NotificacaoConfigProdTest</code> passando</td><td><code>./mvnw test</code> verde, os dois <code>instanceof</code></td></tr>
+            <tr><td>Nenhuma anotação de framework nas duas implementações</td><td>Inspeção de <code>NotificadorDeOcorrenciaConsole</code> e <code>NotificadorDeOcorrenciaWebhookSimulado</code></td></tr>
+            <tr><td>A decisão está registrada</td><td><code>docs/decisoes.md</code> com a linha nova</td></tr>
+            <tr><td><code>./mvnw test</code> passando</td><td>Suíte inteira verde, incluindo as Aulas 06 a 11</td></tr>
+          </tbody>
+        </table>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Entregável e critérios</div>
+          <div class="footer-page">28</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 29: FECHAMENTO ==================== -->
+      <section class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Commit, push e prévia da Aula 13</h2>
+        </div>
+
+        <pre class="code-compact"><code class="language-bash" data-trim>git add src docs
+git commit -m "feat(rastreamento): configura NotificadorDeOcorrencia por perfil dev e prod, com injecao explicita"
+git push</code></pre>
+
+        <div class="side-by-side" style="margin-top:12px;">
+          <div class="side" style="padding:14px 18px;">
+            <h4>O que muda hoje</h4>
+            <p style="margin:0; font-size:0.66em;">Na Aula 11 a Rota Sul decidiu, dentro do próprio código, qual estratégia de frete usar. Hoje o container do Spring decidiu, fora do código de negócio, qual notificador injetar: as duas são formas legítimas de trocar comportamento, e a diferença é exatamente o que separa um padrão de projeto de uma característica de framework.</p>
+          </div>
+          <div class="side" style="padding:14px 18px;">
+            <h4>Prévia da Aula 13</h4>
+            <p style="margin:0; font-size:0.66em;">Até aqui a Rota Sul só devolve JSON. A próxima aula acrescenta uma segunda porta de entrada, uma tela de verdade, com Thymeleaf, layout e fragments, para o atendente cadastrar um pedido sem abrir o navegador numa URL de API.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Fechamento</div>
+          <div class="footer-page">29</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 30: REFERÊNCIAS ==================== -->
+      <section id="ref-slide" class="content-slide">
+        <div class="top-bar"></div>
+        <img src="../assets/img/uninove-logo.png" alt="Uninove" class="uninove-logo-header">
+        <div class="decor-coral"></div>
+        <div class="slide-title-area">
+          <div class="accent-bar"></div>
+          <h2>Referências desta aula</h2>
+        </div>
+
+        <p class="lead">Os números entre colchetes nos títulos remetem a esta lista.</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; margin-top:14px;">
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[1] Frameworks</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">MESQUITA, P. R. B. <em>Capítulo 11</em>. Arquitetura de Software. AVA, Uninove. Fonte primária desta aula.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[2] A Software Framework For Data Based Analysis</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">KRTZIG, M. VDM Verlag, Alemanha, 2008. Referência indicada pelo capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[3] Software Framework</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">SURHONE, L. M.; TENNOE, M. T.; HESSONOW, S. F. Betascript, 2010. Referência indicada pelo capítulo.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[4] Documentação do Spring Framework</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">Seção do container de IoC e de beans. Fonte da anatomia do container, fora do capítulo 11. Ver a nota no slide 10.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[5] Documentação do Spring Boot</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;">Seção de propriedades específicas de perfil.</p>
+          </div>
+          <div class="concept-card" style="padding:10px 16px;">
+            <h4 style="margin:0 0 4px 0;">[6] JUnit 5 User Guide</h4>
+            <p style="font-size:0.66em; color:#444444; margin:0;"><code style="font-size:0.9em;">junit.org/junit5/docs/current/user-guide/</code></p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-bar">12 Referências</div>
+          <div class="footer-page">30</div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 31: ENCERRAMENTO ==================== -->
+      <section class="end-slide">
+        <img src="../assets/img/uninove-logo.png" alt="Uninove, Universidade Nove de Julho"
+             style="max-width:300px; background:#FFFFFF; padding:20px 28px; border-radius:8px;">
+        <div class="copyright">
+          Copyright &copy; 2026<br>
+          Prof. José Romualdo da Costa Filho<br><br>
+          Todos os direitos reservados. É expressamente proibida a reprodução, divulgação<br>
+          total ou parcial, deste material acadêmico sem autorização formal,<br>
+          por escrito, do Professor autor da ementa.
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="../assets/js/uninove-quiz.js"></script>
+  <script>
+    Reveal.initialize({
+      width: 1280, height: 720, center: false, margin: 0,
+      hash: true, slideNumber: false,
+      // Os chevrons de navegação caem sobre a footer-bar e sobre o triângulo
+      // azul do canto inferior direito; a barra de progresso encosta no rodapé
+      // e parece um segundo rodapé. Nenhum dos dois é usado na projeção.
+      controls: false, progress: false,
+      // Um slide por página no ?print-pdf, para o PDF bater com o deck.
+      pdfMaxPagesPerSlide: 1,
+      plugins: [RevealHighlight],
+    });
+  </script>
+</body>
+</html>

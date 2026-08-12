@@ -704,6 +704,28 @@ o que já existia; uma peça nova, sozinha correta, também pode faltar um elo
 de fiação que só o contexto Spring inteiro exige, e só aparece testando o
 fork acumulado.
 
+**Terceira variante, achada na Aula 12 ao provar a cadeia 06 a 12 completa:
+dois eixos de perfil que nunca tinham sido combinados.** A Aula 07 introduziu
+os perfis `"padrao"` e `"risco"` para escolher qual `PedidoService` sobe; a
+Aula 12 introduz os perfis `"dev"` e `"prod"` para escolher qual
+`NotificadorDeOcorrencia` sobe. Os dois eixos são ortogonais (um escolhe
+implementação de negócio, o outro escolhe ambiente), mas o Spring só enxerga
+uma lista de perfis ativos, sem separar eixos: subir só com `"dev"` ativo
+significa que `"padrao"` **não** está ativo, e `PedidoServicePadrao`
+(`@Profile("padrao")`, desde a Aula 07) deixa de ser candidato a bean.
+`PedidoController` pede `PedidoService` sem nenhuma restrição de perfil, então
+`./mvnw spring-boot:run -Dspring-boot.run.profiles=dev` falhava com
+`UnsatisfiedDependencyException`, mesmo com todo o código de hoje correto.
+Nenhuma verificação isolada da Aula 12 expõe isso, porque só teria `pedido` e
+`rastreamento` sem o `PedidoController` inteiro em jogo; só apareceu subindo o
+fork acumulado com os dois perfis novos. Corrigido ampliando o `@Profile` de
+`PedidoServicePadrao` para `{"padrao", "dev", "prod"}`, sem tocar
+`PedidoServiceComAnaliseDeRisco`, que continua exclusivo de `"risco"`. Terceira
+lição, generalizando as duas de cima: quando uma aula nova introduz um eixo de
+perfil, qualquer bean sem restrição de perfil que dependa de um bean **de um
+eixo anterior** precisa ser revisado contra a lista completa de perfis que a
+aplicação já usa, não só contra os perfis que a aula de hoje introduz.
+
 ---
 
 ## 9. O ciclo do artefato
