@@ -2578,13 +2578,21 @@ perguntou?
 - **Demonstração no projetor.** Escrever no quadro um XML pequeno para um
   `Volume` da Rota Sul: `<volume><etiqueta>VOL-001</etiqueta><pesoKg>12.5
   </pesoKg></volume>`. Contar ao vivo, com a turma, quantos bytes são de tag e
-  quantos são de conteúdo, repetindo o exercício de contagem do capítulo, e
-  chegar a uma proporção parecida, perto de quarenta por cento em tags.
+  quantos são de conteúdo, repetindo o exercício de contagem do capítulo. O
+  resultado real deste XML: 55 dos 66 bytes do trecho são tag e 11 são
+  conteúdo, uma proporção de 83,3% em tags, bem acima dos quase 50% do
+  exemplo do capítulo. A causa é que `etiqueta` (oito letras) e `pesoKg`
+  (seis letras) são nomes de tag mais longos do que os valores que carregam
+  (`VOL-001`, sete caracteres, e `12.5`, quatro caracteres), o oposto do
+  exemplo `<nome>Bilbo Bolseiro</nome>`, em que o nome da tag (quatro letras)
+  é mais curto do que o valor que carrega (catorze caracteres). Vale
+  explicitar essa causa para a turma: é a mesma lição do capítulo, tags
+  custam bytes, aplicada a um caso em que o efeito é mais forte.
 
 - **Exercício curto.** Cinco minutos, individual. Escrever à mão um XML para
   uma `Remessa` com `codigoRastreio` e `previsaoEntrega`, e contar quantos
   bytes são de tag e quantos são de conteúdo, decidindo se o resultado fica
-  acima ou abaixo dos quarenta por cento vistos na demonstração.
+  acima ou abaixo dos 83,3% vistos na demonstração.
 
 ### Ciclo 2, 20h05 às 20h40
 
