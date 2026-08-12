@@ -673,18 +673,12 @@ public class PedidoService {
 @RequestMapping("/pedidos")
 public class PedidoController {
   private final PedidoService pedidoService;
-  public PedidoController(PedidoService pedidoService) {
-    this.pedidoService = pedidoService;
-  }
+  public PedidoController(PedidoService pedidoService) { this.pedidoService = pedidoService; }
   @GetMapping
-  public List&lt;Pedido&gt; listar() {
-    return pedidoService.listar();
-  }
+  public List&lt;Pedido&gt; listar() { return pedidoService.listar(); }
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public Pedido registrar(@RequestBody Pedido pedido) {
-    return pedidoService.registrar(pedido);
-  }
+  public Pedido registrar(@RequestBody Pedido pedido) { return pedidoService.registrar(pedido); }
 }</code></pre>
 
         <div class="slide-footer">
