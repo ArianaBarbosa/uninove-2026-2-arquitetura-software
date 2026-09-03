@@ -32,3 +32,11 @@ E acessar `http://localhost:8000/` no navegador.
 
 O andamento do trabalho, a ordem de leitura recomendada e o que falta
 construir estão em `docs/ANDAMENTO.md`.
+
+## Identificação da Aluna
+- Nome completo: Ariana Barbosa Costa
+- RA: 926112800
+- Turma: quinta-feira
+- O que espero aprender: projetar, organizar e publicar uma aplicação em nuvem com arquitetura profissional.
+
+
